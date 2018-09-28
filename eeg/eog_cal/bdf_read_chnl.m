@@ -16,7 +16,7 @@ end
 % 64 channel:
 %  if header has 'eye': FT7 = EX 3, FT8 = EX4 
 %  for newer: EXG3 EXG4
-horz_eye_idx = contains(c,'horiz_eye');
+horz_eye_idx = contains(c,'horz_eye');
 c_rename = c;
 if any(horz_eye_idx)
     horzch = horz_eye_channel_name(h);
