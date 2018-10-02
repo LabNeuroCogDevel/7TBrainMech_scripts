@@ -43,6 +43,7 @@ if length(bdf_files) < 1; error(['no files matching task ' taskname]); end
 subjids = cellfun(@(x) regexp(x,'\d{5}+_\d{8}+','once','match'),bdf_files,'UniformOutput',0);
 
 %% read in all files
+if isa(taskname,'cell'), taskname=strjoin(taskname); end
 fprintf('reading in %d %s files, pulling channels: %s\n', length(bdf_files), taskname,...
     strjoin(channels));
 subj_struct = cellfun(@(x) bdf_read_chnl(x,channels), bdf_files);
