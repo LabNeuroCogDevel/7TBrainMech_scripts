@@ -8,7 +8,7 @@ function bdf_files = find_bdf(taskname,varargin)
 
 if isa(taskname,'char') && strcmp(taskname,'#cal')
    warning('searching for eyecal variations (extend in find_bdf)')
-   taskname={'Cal','cal','CAL'};
+   taskname={'Cal','cal','CAL','EOG'};
 end
 if isa(taskname,'char') && strcmp(taskname,'#mgs')
    warning('searching for mgs task and variations (extend in find_bdf)')
