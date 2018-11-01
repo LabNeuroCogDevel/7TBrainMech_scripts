@@ -3,12 +3,13 @@ function [subj_struct] = eeg_data(taskname, channels, varargin)
 %  eeg_data(taskname|fileglob|abspath|cell, channels[, 'subjs', {subj, subj}])
 %   provide 
 %     1) a way to find .bdf eeg files (taskname, abs path, glob, or cell of any of those)
+%         *  use "#cal" for all calibration names, #mgs for all mgs task
 %         *  use cell for multiple tasks, see `cals=` example usage
 %     2) a cell of channels names
 %         * 'horz_eye' gives uniform name to left (EX3,EG3,FT7) and right eye
 %         * 'Status' is adjusted to get tiggers 0-255
 %     3) optionaly: 'subjs', subjlist cell
-%        eeg_data('MGS','subjs',{'11676','10195_20180201'})
+%        eeg_data('MGS',ch,'subjs',{'11676','10195_20180201'})
 %   outputs a struct array with Fs, id, file, and channel data fields
 %
 %  USAGE:
@@ -17,12 +18,16 @@ function [subj_struct] = eeg_data(taskname, channels, varargin)
 %   cal = eeg_data('eyecal',ch)
 %   cals = eeg_data({'eyecal','EOG'},ch)
 %   cal11451 = eeg_data('11451_2*_EOGCalib.bdf',ch)
-%    N.B. for one file, use  bdf_read_chnl(file, ch [,header])
-%     f='/Volumes/Hera/Raw/EEG/7TBrainMech/11676_20180821/11676_20180821_ANTI.bdf'
-%     bdf_read_chnl(f, ch)
-%    for all header information use fieldtrip:
-%     h=ft_read_header(f)
-%
+%    N.B. 
+%    * "#cal" as taskname searches all calibration variations, see find_bdf.m
+%    * "#mgs" as taskname searches all mgs tasks             , see find_bdf.m
+%    * for just a file list use find_bdf
+%       find_bdf('1*MGS')
+%    * for one file, use  bdf_read_chnl(file, ch [,header])
+%       f='/Volumes/Hera/Raw/EEG/7TBrainMech/11676_20180821/11676_20180821_ANTI.bdf'
+%       bdf_read_chnl(f, ch)
+%    * for all header information use fieldtrip:
+%       h=ft_read_header(f)
 
 %% be helpful when given bad params
 if(nargin<1), help('eeg_data'); error("need task and channels"); end

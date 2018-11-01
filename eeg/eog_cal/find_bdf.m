@@ -1,12 +1,25 @@
 function bdf_files = find_bdf(taskname,varargin)
 %FIND_BDF  find bdf files for 7TBrainMech task (synced from box)
-% USAGE: find_bdf('MGS','subjs',{'11676','10195_20180201'})
+% USAGE:
+%   find_bdf('MGS')
+%   find_bdf({'EOG','eye'})
+%   find_bdf('MGS','subjs',{'11676','10195_20180201'})
+% NB: "#cal" and "#mgs" are special tasknames -- searches all variations
+
+if isa(taskname,'char') && strcmp(taskname,'#cal')
+   warning('searching for eyecal variations (extend in find_bdf)')
+   taskname={'Cal','cal','CAL'};
+end
+if isa(taskname,'char') && strcmp(taskname,'#mgs')
+   warning('searching for mgs task and variations (extend in find_bdf)')
+   taskname={'mgs','MGS'};
+end
 
 %% cell of tasks => recursive calls to find_bdf
 % get each task individually, then combine
 if(isa(taskname,'cell'))
     alltasks  = cellfun(@(x) find_bdf(x,varargin{:}), taskname, 'UniformOutput',0);
-    bdf_files = vertcat(alltasks{:});
+    bdf_files = unique(vertcat(alltasks{:}));
     return
 end
 
