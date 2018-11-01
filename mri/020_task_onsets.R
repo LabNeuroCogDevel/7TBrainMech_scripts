@@ -95,7 +95,7 @@ d$dur <- d$mgs - d$cue + MGSDUR
 d %>% mutate(coarse_side = gsub("Near", "", side),
              hasimg      = ifelse(imgtype.x=="None", "noimg", "img"),
              prefix      = paste(sep="_", ld8, hasimg, coarse_side),
-             fname = sprintf("%s/%s.1D", OUTDIR, prefix)) %>%
+             fname = sprintf("%s/%s.1d", OUTDIR, prefix)) %>%
    split(.$fname) %>%
    lapply(function(x)
           save1D(x, colname="cue", dur="dur", nblocks=3, fname=first(x$fname)))

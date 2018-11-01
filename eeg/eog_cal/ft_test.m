@@ -12,7 +12,11 @@ if isempty(which('ft_read_header'))
             ])
     end
     
-    addpath(ftloc)
+    addpath(genpath(ftloc))
+end
+
+if isempty(which('ft_read_header'))
+   error('missing ft_read_header from fieldtrip, thought %s had function',ftloc)
 end
 
 end

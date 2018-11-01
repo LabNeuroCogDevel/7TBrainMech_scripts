@@ -1,6 +1,7 @@
 #!/usr/bin/env Rscript
 
-install.packages('qualtRics'); library('qualtRics')
+#install.packages("qualtRics")
+library(qualtRics)
 
 registerOptions(api_token='76qsEM2voOECkoYZHDjuZM1ASsuIeDpmmIZPeLPl',root_url='https://pitt.co1.qualtrics.com')
 # allsurveys<-getSurveys() 

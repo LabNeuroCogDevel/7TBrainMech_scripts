@@ -18,7 +18,7 @@ getld8_dcmdir(){
 
    # match something like 
    # 20180426Luna_11633 or 20180514Luna2_11640
-   [[  $patname =~ (2[0-9]{7})_?(Luna[0-9]?)?_?(1[0-9]{4}) ]] && patname=${BASH_REMATCH[3]}_${BASH_REMATCH[1]}
+   [[  $patname =~ (2[0-9]{7})_?(Luna[0-9]?[A-Ca-c]?)?_?(1[0-9]{4}) ]] && patname=${BASH_REMATCH[3]}_${BASH_REMATCH[1]}
    [[ ! $patname =~ [0-9]{5}_[0-9]{8} ]] && echo "bad lunadate patname ('$orig_pn' -> '$patname') from $exampledcm, correct in func.bash" >&2 && return 1
 
    # ld8 is matched pattern
