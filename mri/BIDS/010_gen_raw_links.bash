@@ -9,7 +9,7 @@
 scriptdir=$(cd $(dirname $0);pwd)
 bidsroot=$scriptdir
 
-source $scriptdir/func.bash # getld8_dcmdir
+source $scriptdir/func.bash # getld8_dcmdir getld8_db
 cd /Volumes/Hera/Raw/BIDS/7TBrainMech/rawlinks
 
 # look through all dicoms in a directory
@@ -66,6 +66,7 @@ link_subjalldcm(){
 
  # get id
  id=$(getld8_dcmdir $d) || return 
+ [ -z "$id" ] && id=$(getld8_db $d)
  [ -z "$id" ] && echo "no id for $d ($exampledcm)" && return
 
  echo "$id $d"

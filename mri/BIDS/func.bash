@@ -25,3 +25,22 @@ getld8_dcmdir(){
    echo "$BASH_REMATCH"
 
 }
+
+# give me a string like yyyymmddLuna#, and i'll give you the luna_date
+getld8_db(){
+   read ymd num <<< $(echo $@ | perl -lne 'print $1,"\t",$2?$2:1 if m/(\d{8})Luna([1-3])?/i')
+   psql -F $'\t'  --no-align -qt  -h arnold.wpic.upmc.edu  lncddb  lncd -c "
+select
+   concat(id, '_', to_char(vtimestamp,'yyyymmdd')) as ld8,
+   vtimestamp
+   from visit_study 
+   natural join visit
+   natural join enroll
+   where 
+   vtype like 'scan' and
+   study like 'BrainMechR01' and
+   etype like 'LunaID' and
+   to_char(vtimestamp,'yyyymmdd') like '%$ymd%'
+   order by vtimestamp asc; 
+   " | uniq |tee >(echo "looking at: $@: $ymd $num">&2; cat|sed 's/^/\t/' >&2) |sed -n ${num}p
+}
