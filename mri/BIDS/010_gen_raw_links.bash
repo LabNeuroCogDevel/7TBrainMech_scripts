@@ -47,7 +47,7 @@ link_glob(){
      expectn=$(echo $2|cut -f4 -d_) 
      haven=$(ls $2|wc -l)
      echo "already have $2 ($haven/$expectn files)" 
-     [ "$expectn" -ne "$haven" ] && echo "[WARNING] rm $2 # to try again"
+     [ "$expectn" -ne "$haven" ] && echo "[WARNING] rm $2 # to try again" >&2
      return
   fi
 
@@ -65,8 +65,7 @@ link_subjalldcm(){
  [ -z "$d" -o ! -d "$d" ] && echo "bad alldcm subject directory '$d'" >&2  && return
 
  # get id
- id=$(getld8_dcmdir $d) || return 
- [ -z "$id" ] && id=$(getld8_db $d)
+ id=$(getld8 "$d") || : #continue
  [ -z "$id" ] && echo "no id for $d ($exampledcm)" && return
 
  echo "$id $d"
@@ -81,8 +80,9 @@ link_subjalldcm(){
 
 # if no input, look at inputdirs.txt
 if [ -z "$1" ]; then
-  echo "# no raw dir given, using 000_gen_idlist.bash"
-  $scriptdir/000_gen_idlist.bash| while read d ld8 sub_sess; do
+  $scriptdir/000_gen_idlist.bash
+  echo "# no raw dir given, using 000_gen_idlist.bash (alternate usage: $0 /Volumes/Hera/Raw/MRprojects/7TBrainMech/20180607Luna1/20180607LUNA1DCMALL/)"
+  cat $scriptdir/inputdirs.txt | while read d ld8 sub_sess; do
     [ -d $bidsroot/$sub_sess ] && echo "# have $bidsroot/$sub_sess for raw $d" && continue
     [ -d $ld8 ] && echo "# have rawlinks $ld8 for raw $d" && continue
     link_subjalldcm $d
