@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# Originally MRSI_CoregSeg_MB4_plusExtras.bash
+
 set -euo pipefail
 export AFNI_COMPRESSOR="" AFNI_NIFTI_TYPE_WARN=NO
 
@@ -14,9 +16,9 @@ flair_flag=0 # 1 if FLAIR exists, 0 if not
 scout_slice_num=[13.7,17,20.3,23.7]  # slice numbers of SCOUT corresponding to the center positions of CSI acquisition (add 1 to Siemens Slice number in header)
 #csi_slice_num=[2,4,1,3]  # slice numbers of CSI corresponding to scout_slice_num (it should be appeared in the filename of MRSI excel file in format '_SI*')
 csi_size=[24,24]  # matrix size of CSI [anterior-posterior direction, left-right direction]
-csi_FOV=[240,240]  # FOV of CSI in [mm] [anterior-posterior direction, left-right direction]
-csi_thk=8  # slice thickness of CSI in [mm]
-scout_FOV=[240,240]  # FOV of B0 scout in [mm] [anterior-posterior direction, left-right direction]
+csi_FOV=[216,216]  # FOV of CSI in [mm] [anterior-posterior direction, left-right direction]
+csi_thk=9  # slice thickness of CSI in [mm]
+scout_FOV=[216,216]  # FOV of B0 scout in [mm] [anterior-posterior direction, left-right direction]
 scout_thk=3  # distance between two consecutive slices of B0 scout in [mm] (slice thickness + gap between two slices)
 
 thresh_total=0.75  # GM + WM > thresh_total (should be between 0 and 1)

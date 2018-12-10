@@ -5,7 +5,8 @@ if [ $(whoami) != "lncd" ]; then
    sudo -u lncd $0
    exit
 fi
-export PATH="$PATH:/opt/ni_tools/preproc_pipelines:/opt/ni_tools/fmri_processing_scripts"
+source $HOME/.bashrc
+#export PATH="$PATH:/opt/ni_tools/preproc_pipelines:/opt/ni_tools/fmri_processing_scripts"
 
 #
 # preprocess using 'pp' preprocess pipeline

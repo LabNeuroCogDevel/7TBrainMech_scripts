@@ -44,29 +44,32 @@ cols = {'Age','N','PosErr (deg)','PosErr_SE', 'DispErr (deg)', 'DispErr_SE', 'VG
 
 xi = 1;
 
-for yi = [3 9]%[2 3 5 7 9 11]
+for yi = [2 3 5 7 9 11]
     yi
     figure
     sei = yi+1;
 
-    errorbar(summary(:,xi), summary(:,yi), summary(:,sei), 'ok');
-    xhat = min(summary(:,1)):.1:max(summary(:,1));
+    z = abs((summary(:,yi)-mean(summary(:,yi)))/std(summary(:,yi)));
+    inds = find(z<3);
+    
+    errorbar(summary(inds,xi), summary(inds,yi), summary(inds,sei), 'ok');
+    xhat = min(summary(inds,1)):.1:max(summary(inds,1));
     distr = 'normal'; link = 'identity';
 
     % linear fit
-    [b_lin,dev,stats_lin] = glmfit(summary(:,xi), summary(:,yi), distr);
+    [b_lin,dev,stats_lin] = glmfit(summary(inds,xi), summary(inds,yi), distr);
     p_lin = stats_lin.p(2);
 
     % inverse fit
-    [b_inv,dev,stats_inv] = glmfit(1./summary(:,xi), summary(:,yi), distr);
+    [b_inv,dev,stats_inv] = glmfit(1./summary(inds,xi), summary(inds,yi), distr);
     p_inv = stats_inv.p(2);
 
     if p_lin < p_inv
         [yhat,dylo,dyhi] = glmval(b_lin, xhat, link, stats_lin);
-        text(22, .9*max(summary(:,yi)), sprintf('p = %.3f', p_lin), 'FontSize',20);
+        text(22, .9*max(summary(inds,yi)), sprintf('p = %.3f', p_lin), 'FontSize',20);
     else
         [yhat,dylo,dyhi] = glmval(b_inv, 1./xhat, link, stats_inv);
-        text(22, .9*max(summary(:,yi)), sprintf('p = %.3f', p_inv), 'FontSize',20);
+        text(22, .9*max(summary(inds,yi)), sprintf('p = %.3f', p_inv), 'FontSize',20);
     end
 
     hold on

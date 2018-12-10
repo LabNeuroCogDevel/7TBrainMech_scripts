@@ -15,8 +15,8 @@ parc_at_csi_multi_ft_plusExtras('/Volumes/Hera/Projects/7TBrainMech/subjs/11686_
     0,'0',... flair
     [13.7,17,20.3,23.7], ... scout slice number
     [24,24],     ... csi: size
-    [240,240],8, ... csi: fov, thk
-    [240,240],3);... scout: fov, thk
+    [216,216],9, ... csi: fov, thk
+    [216,216],3);... scout: fov, thk
     
 
 % datadir=/Volumes/Hera/Projects/7TBrainMech/subjs/11686_20180917/slice_PFC/MRSI/
