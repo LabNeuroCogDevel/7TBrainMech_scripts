@@ -13,11 +13,11 @@ spm_dir=/opt/ni_tools/matlab_toolboxes/spm12/
 flair_flag=0 # 1 if FLAIR exists, 0 if not
 #filename_flair=20141028_154029AXIALFLAIRs007a1001.nii # comment out this line if FLAIR doesn't exist
 
-scout_slice_num=[13.7,17,20.3,23.7]  # slice numbers of SCOUT corresponding to the center positions of CSI acquisition (add 1 to Siemens Slice number in header)
+scout_slice_num=[17]  # slice numbers of SCOUT corresponding to the center positions of CSI acquisition (add 1 to Siemens Slice number in header)
 #csi_slice_num=[2,4,1,3]  # slice numbers of CSI corresponding to scout_slice_num (it should be appeared in the filename of MRSI excel file in format '_SI*')
-csi_size=[24,24]  # matrix size of CSI [anterior-posterior direction, left-right direction]
+csi_size=[24,24]  # matrix size of CSI [anterior-posterior direction, left-right direction] # 9x9 *24x24 => 216x216
 csi_FOV=[216,216]  # FOV of CSI in [mm] [anterior-posterior direction, left-right direction]
-csi_thk=9  # slice thickness of CSI in [mm]
+csi_thk=10  # slice thickness of CSI in [mm]
 scout_FOV=[216,216]  # FOV of B0 scout in [mm] [anterior-posterior direction, left-right direction]
 scout_thk=3  # distance between two consecutive slices of B0 scout in [mm] (slice thickness + gap between two slices)
 

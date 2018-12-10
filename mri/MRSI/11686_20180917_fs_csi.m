@@ -13,9 +13,9 @@ spm_registration_ROI_ft_plusExtras(matlabcode_dir,ROI_dir,data_dir,filename_scou
 
 parc_at_csi_multi_ft_plusExtras('/Volumes/Hera/Projects/7TBrainMech/subjs/11686_20180917/slice_PFC/MRSI',...
     0,'0',... flair
-    [13.7,17,20.3,23.7], ... scout slice number
+    [17], ... scout slice number
     [24,24],     ... csi: size
-    [216,216],9, ... csi: fov, thk
+    [216,216],10, ... csi: fov, thk
     [216,216],3);... scout: fov, thk
     
 
