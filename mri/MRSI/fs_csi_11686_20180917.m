@@ -1,17 +1,20 @@
-addpath('/Volumes/Hera/Projects/7TBrainMech/scripts/mri/MRSI/Codes_yj//NIfTI');
+addpath('/Volumes/Hera/Projects/7TBrainMech/scripts/mri/MRSI/Codes_yj/NIfTI');
 addpath('/opt/ni_tools/matlab_toolboxes/spm12/');
 
 matlabcode_dir='/Volumes/Hera/Projects/7TBrainMech/scripts/mri/MRSI/Codes_yj/';
-ROI_dir='/Volumes/Hera/Projects/7TBrainMech/subjs/11686_20180917/slice_PFC/MRSI/Processed/parc_group';
+roi_file='/Volumes/Hera/Projects/7TBrainMech/scripts/mri/MRSI/roi.txt';
+ROI_dir='/Volumes/Hera/Projects/7TBrainMech/subjs/11686_20180917/slice_PFC/MRSI/Processed/parc_group_v2';
 data_dir='/Volumes/Hera/Projects/7TBrainMech/subjs/11686_20180917/slice_PFC/MRSI';
 filename_scout='scout.nii';
 
 cd(matlabcode_dir);
-parc_grouping_ft_plusExtras(ROI_dir);
-img_resize_ft('/Volumes/Hera/Projects/7TBrainMech/subjs/11686_20180917/slice_PFC/MRSI','scout.nii');
-spm_registration_ROI_ft_plusExtras(matlabcode_dir,ROI_dir,data_dir,filename_scout,0,'0');
+grouping_masks(roi_file, ROI_dir) %was parc_grouping_ft_plusExtras(ROI_dir)
+img_resize_ft(data_dir,filename_scout);
 
-parc_at_csi_multi_ft_plusExtras('/Volumes/Hera/Projects/7TBrainMech/subjs/11686_20180917/slice_PFC/MRSI',...
+spm_reg_ROIs(ROI_dir, roi_file, filename_scout, '') 
+% previously: spm_registration_ROI_ft_plusExtras(matlabcode_dir,ROI_dir,data_dir,filename_scout,0,'0')
+
+parc_at_csi_multi_ft_plusExtras(data_dir,...
     0,'0',... flair
     [17], ... scout slice number
     [24,24],     ... csi: size
