@@ -1,6 +1,8 @@
-function created4ds = grouping4d(table_fname,dir_MPRAGE)
+function created_niis = grouping_masks(table_fname,dir_MPRAGE)
+  % rewritten parc_grouping_ft_plusExtras(ROI_dir) to take tsv table input
 
-  % load in white and grey matter
+
+  %% load in white and grey matter
   % reuse img_nii to save out masks
   img_nii = load_untouch_nii(fullfile(dir_MPRAGE,'aparc+aseg.nii'));
   parc.gm = img_nii.img;
@@ -8,15 +10,15 @@ function created4ds = grouping4d(table_fname,dir_MPRAGE)
   parc.wm = img_nii.img;
   
 
-  % load in tab separated table like:
+  %% load in tab separated table like:
   %  name  matter   label fs_vals                                                                                                                                                                   
   %  abnormal gm AGM   25 57 81 82 101 102 103 104 105 106 107 110 111 112 113 114 115 116
   t = readtable(table_fname,'ReadVariableNames',1);
   
-  % track the files we created
-  created4ds = cell(height(t),2);
+  %% track the files we created
+  created_niis = cell(height(t),2);
   
-  % for each row, create a new nifti image using the freesurfer values
+  %% for each row, create a new nifti image using the freesurfer values
   % provided
   for i=1:height(t)
       % skip unnamed rows (THAwm and BGAwm)
@@ -59,10 +61,10 @@ function created4ds = grouping4d(table_fname,dir_MPRAGE)
       save_untouch_nii(img_nii, fullfile(dir_MPRAGE, output_fname));
       
       %% track what we created
-      created4ds(i,:) = {output_fname, nnz(img_nii.img)};
+      created_niis(i,:) = {output_fname, nnz(img_nii.img)};
   end
 
   % make a table of filename and count
-  created4ds = cell2table(created4ds,'VariableNames',{'file','nnz'});
+  created_niis = cell2table(created_niis,'VariableNames',{'file','nnz'});
 
 end
