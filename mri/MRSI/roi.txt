@@ -21,5 +21,7 @@ temporal_medial	wm	TMWM		3006 3016 4006 4016
 CAcing	wm	CACWM		3002 4002
 RAcing	wm	RACWM		3026 4026
 PIcing	wm	PICWM		3010 3023 4010 4023
-	wm	THAwm		
-	wm	BGAwm		
+thalamus		THA	9 10 48 49	
+csf		CSFP	4 5 14 15 24 43 44 75 76	
+brainstem		BS	6 7 8 16 27 45 46 47 59	
+basal_ganglia		BGA	11 12 13 50 51 52	
