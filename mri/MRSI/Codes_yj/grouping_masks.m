@@ -1,5 +1,14 @@
-function created_niis = grouping_masks(table_fname,dir_MPRAGE)
-  % rewritten parc_grouping_ft_plusExtras(ROI_dir) to take tsv table input
+function created_niis = grouping_masks(filename_table,dir_MPRAGE)
+  % GROUPING_MASKS create roi masks from groups of freesurfer parcalations
+  %   expects dir_MPRAGE to contain 
+  %    1) aparc+aseg.nii and 
+  %    2) wmparc.nii
+  %   will dump out a nii file for each roi specified in filename_table
+  %   tab separated table like:
+  %      name     matter label  aparc_vals    wmpar_vals      
+  %      abnormal gm     AGM    25 57 81 ...
+  %      CAcing   wm     CACWM                3002 4002
+  %rewritten parc_grouping_ft_plusExtras(ROI_dir) to take tsv table input
 
 
   %% load in white and grey matter
@@ -10,10 +19,9 @@ function created_niis = grouping_masks(table_fname,dir_MPRAGE)
   parc.wm = img_nii.img;
   
 
-  %% load in tab separated table like:
-  %  name  matter   label fs_vals                                                                                                                                                                   
-  %  abnormal gm AGM   25 57 81 82 101 102 103 104 105 106 107 110 111 112 113 114 115 116
-  t = readtable(table_fname,'ReadVariableNames',1);
+  %% load in roi specification
+  t = readtable(filename_table,'ReadVariableNames',1);
+  t = [t rowfun(@name_mask,t(:,{'name','matter'}),'OutputVariable','nii')];
   
   %% track the files we created
   created_niis = cell(height(t),2);
@@ -24,6 +32,10 @@ function created_niis = grouping_masks(table_fname,dir_MPRAGE)
       % skip unnamed rows (THAwm and BGAwm)
       if isempty(t.name(i)), continue, end
       
+      % what file are we making
+      disp(t.nii{i});
+
+      
       %% table row: freesurfer roi values and grey and/or white matter
       % most regions pull from only one gm or wm
       % frontal and parietal pull from both segmentations
@@ -31,19 +43,7 @@ function created_niis = grouping_masks(table_fname,dir_MPRAGE)
       % vals stores which fressurfer rois we want from aparc and wmpar
       vals.gm = str2double(strsplit(t.aparc_vals{i}));
       vals.wm = str2double(strsplit(t.wmpar_vals{i}));
-      
-      %% output name
-      % thalamus, csf, brainstem, basal_ganglia are gm only
-      % their output names will not have _wm or _gm (e.g. basal_gangial.nii)
-      % others are like "CAcing_gm.nii"
-      if isempty(t.matter{i})
-          output_fname=t.name{i};
-      else
-          output_fname=strcat(t.name{i},'_',t.matter{i});
-      end
-      output_fname = strcat(output_fname,'.nii');
-      disp(output_fname);
-      
+            
       %% find the values in the parcel for both gm and wm
       % most regions will have one of 
       % roi_mask.gm or roi_mask.wm as all zeros
@@ -58,10 +58,10 @@ function created_niis = grouping_masks(table_fname,dir_MPRAGE)
       img_nii.img = double(or(roi_mask.gm,roi_mask.wm));
       
       %% write nifti
-      save_untouch_nii(img_nii, fullfile(dir_MPRAGE, output_fname));
+      save_untouch_nii(img_nii, fullfile(dir_MPRAGE, t.nii{i}));
       
       %% track what we created
-      created_niis(i,:) = {output_fname, nnz(img_nii.img)};
+      created_niis(i,:) = {t.nii{i}, nnz(img_nii.img)};
   end
 
   % make a table of filename and count
