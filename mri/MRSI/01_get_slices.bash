@@ -66,7 +66,7 @@ for sraw in ${list[@]}; do
    [ ! -r slice_pfc.nii.gz ] && echo "$ld8: 'dcm2niix $slice_dcm_dir' failed!" >&2 && continue
 
    ## flirt
-   # get preproces mprage eaily accesible (mprage and warpcoef)
+   # get preproces mprage easily accesible (mprage and warpcoef)
    [ ! -d ppt1 ] && ln -s $t1root/$ld8/ ppt1
    # todo: consider
    #[ ! -r slice_pfc_native.nii.gz -o ! -r slice_pfc_to_native.mat ] && 
@@ -80,6 +80,17 @@ for sraw in ${list[@]}; do
    if [ ! -r roi_slice.nii.gz ]; then
       applywarp -i $mni_atlas -o roi_mprage.nii.gz -r ppt1/mprage.nii.gz     -w ppt1/template_to_subject_warpcoef.nii.gz --interp=nn
       applywarp -i $mni_atlas -o roi_slice.nii.gz  -r slice_pfc.nii.gz  -w ppt1/template_to_subject_warpcoef.nii.gz --postmat=mprage_to_slice.mat --interp=nn
+   fi
+
+   # make a nifti that is just slice 17 at 24x24 voxels (9x9mm)
+   # to be used with matlab later
+   if [ ! -r s17/9x9mm.nii.gz ]; then
+      [ ! -d s17 ] && mkdir s17
+      cd s17
+      3dZcutup -keep 16 16 ../slice_pfc.nii.gz
+      #3dcopy zcutup+orig.HEAD s17.nii.gz -overwrite
+      3dresample -dxyz 9 9 3 -input zcutup+orig.HEAD  -prefix 9x9mm.nii.gz -overwrite
+      rm zcutup+orig*
    fi
 
 done

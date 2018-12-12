@@ -7,7 +7,10 @@ function spm_reg_ROIs(ROI_dir, filename_table, filename_scout, filename_flair)
 %  - flair: ....
 % originally spm_registration_ROI_ft_plusExtras
 % depends on "SPMcoreg.mat" for mostly configure spmbatch var 'matlabbatch'
-
+% OUTPUT:
+%   files like rthalmus.nii and rparietal_wm.nii
+% N.B. coregisration is a little stocastic. individual runs of this function
+%      will produce slighly different nifitis
 
 
 %% get filename string for rename (scout=ref)
@@ -46,6 +49,7 @@ matlabbatch{1}.spm.spatial.coreg.estwrite.roptions.interp = 0;
 
 spm fmri
 spm_jobman('run',matlabbatch);
+spm_extract_affine_matrix(fullfile(ROI_dir,'mprage_to_scout_trilinear.txt'));
 clear matlabbatch;
 
 %% Coregister MPRAGE to resized Scout (4th degree)
@@ -57,6 +61,7 @@ matlabbatch{1}.spm.spatial.coreg.estwrite.roptions.interp = 4;
 % matlabbatch{1}.spm.spatial.coreg.estwrite.eoptions.sep = [1 1 1];
 
 spm_jobman('run',matlabbatch);
+spm_extract_affine_matrix(fullfile(ROI_dir,'mprage_to_scout_4thdeg.txt'));
 clear matlabbatch;
 
 

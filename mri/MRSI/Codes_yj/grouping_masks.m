@@ -23,7 +23,7 @@ function created_niis = grouping_masks(filename_table,dir_MPRAGE)
   t = readtable(filename_table,'ReadVariableNames',1);
   t = [t rowfun(@name_mask,t(:,{'name','matter'}),'OutputVariable','nii')];
   
-  %% track the files we created
+  %% track the files we will create
   created_niis = cell(height(t),2);
   
   %% for each row, create a new nifti image using the freesurfer values

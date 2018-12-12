@@ -1,99 +1,86 @@
-function csi_roi_overlap(data_dir,filename_flair,ScoutSliceNum,csi_size,csi_FOV,csi_thk,scout_FOV,scout_thk)
+function csi_roi_label(roi_dir,filename_table,filename_csi_json, filename_flair,ScoutSliceNum)
+% csi_roi_overlap Calculate probability of freesurfer rois in csi voxel.
+% depends on co-registed-to-slice individual roi nii masks
+% (see grouping_mask+spm_reg_ROIs) in roi_dir and enumerated by 
+% filename_table (see grouping_mask for desc).
+% csi (and b0 scout thickness) settings are read from filename_csi_json
+% will write e.g.
+%    17_csivoxel_FlipLR.THA
+%    17_FractionGM_FlipLR
+%    ../17_13_FlipLR.MPRAGE
+
 
 disp('Calculate fraction GM at CSI position');
 
-% clear all
-% data_dir = '/Users/yoojin/Desktop/MRResearch/MRData/MRSI/20150408_PND_Ctrl';  % input
-% FLAIRFlag = 1;
-% filename_flair = 'AXIALFLAIRs007a1001.nii';
-% ScoutSliceNum = [10,16,22,28];
-% csi_size = [24,24];
-% csi_FOV = [240,240];
-% csi_thk = 10;
-% scout_FOV = [240,240];
-% scout_thk = 4;
+%% settings
+% get csi_size,csi_FOV,csi_thk,scout_FOV,scout_thk
+csi_settings = jsondecode(fileread(filename_csi_json));
 
-h_csi = csi_size(1);
-w_csi = csi_size(2);
-h_FOV_csi = csi_FOV(1);
-w_FOV_csi = csi_FOV(2);
-h_FOV_sct = scout_FOV(1);
-w_FOV_sct = scout_FOV(2);
-B0ScoutThk_org = scout_thk;
+h_csi     = csi_settings.csi_size(1) ; w_csi     = csi_settings.csi_size(2);
+h_FOV_csi = csi_settings.csi_FOV(1)  ; w_FOV_csi = csi_settings.csi_FOV(2);
+h_FOV_sct = csi_settings.scout_FOV(1); w_FOV_sct = csi_settings.scout_FOV(2);
+B0ScoutThk_org = csi_settings.scout_thk;
+csi_thk        = csi_settings.csi_thk;
 
 B0ScoutThk_resize = 1; % resized B0 scout thickness [mm]
-data_dir = strcat(data_dir,'/');
+
+% where are the files?
+% data_dir1='some/path/Processed/parc_group/' % in: resamp. rois
+%                                             % out: 17_csivoxel.FlipLR.*
+% data_dir2='some/path/Processed/' % save .MPRAGE
+data_dir1 = roi_dir;
+% dir 2 is one above dir1 (parent of roi_dir)
+data_dir2 = dirname(roi_dir);
+
+
+% Are we using flair?
 if ~isempty(filename_flair) && exist(filename_flair,'file')
     img_nii = load_untouch_nii(strcat(data_dir,'r',filename_flair));  % input
     flair = img_nii.img;
+    FLAIRFlag = 1;
+else
+    FLAIRFlag = 0;
 end
 
-%% Read parcellation results from freesurfer
-data_dir1 = strcat(data_dir, 'Processed/parc_group/');
-data_dir2 = strcat(data_dir, 'Processed/');
-if exist(data_dir2) == 0
-    mkdir(data_dir2);
-end
 
-img_nii = load_untouch_nii(strcat(data_dir1,'rorig.nii'));   % input
+%% read in nifti
+img_nii = load_untouch_nii(fullfile(data_dir1,'rorig.nii'));   % input
 mprage = img_nii.img;
 [h,w,s] = size(mprage);
-prob_4d = zeros(h,w,s,28);  % 18+10=28: Number of subgroup regions including 3 cingulate regions, thalamus and basal ganglia, and their corresponding WM (zeros for THA and BGA).
-img_nii = load_untouch_nii(strcat(data_dir1, 'rabnormal_gm.nii'));
-prob_4d(:,:,:,1) = img_nii.img;  % rabnormal_gm
-img_nii = load_untouch_nii(strcat(data_dir1, 'rabnormal_wm.nii'));
-prob_4d(:,:,:,2) = img_nii.img;  % rabnormal_wm
-img_nii = load_untouch_nii(strcat(data_dir1, 'rbrainstem.nii'));
-prob_4d(:,:,:,3) = img_nii.img;  % rbrainstem
-img_nii = load_untouch_nii(strcat(data_dir1, 'rcsf.nii'));
-prob_4d(:,:,:,4) = img_nii.img;  % rcsf
-img_nii = load_untouch_nii(strcat(data_dir1, 'rfrontal_gm.nii'));
-prob_4d(:,:,:,5) = img_nii.img;  % rfrontal_gm
-img_nii = load_untouch_nii(strcat(data_dir1, 'rfrontal_wm.nii'));
-prob_4d(:,:,:,6) = img_nii.img;  % rfrontal_wm
-img_nii = load_untouch_nii(strcat(data_dir1, 'rinsula_gm.nii'));
-prob_4d(:,:,:,7) = img_nii.img;  % rinsula_gm
-img_nii = load_untouch_nii(strcat(data_dir1, 'rinsula_wm.nii'));
-prob_4d(:,:,:,8) = img_nii.img;  % rinsula_wm
-img_nii = load_untouch_nii(strcat(data_dir1, 'roccipital_gm.nii'));
-prob_4d(:,:,:,9) = img_nii.img;  % roccipital_gm
-img_nii = load_untouch_nii(strcat(data_dir1, 'roccipital_wm.nii'));
-prob_4d(:,:,:,10) = img_nii.img;  % roccipital_wm
-img_nii = load_untouch_nii(strcat(data_dir1, 'rparietal_gm.nii'));
-prob_4d(:,:,:,11) = img_nii.img;  % rparietal_gm
-img_nii = load_untouch_nii(strcat(data_dir1, 'rparietal_wm.nii'));
-prob_4d(:,:,:,12) = img_nii.img;  % rparietal_wm
-img_nii = load_untouch_nii(strcat(data_dir1, 'rsubcortical_gm.nii'));
-prob_4d(:,:,:,13) = img_nii.img;  % rsubcortical_gm
-img_nii = load_untouch_nii(strcat(data_dir1, 'rsubcortical_wm.nii'));
-prob_4d(:,:,:,14) = img_nii.img;  % rsubcortical_wm
-img_nii = load_untouch_nii(strcat(data_dir1, 'rtemporal_lateral_gm.nii'));
-prob_4d(:,:,:,15) = img_nii.img;  % rtemporal_lateral_gm
-img_nii = load_untouch_nii(strcat(data_dir1, 'rtemporal_lateral_wm.nii'));
-prob_4d(:,:,:,16) = img_nii.img;  % rtemporal_lateral_wm
-img_nii = load_untouch_nii(strcat(data_dir1, 'rtemporal_medial_gm.nii'));
-prob_4d(:,:,:,17) = img_nii.img;  % rtemporal_medial_gm
-img_nii = load_untouch_nii(strcat(data_dir1, 'rtemporal_medial_wm.nii'));
-prob_4d(:,:,:,18) = img_nii.img;  % rtemporal_medial_wm
-img_nii = load_untouch_nii(strcat(data_dir1, 'rCAcing_gm.nii'));
-prob_4d(:,:,:,19) = img_nii.img;  % caudalanteriorcingulate_gm
-img_nii = load_untouch_nii(strcat(data_dir1, 'rCAcing_wm.nii'));
-prob_4d(:,:,:,20) = img_nii.img;  % caudalanteriorcingulate_wm
-img_nii = load_untouch_nii(strcat(data_dir1, 'rRAcing_gm.nii'));
-prob_4d(:,:,:,21) = img_nii.img;  % rostralanteriorcingulate_gm
-img_nii = load_untouch_nii(strcat(data_dir1, 'rRAcing_wm.nii'));
-prob_4d(:,:,:,22) = img_nii.img;  % rostralanteriorcingulate_wm
-img_nii = load_untouch_nii(strcat(data_dir1, 'rPIcing_gm.nii'));
-prob_4d(:,:,:,23) = img_nii.img;  % posterior+isthmuscingulate_gm
-img_nii = load_untouch_nii(strcat(data_dir1, 'rPIcing_wm.nii'));
-prob_4d(:,:,:,24) = img_nii.img;  % posterior+isthmuscingulate_wm
-img_nii = load_untouch_nii(strcat(data_dir1, 'rthalamus.nii'));
-prob_4d(:,:,:,25) = img_nii.img;  % thalamus
-prob_4d(:,:,:,26) = zeros(size(img_nii));
-img_nii = load_untouch_nii(strcat(data_dir1, 'rbasal_ganglia.nii'));
-prob_4d(:,:,:,27) = img_nii.img;  % basal ganglia
-prob_4d(:,:,:,28) = zeros(size(img_nii));
-region_label = {'AGM'; 'AWM'; 'BS'; 'CSFP'; 'FGM'; 'FWM'; 'IGM'; 'IWM'; 'OGM'; 'OWM'; 'PGM'; 'PWM'; 'SCGM'; 'SCWM'; 'TLGM'; 'TLWM'; 'TMGM'; 'TMWM'; 'CACGM'; 'CACWM'; 'RACGM'; 'RACWM'; 'PICGM'; 'PICWM'; 'THA'; 'THAwm'; 'BGA'; 'BGAwm'}; 
+
+% read in rois, make names like 'rRAcing_wm.nii' and 'rbrainstem.nii'
+t = readtable(filename_table,'ReadVariableNames',1);
+t = [t rowfun(@name_mask,t(:,{'name','matter'}),'OutputVariable','nii')];
+t.nii = cellfun(@(x) ['r' x], t.nii,'UniformOutput',0);
+% read in nifti images from nii files defined in table
+get_img = @(x) getfield(load_untouch_nii(fullfile(roi_dir,x)),'img');
+all_masks = cellfun(get_img, t.nii, 'UniformOutput', 0);
+% make into a 4d matrix
+prob_4d = permute(reshape(cell2mat(      ...
+              all_masks'),               ... 1x26
+              [h,w,length(all_masks),s]),... 216x216x26x99
+              [1 2 4 3]);                ... 216x216x99x26
+          
+% check that we did this correctly
+% paren = @(x, varargin) x(varargin{:});
+% testmasks=[11:15];
+% for mii = testmasks
+%     [i,j,k]=ind2sub(size(mprage),find(all_masks{mii}));
+%     testit=zeros(length(i),1);
+%     for ii=1:length(i)
+%       testit(ii) = paren(all_masks{mii},i(ii),j(ii),k(ii)) == prob_4d(i(ii),j(ii),k(ii),mii);
+%     end
+%     all(testit)
+% end
+
+% free up some space
+clear all_masks
+% index the types of brain matter: white, grey, non-brain
+wm_idx = strncmp('wm',t.matter,2);
+gm_idx = strncmp('gm',t.matter,2);
+nb_idx = strncmp('nb',t.matter,2);
+% ab_idx = strncmp('abnormal',t.name,8);
+          
 
 %% Match FOV of CSI with that of B0 scout
 if (h_FOV_csi < h_FOV_sct)
@@ -124,14 +111,14 @@ if (w_FOV_csi < w_FOV_sct)
 end
 
 %% Combine segmentation results (Tissue w/ max probability will be chosen. no empty space)
-[tmp,parc_comb] = max(prob_4d, [], 4);
+[~, parc_comb] = max(prob_4d, [], 4);
 % mask = sum(prob_4d,4) >= 0.6;
 mask = sum(prob_4d,4) ~= 0;
 parc_comb = parc_comb .* mask;
 
 %% Save as nii format
 img_nii.img = parc_comb;
-save_untouch_nii(img_nii, strcat(data_dir1, 'parc_newbin.nii'));
+save_untouch_nii(img_nii, fullfile(data_dir1, 'parc_newbin.nii'));
 
 for ind_scout = 1:size(ScoutSliceNum,2)
     CurrentScoutSliceNum = ScoutSliceNum(ind_scout);
@@ -160,7 +147,7 @@ for ind_scout = 1:size(ScoutSliceNum,2)
             flair_ct(:,:,ss) = imrotate(flair_ct(:,:,ss), 270);
         end
     end
-    [h,w,s] = size(parc_comb_ct);
+    [h,w,~] = size(parc_comb_ct);
  
     %% Sampling PSF and Hanning filter (apodization)
     hanningon = 1;
@@ -218,7 +205,7 @@ for ind_scout = 1:size(ScoutSliceNum,2)
     count_ct_ext = extension_one(h_FOV_csi, w_FOV_csi, h_csi, w_csi, count_ct2);
 
     %% Calculate probability
-    [h_ext, w_ext, s_ext] = size(count_ct_ext);
+    % [h_ext, w_ext, s_ext] = size(count_ct_ext);
     h_factor = ceil(h_FOV_csi / h_csi);
     w_factor = ceil(w_FOV_csi / w_csi);
     parc_comb_prob = zeros(h_csi,w_csi,size(prob_4d,4));
@@ -235,8 +222,12 @@ for ind_scout = 1:size(ScoutSliceNum,2)
     for rg = 1:size(prob_4d,4)
         parc_comb_prob(:,:,rg) = parc_comb_prob(:,:,rg) ./ count_csi;        
     end
-%     sum_prob = sum(parc_comb_prob,3);  % Whole brain without skull
-    sum_prob = sum(parc_comb_prob(:,:,1:2),3) + sum(parc_comb_prob(:,:,5:end),3);  % Summation of GM and WM
+    
+    %% dissect by roi type
+    
+%   sum_prob = sum(parc_comb_prob,3);  % Whole brain without skull
+    sum_prob = sum(parc_comb_prob(:,:,wm_idx | gm_idx),3); % Summation of GM and WM
+    disp(sum_prob);
 
 %     %% Divide sub-cortical WM according to GM percentage within the CSI voxel
 %     parc_comb_prob_gm = parc_comb_prob;
@@ -256,26 +247,65 @@ for ind_scout = 1:size(ScoutSliceNum,2)
 %     parc_comb_prob_splitSCWM = parc_comb_prob_splitSCWM + parc_prob_SCWM;
 %     parc_comb_prob = parc_comb_prob_splitSCWM;  %% Comment out if you dont want to divide sub-cortical WM
 
-    parc_comb_prob_GMWMsum_tmp = zeros(size(parc_comb_prob,1), size(parc_comb_prob,2), size(parc_comb_prob,3)/2);  
-    parc_comb_prob_GMWMsum = zeros(size(parc_comb_prob,1), size(parc_comb_prob,2), size(parc_comb_prob,3)/2-1);
-    for rg = 1:size(parc_comb_prob_GMWMsum_tmp,3)
-        parc_comb_prob_GMWMsum_tmp(:,:,rg) = parc_comb_prob(:,:,rg*2-1) + parc_comb_prob(:,:,rg*2);
+    %% combine wm and gm (or any other description) for each roi
+    % cell of vectors, each a roi pair (e.g. 1 and 12 are "abnormal")
+    unq_regions = unique(t.name(~nb_idx)); % no non-brain: no brainstem, no csf
+    rg_pair_idxs = cellfun(@(tn) strmatch(tn,t.name), unq_regions, 'UniformOutput',0);
+    %   >> t(rg_pair_idxs{1},{'name','matter'})
+    %         name        matter
+    %         'abnormal'    'gm'  
+    %         'abnormal'    'wm'
+    
+    % initialize matrix limited to just pairs
+    gmwm_size=size(parc_comb_prob); gmwm_size(3) = length(unq_regions);
+    parc_comb_prob_GMWMsum = zeros(gmwm_size);
+    % our labels are now in sorted order thanks to 'unique'
+    % so lets make sure we know which number is what roi
+    parc_lut_fid=fopen(fullfile(data_dir1,'ParcelCSIvoxel_lut.txt'),'w');
+    
+    for i=1:length(rg_pair_idxs)
+        rg_pairs=rg_pair_idxs{i};
+        % add region's (wm+gm) pair together
+        parc_comb_prob_GMWMsum(:,:,i) = sum(parc_comb_prob(:,:,rg_pairs),3);
+        % write to lookup table
+        fprintf(parc_lut_fid, '%d\t%s\t%s\n', i, t.name{rg_pairs(1)},t.label{rg_pairs(1)});
     end
-    parc_comb_prob_GMWMsum(:,:,1) = parc_comb_prob_GMWMsum_tmp(:,:,1);
-    parc_comb_prob_GMWMsum(:,:,2:end) = parc_comb_prob_GMWMsum_tmp(:,:,3:end);  % Exclude brainstem and csf
-    clear parc_comb_prob_GMWMsum_tmp;
-
+    fclose(parc_lut_fid);
+    
     [parc_csivoxel_prob, parc_csivoxel] = max(parc_comb_prob_GMWMsum, [], 3);
+    
 
-    parc_gm = parc_comb_prob(:,:,1) + sum(parc_comb_prob(:,:,5:2:end),3);
-    parc_wm = parc_comb_prob(:,:,2) + sum(parc_comb_prob(:,:,6:2:end),3);
-    parc_csf = parc_comb_prob(:,:,3) + parc_comb_prob(:,:,4);  % Brain regions excluding GM and WM
+   
+% previously with hard coded index and label
+% each roi has wm+gm pair (in that order)
+% second roi pair (id 3+4) are nonbrain (brainstem and csf)
+% thalm and b.g. are gm only, each have zero matrix for wm (idx 26+28)
+%     parc_comb_prob_GMWMsum_tmp = zeros(size(parc_comb_prob,1), size(parc_comb_prob,2), size(parc_comb_prob,3)/2);  
+%     % sum has 1 less index b/c no bst+csf pair
+%     parc_comb_prob_GMWMsum = zeros(size(parc_comb_prob,1), size(parc_comb_prob,2), size(parc_comb_prob,3)/2-1);
+%     % summing wm and gm
+%     for rg = 1:size(parc_comb_prob_GMWMsum_tmp,3)
+%         parc_comb_prob_GMWMsum_tmp(:,:,rg) = parc_comb_prob(:,:,rg*2-1) + parc_comb_prob(:,:,rg*2);
+%     end
+%     % Exclude brainstem and csf (pair, so only skip one idx)
+%     parc_comb_prob_GMWMsum(:,:,1) = parc_comb_prob_GMWMsum_tmp(:,:,1);
+%     parc_comb_prob_GMWMsum(:,:,2:end) = parc_comb_prob_GMWMsum_tmp(:,:,3:end);
+%     clear parc_comb_prob_GMWMsum_tmp;
+% 
+%     [parc_csivoxel_prob, parc_csivoxel] = max(parc_comb_prob_GMWMsum, [], 3);
+
+    %% sum up regions
+    parc_gm  = sum(parc_comb_prob(:,:,gm_idx),3);
+    parc_wm  = sum(parc_comb_prob(:,:,wm_idx),3);
+    %parc_csf = sum(parc_comb_prob(:,:,nb_idx),3);  % Brain regions excluding GM and WM
     fraction_gm = parc_gm ./ (parc_gm + parc_wm);
     fraction_gm = fraction_gm .* (parc_csivoxel~=0);
-    fraction_gm_3d = zeros(size(parc_comb_prob_GMWMsum));
-    for rg = 1:size(fraction_gm_3d,3)
-        fraction_gm_3d(:,:,rg) = double(parc_csivoxel == rg) .* fraction_gm;
-    end
+    
+    % this is probalby wrong now - but does not seem to be used
+%     fraction_gm_3d = zeros(size(parc_comb_prob_GMWMsum));
+%     for rg = 1:size(fraction_gm_3d,3)
+%         fraction_gm_3d(:,:,rg) = double(parc_csivoxel == rg) .* fraction_gm;
+%     end
 
     %% Flip R-L
     for rg = 1:size(prob_4d,4)
@@ -293,52 +323,43 @@ for ind_scout = 1:size(ScoutSliceNum,2)
     fraction_gm = fliplr(fraction_gm);
     parc_csivoxel = fliplr(parc_csivoxel);
     parc_csivoxel_prob = fliplr(parc_csivoxel_prob);
-    for yj = 1:size(fraction_gm_3d,3)
-        fraction_gm_3d(:,:,yj) = fliplr(fraction_gm_3d(:,:,yj));
-    end
+%     for yj = 1:size(fraction_gm_3d,3)
+%         fraction_gm_3d(:,:,yj) = fliplr(fraction_gm_3d(:,:,yj));
+%     end
 
-    % write the output image
+    %% write the output image
+    % short cut for write_out function defined below using datadir & slice#
+    write_out_ds = @(n, d) write_out(d, data_dir1, CurrentScoutSliceNum, n{:});
+
+    % save each roi's prob
     for rg = 1:size(prob_4d,4)
-        name = strcat(data_dir1,num2str(CurrentScoutSliceNum),'_csivoxel_FlipLR.',char(region_label(rg)));
-        fp = fopen(name,'w');
-        fwrite(fp,parc_comb_prob(:,:,rg),'float');
-        fclose(fp);
+        label = ['FlipLR.' char(t.label{rg})]; 
+        write_out_ds({'csivoxel',label}, parc_comb_prob(:,:,rg));
+        % writes e.g. 17_csivoxel_FlipLR.THA into data_dir1
     end
-    name = strcat(data_dir1,num2str(CurrentScoutSliceNum),'_FractionGM_FlipLR');
-    fp = fopen(name,'w');
-    fwrite(fp,fraction_gm,'float');
-    fclose(fp);
+    % save each calculated matrix
+    % e.g. 17_FractionGM_FlipLR
+    write_out_ds({'FractionGM','FlipLR'}, fraction_gm);   
+    write_out_ds({'ParcelCSIvoxel','FlipLR'}, parc_csivoxel);
+    write_out_ds({'SumProb','FlipLR'},sum_prob);
+    write_out_ds({'MaxTissueProb','FlipLR'},parc_csivoxel_prob);
 
-    name = strcat(data_dir1,num2str(CurrentScoutSliceNum),'_ParcelCSIvoxel_FlipLR');
-    fp = fopen(name,'w');
-    fwrite(fp,parc_csivoxel,'float');
-    fclose(fp);
-
-    name = strcat(data_dir1,num2str(CurrentScoutSliceNum),'_SumProb_FlipLR');
-    fp = fopen(name,'w');
-    fwrite(fp,sum_prob,'float');
-    fclose(fp);
-
-    name = strcat(data_dir1,num2str(CurrentScoutSliceNum),'_MaxTissueProb_FlipLR');
-    fp = fopen(name,'w');
-    fwrite(fp,parc_csivoxel_prob,'float');
-    fclose(fp);
     
+    %% probablity for each in the mprage (and flair)
+    % write MPRAGE and FLAIR to datadir2
+    write_out_ds = @(n, d) write_out(d, data_dir2, CurrentScoutSliceNum, n{:});
     for yj = 1:size(parc_comb_ct,3)
-        name = strcat(data_dir2,num2str(CurrentScoutSliceNum),'_',num2str(yj),'_FlipLR.MPRAGE');
-        fp = fopen(name,'w');
-        fwrite(fp,mprage_ct(:,:,yj),'float');
-        fclose(fp);
+        %name = strcat(data_dir2,num2str(CurrentScoutSliceNum),'_',num2str(yj),'_FlipLR.MPRAGE');
+        slice_name = num2str(yj);
+        write_out_ds({slice_name, 'FlipLR.MPRAGE'},mprage_ct(:,:,yj));
 
         if (FLAIRFlag == 1)
-            name = strcat(data_dir1,num2str(CurrentScoutSliceNum),'_',num2str(yj),'_FlipLR.FLAIR');
-            fp = fopen(name,'w');
-            fwrite(fp,flair_ct(:,:,yj),'float');
-            fclose(fp);
+            write_out_ds({slice_name, 'FlipLR.FLAIR'}, flair_ct(:,:,yj));
         end
     end
 
-    save(strcat(data_dir1, 'parc_at_csi_', num2str(CurrentScoutSliceNum), '.mat'));
+    %% save everything
+    save(fullfile(data_dir1, ['parc_at_csi_', num2str(CurrentScoutSliceNum), '.mat']));
 
     %% figure
 %     slice_num = 6;
@@ -353,4 +374,25 @@ for ind_scout = 1:size(ScoutSliceNum,2)
 %     figure, imagesc(flipud(parc_csivoxel_prob)), axis('image'), colormap('gray'), title('Percentage of max subgroup (GM/WM Merged), CSI voxel');
 %     figure, imagesc(flipud(fraction_gm)), axis('image'), colormap('gray'), title('Fraction GM, CSI voxel');
 
+end
+end
+
+function write_out(data,out_dir,slice_num, varargin)
+    name = strjoin([ {num2str(slice_num)} ,varargin],'_');
+    name = fullfile(out_dir,name);
+    fid = fopen(name, 'w');
+    fwrite(fid, data, 'float');
+    fclose(fid);
+    
+    % write as nifti if we have a csi_template image in the output dir
+    % keep the template image around to save time
+    persistent tmpl_img
+    out_template=fullfile(out_dir,'csi_template.nii');
+    if exist(out_template,'file') && isempty(tmpl_img)
+        tmpl_img = load_untouch_nii(out_template);
+    end
+    if ~isempty(tmpl_img)
+        tmpl_img.img = rot90(data);
+        csi2d_to_nii(data,[name '.nii'],tmpl_img)
+    end
 end

@@ -1,0 +1,9 @@
+{
+   "comment": "24x24vox matrix * 9x9mm = 216x216 FOV",
+   "csi_size":  [24,24],  "#1": "matrix size",
+   "csi_FOV":   [216,216], "#2": "[anterior-posterior direction, left-right direction]",
+   "scout_FOV": [216,216], 
+   "csi_thk":   10,
+   "scout_thk": 3,
+   "ml_inst": "read in: jsondecode(fileread('csi_settings.json')) %R2016b"
+}
