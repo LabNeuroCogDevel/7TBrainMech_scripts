@@ -5,7 +5,7 @@ matlabcode_dir='/Volumes/Hera/Projects/7TBrainMech/scripts/mri/MRSI/Codes_yj/';
 roi_file='/Volumes/Hera/Projects/7TBrainMech/scripts/mri/MRSI/roi.txt';
 csi_json='/Volumes/Hera/Projects/7TBrainMech/scripts/mri/MRSI/csi_settings.json';
 
-ROI_dir='/Volumes/Hera/Projects/7TBrainMech/subjs/11686_20180917/slice_PFC/MRSI/Processed/parc_group_v4';
+ROI_dir='/Volumes/Hera/Projects/7TBrainMech/subjs/11686_20180917/slice_PFC/MRSI/parc_group';
 data_dir='/Volumes/Hera/Projects/7TBrainMech/subjs/11686_20180917/slice_PFC/MRSI';
 filename_scout='scout.nii';
 
@@ -18,6 +18,9 @@ spm_reg_ROIs(ROI_dir, roi_file, fullfile(data_dir,filename_scout), '')
 % previously: spm_registration_ROI_ft_plusExtras(matlabcode_dir,ROI_dir,data_dir,filename_scout,0,'0')
 
 csi_roi_label(ROI_dir,roi_file,csi_json, '',17)
+
+csi_2d_dir = fullfile(data_dir,'2d_csi_ROI');
+dir2d_to_niis(csi_2d_dir,csi_2d_dir, fullfile(data_dir,'csi_template.nii'));
 % previously
 % parc_at_csi_multi_ft_plusExtras(data_dir,...
 %     0,'0',       ... flair
