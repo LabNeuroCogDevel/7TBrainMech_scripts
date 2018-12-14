@@ -1,5 +1,5 @@
 function csi2d_to_nii(data, name, tmpl_img)
-% write as nifti if we have a csi_template image in the output dir
+% CSI2d_TO_NII write as nifti if we have a csi_template image in the output dir
 %
 % ddir = '/Volumes/Hera/Projects/7TBrainMech/subjs/11686_20180917/slice_PFC/MRSI/Processed/parc_group_v4'
 % qnii=@(n) csi2d_to_nii(fullfile(ddir,n), fullfile(ddir,[n '.nii']), fullfile(ddir,'csi_template.nii'))

@@ -20,7 +20,18 @@ spm_reg_ROIs(ROI_dir, roi_file, fullfile(data_dir,filename_scout), '')
 csi_roi_label(ROI_dir,roi_file,csi_json, '',17)
 
 csi_2d_dir = fullfile(data_dir,'2d_csi_ROI');
-dir2d_to_niis(csi_2d_dir,csi_2d_dir, fullfile(data_dir,'csi_template.nii'));
+
+csi_template = fullfile(data_dir,'csi_template.nii');
+dir2d_to_niis(csi_2d_dir,csi_2d_dir,csi_template);
+
+
+
+
+outdir = fullfile(data_dir,'csi_val');
+csi_csv = '/Volumes/Hera/Raw/MRprojects/7TBrainMech/MRSI_BrainMechR01/20180216Luna1/SI1/spreadsheet.csv';
+SI1_to_nii(csi_csv,csi_template,outdir);
+
+
 % previously
 % parc_at_csi_multi_ft_plusExtras(data_dir,...
 %     0,'0',       ... flair

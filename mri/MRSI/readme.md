@@ -1,14 +1,15 @@
 # CSI voxel labeling
 
 ## output
-
+* `all_probs.nii.gz`  
+* `all_csi.nii.gz`  
+* `mprage_in_slice.nii.gz`
+* `2d_csi_ROI/*lut*`
 * coregistration affine matrix
-* LUT
-* `*_csivoxel_*`
 
 
 ## data input
- * Freesurfer output (need mprage -> orig.mgz, aparc+aseg.mgz, wmparc.mgz)
+ * Freesurfer output (need mprage as orig.mgz, aparc+aseg.mgz, wmparc.mgz)
  * B0 scout
 
 ## methods input
@@ -22,7 +23,7 @@
 ## sequence
 
 ## Notes
-* `RAS` matrix orientation!!
+* `RAS` matrix orientation!!??
 * spm coregisration is stochastic, repeat runs are not the same
 * `compare_matout` validates changes in code 
    (max prob diff in all files for one comparison: .0027)
