@@ -9,20 +9,32 @@
 #  estimate probability of FS ROI @ each csi voxel
 
 # run for all with SI* sheets from box
-# ls /Volumes/Hera/Raw/MRprojects/7TBrainMech/MRSI_BrainMechR01/*/SI1/spreadsheet.csv|while read f; do basename $(dirname $(dirname $f)); done| join -i -t' ' -1 1 -2 2 - <(sort -t' ' -k2,2 txt/ids.txt)| cut -f 2 -d' '| xargs -n1 ./02_label_csivox.bash
 #
 
 set -euo pipefail
 export AFNI_COMPRESSOR="" AFNI_NIFTI_TYPE_WARN=NO
 scriptdir=$(cd $(dirname $0);pwd)
 
+BOXMRSI=/Volumes/Hera/Raw/MRprojects/7TBrainMech/MRSI_BrainMechR01/
+
 if [ $# -eq 0 ]; then
    cat <<HEREDOC 
    USAGE:
-     $0 subj_date [scout_slice_num=17]
+     $0 subj_date
+     $0 all 
      # see /Volumes/Hera/Projects/7TBrainMech/pipelines/MHT1_2mm/ for subj list
 HEREDOC
   exit 1
+fi
+
+if [ $1 == "all" ]; then
+   find $BOXMRSI -iname spreadsheet.csv|
+    perl -lne 'print $& if m/\d{8}Luna\d/' |
+    join -i -t' ' -1 1 -2 2 - \
+       <(sort -t' ' -k2,2 txt/ids.txt)|
+       cut -f 2 -d' '|
+       xargs -n1 $0
+   exit
 fi
 
 ## read subject input
@@ -30,9 +42,10 @@ fi
 # user input
 subj_date=$1
 
-# slice numbers of SCOUT corresponding to the center positions of CSI acquisition 
-#   add 1 to Siemens Slice number in header
-[ $# -eq 1 ] && scout_slice_num=17 || scout_slice_num="$2"
+# check if we've already run
+data_dir="/Volumes/Hera/Projects/7TBrainMech/subjs/$subj_date/slice_PFC/MRSI"
+final=$data_dir/all_probs.nii.gz
+[ -r  "$final" ] && echo "$subj_date: already finished. rm $final # to redo all" && exit 0
 
 # files
 subj=${subj_date%%_*}
@@ -45,12 +58,18 @@ rawloc=/Volumes/Hera/Raw/BIDS/7TBrainMech/rawlinks/
 mrid=$( readlink $(find  $rawloc/$subj_date/ -type l -print -quit) | sed 's:.*Mech/\([^/]*\)/.*:\1:')
 [ -z $mrid ] && echo "cannot find $subj_date in $rawloc" >&2 && exit 1
 
-csi_si1_csv="/Volumes/Hera/Raw/MRprojects/7TBrainMech/MRSI_BrainMechR01/$mrid/SI1/spreadsheet.csv"
+#csi_si1_csv="/Volumes/Hera/Raw/MRprojects/7TBrainMech/MRSI_BrainMechR01/$mrid/SI1/spreadsheet.csv"
+csi_si1_csv=$(find $BOXMRSI -name spreadsheet.csv -ipath "*/$mrid*")
+
+# file indicating what slice was used. eg. 20181217Luna1/PFC_registration_out/17_10_FlipLR.MPRAGE
+#reg_out_file=$(find $(dirname $(dirname "$csi_si1_csv"))/*registration_out/ \
+#   -maxdepth 1 -type f -iname '[0-9][0-9]*MPRAGE' -print -quit)
+reg_out_file=$(find $BOXMRSI -ipath "*/$mrid*/*registration_out/*" -iname '[0-9][0-9]*MPRAGE' -print -quit )
 
 check_file(){
     file="$1";shift
     msg="$1";shift
-    [ -r "$file" ] && return
+    [ -n "$file" -a -r "$file" ] && return
     echo "$subj_date: no file: $file"
     echo "  # fix: $msg" 
     exit 1
@@ -62,9 +81,13 @@ check_file "$scout"                     "run ./01_get_slices.bash"
 check_file "$FSdir/mri/aparc+aseg.mgz"  "run ../FS/002_fromPSC.bash"
 check_file "$csi_si1_csv"               "run ../001_rsync_MRSI_from_box.bash"
 check_file "$csi_json"                  "see https://github.com/LabNeuroCogDevel/7TBrainMech_scripts/blob/master/mri/MRSI/csi_settings.json"
+check_file "$reg_out_file"              "$BOXMRSI/**$mrid/regirstion_out/*MPRAGE is a product of MRSI box, cannot determine slice"
 
-data_dir="/Volumes/Hera/Projects/7TBrainMech/subjs/$subj_date/slice_PFC/MRSI"
 [ ! -d $data_dir ] && mkdir $data_dir
+
+[[ ! "$(basename $reg_out_file)" =~ ^([0-9]+)_ ]] && echo "no slice number in $reg_out_file" >&2 && exit 1
+scout_slice_num=${BASH_REMATCH[1]}
+echo "$subj_date $mrid: using slice $scout_slice_num"
 
 ############################ depends #############################################
 
@@ -111,6 +134,7 @@ mgz2nii_RAS wmparc
 
 # scout in data dir for matlab resize
 3dcopy -overwrite $scout scout.nii
+3dresample -overwrite -dxyz 1 1 1 -inset scout.nii -prefix scout_resize.nii -rmode Cu
 
 ## csi_template used to make nifti from 2d mat csi outputs
 # 3dcopy -overwrite $(dirname $scout)/s17/9x9mm.nii.gz csi_template.nii
@@ -145,16 +169,20 @@ csi_template = fullfile(data_dir,'csi_template.nii');
 
 cd(matlabcode_dir);
 grouping_masks(roi_file, ROI_dir) 
-img_resize_ft(data_dir,filename_scout);
+% img_resize_ft(data_dir,filename_scout); done with 3dresample instead
 spm_reg_ROIs(ROI_dir, roi_file, fullfile(data_dir,filename_scout), filename_flair) 
+
+fprintf('labeling FS rois in csi space (2d_csi_ROI and struct_ROI)\\n')
 csi_roi_label(ROI_dir, roi_file, csi_json, filename_flair,$scout_slice_num)
 % makes 2d_csi_ROI and struct_ROI directories
 
 % make niftis
+fprintf('making nii from %s\\n',data_dir)
 csi_2d_dir = fullfile(data_dir,'2d_csi_ROI');
 dir2d_to_niis(csi_2d_dir,csi_2d_dir, csi_template);
 
 % for csi data too
+fprintf('converting spreadsheet to nii (%s -> %s)\\n',csi_csv, csi_nii_out)
 SI1_to_nii(csi_csv, csi_template, csi_nii_out);
 EOF
 
@@ -162,11 +190,11 @@ echo "# running $(pwd)/$mscript"
 
 ### actually run!
 # -nodesktop -nosplash 
-matlab -nodisplay -r "try, ${mscript%.m}, end; quit" |tee $log_reg
+matlab -nodisplay -r "try, ${mscript%.m},catch e, disp(e); end; quit" |tee $log_reg
 
 # put niftis together for easy viewing
-3dbucket -prefix all_csi.nii.gz csi_val/*nii
-3dbucket -prefix all_probs.nii.gz 2d_csi_ROI/*nii
+3dbucket -overwrite -prefix all_csi.nii.gz csi_val/*nii
+3dbucket -overwrite -prefix all_probs.nii.gz 2d_csi_ROI/*nii
 3drefit -relabel_all_str \
   "$(ls 2d_csi_ROI/*nii |
      perl -MFile::Basename -pe '
@@ -174,4 +202,4 @@ matlab -nodisplay -r "try, ${mscript%.m}, end; quit" |tee $log_reg
        s/^\d+_(.*)_FlipLR/\1/;
        s/csivoxel.// ')" \
    all_probs.nii.gz
-ln -s ../mprage_in_slice.nii.gz ./
+[ ! -r ../mprage_in_slice.nii.gz ] && ln -s ../mprage_in_slice.nii.gz ./
