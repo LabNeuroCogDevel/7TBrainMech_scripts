@@ -52,6 +52,7 @@ spm_jobman('run',matlabbatch);
 spm_extract_affine_matrix(fullfile(ROI_dir,'mprage_to_scout_trilinear.txt'));
 clear matlabbatch;
 
+
 %% Coregister MPRAGE to resized Scout (4th degree)
 % TODO: why? do we use this?
 matlabbatch = get_matlabbatch();

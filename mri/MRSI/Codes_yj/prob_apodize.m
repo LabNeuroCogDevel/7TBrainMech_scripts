@@ -1,6 +1,6 @@
 function [parc_comb_prob, mprage_ct, flair_ct, mask_ct, parc_comb_ct] = prob_apodize(...
     CurrentScoutSliceNum, filename_csi_json, B0ScoutThk_resize, parc_comb, mask, mprage, flair, nroi)
-% PROB_APODIZE sampel PSF and hanning filter
+% PROB_APODIZE sample PSF and hanning filter. called by csi_roi_label
 
     %% settings
     % get csi_size,csi_FOV,csi_thk,scout_FOV,scout_thk
@@ -32,6 +32,10 @@ function [parc_comb_prob, mprage_ct, flair_ct, mask_ct, parc_comb_ct] = prob_apo
     end
 
     %%% Rotation
+    if size(parc_comb,1) ~= size(parc_comb_ct,2)
+        error('parc_comb (%dx%dx%d) is not symetic, cannot rotate!',...
+            size(parc_comb));
+    end
     for ss = 1:size(parc_comb_ct,3)
         parc_comb_ct(:,:,ss) = imrotate(parc_comb_ct(:,:,ss), 270);
         mprage_ct(:,:,ss) = imrotate(mprage_ct(:,:,ss), 270);

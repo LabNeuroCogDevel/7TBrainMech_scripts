@@ -35,9 +35,15 @@ if ~exist(struct_dir,'dir'); mkdir(struct_dir); end
 if ~exist(csi_dir   ,'dir'); mkdir(csi_dir   ); end
 
 %% read in nifti (slice registred rois)
-img_nii = load_untouch_nii(fullfile(roi_dir,'rorig.nii'));   % input
+mprage_file = fullfile(roi_dir,'rorig.nii');
+img_nii = load_untouch_nii(mprage_file);   % input
 mprage = img_nii.img;
 [h,w,s] = size(mprage);
+
+if h ~= w
+   error('mprage is not symetic (%d x %d), will not be able to rotate! (%s)',...
+       h, w, mprage_file);
+end
 
 % read in rois, make names like 'rRAcing_wm.nii' and 'rbrainstem.nii'
 t = readtable(filename_table,'ReadVariableNames',1);

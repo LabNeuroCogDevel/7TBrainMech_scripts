@@ -28,7 +28,7 @@ for measure = csivals.Properties.VariableNames(3:end)
   % 3 is great: .33
   if regexp(name,'SD$')
       m(i) = 1 ./ m(i);
-      name = ['inv_' name];
+      name = [ name '_inv' ];
   end
   
   csi2d_to_nii(m, fullfile(outdir, [name '.nii']), tmpl);
