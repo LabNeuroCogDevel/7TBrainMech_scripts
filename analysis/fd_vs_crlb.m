@@ -78,15 +78,17 @@ sheet_id = sheet_id_all(~arrayfun(@(x) isempty(x{1}), sheet_id_all.lunaid),{'lun
 regexp(...
     [sheet_id_all.sheet{arrayfun(@(x) isempty(x{1}), sheet_id_all.lunaid)}],...
     '\d{8}[^/]*','match')
+% 20180216Luna1 exists? 11451_20180216
 
 %% CSI Values
 %%% for each row, find roi files asccoated with sheet and read both in
 %%% then threshold on various combinations of tissue, gm, and crlb
 
 % how to threshold inv crlb value
-crlb_thres=@(x) (1 ./ x) < 20;
+crlb_thres=@(x) (1 ./ x) <= 20;
 tissue_thres = .6;
 gm_thres = .6;
+thal_thres = .6;
 care_about = {'GABA','Glu'}; % which MRSI values in the sheet to look at
 
 clear smry_metric % we build this itertively, so get rid of any hold out
@@ -106,9 +108,11 @@ for row=1:height(sheet_id)
         tissue_file = strtrim(ls(fullfile(csi_roi_dir,'*_MaxTissueProb_FlipLR')));
         tissue=read_in_2d_csi_mat(tissue_file);
         gm=read_in_2d_csi_mat(strtrim(ls(fullfile(csi_roi_dir,'*_FractionGM_FlipLR'))));
+        thal=read_in_2d_csi_mat(strtrim(ls(fullfile(csi_roi_dir,'*_csivoxel_FlipLR.THA'))));
     catch
         tissue=Inf(24,24);
         gm=Inf(24,24);
+        thal=Inf(24,24);
     end
 
     %%% whats going on with just the tissue probabilities
@@ -119,6 +123,7 @@ for row=1:height(sheet_id)
     %%% cre doesn't change
     crlb_cre_thres  = crlb_thres(csivals.Cre_SD_inv);
     
+    smry_metric(row).csidir = csi_roi_dir;
     
     % for each roi
     for roi=care_about
@@ -132,6 +137,8 @@ for row=1:height(sheet_id)
         crlb_t  = crlb_thres(crlb);
         crlb_i = crlb_t & crlb_cre_thres;
         i = crlb_i & tissue_i;
+        thal_i = thal_thres > .6;
+        thal_i = thal > thal_thres;
               
         
         smry_metric(row).id = sheet_id.id(row);
@@ -150,7 +157,10 @@ for row=1:height(sheet_id)
         % crlb
         smry_metric(row).([roi '_CRLB'])      = mean( 1 ./ crlb(i));
         smry_metric(row).([roi '_allCRLB']) = mean( 1 ./ crlb(crlb < 999 & crlb~=0));
-        
+        % thalamus
+        smry_metric(row).([roi '_thal_Mean']) = mean(val(i & thal_i));
+        smry_metric(row).([roi '_thal_n'])    = nnz(thal_i);
+        smry_metric(row).([roi '_thal_gm']) = mean(gm(i & thal_i));
     end
 end
 
