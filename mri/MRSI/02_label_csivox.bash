@@ -29,11 +29,18 @@ fi
 
 if [ $1 == "all" ]; then
    find $BOXMRSI -iname spreadsheet.csv|
-    perl -lne 'print $& if m/\d{8}Luna\d/' |
-    join -i -t' ' -1 1 -2 2 - \
-       <(sort -t' ' -k2,2 txt/ids.txt)|
-       cut -f 2 -d' '|
-       xargs -n1 $0
+    perl -MFile::Basename -ple '$_=lc(basename(dirname(dirname($_))))'|
+    while read mrid; do
+       subj_date=$( (grep -i $mrid txt/ids.txt||echo " ") |cut -d' ' -f 1)
+       [ -z "$subj_date" ] && echo "cannot find $mrid in txt/ids.txt; rerun ./id_list.bash" && continue
+       $0 $subj_date || continue
+    done
+    
+    #sort |
+    #join -i -t' ' -1 1 -2 2 - \
+    #   <(sort -t' ' -k2,2 txt/ids.txt)|
+    #   cut -f 2 -d' '|
+    #   xargs -n1 $0
    exit
 fi
 
@@ -55,33 +62,34 @@ scout="/Volumes/Hera/Projects/7TBrainMech/subjs/$subj_date/slice_PFC/slice_pfc.n
 # could use link
 #filename_MRSI=spreadsheet  # MRSI excel file name after excluding '_SI*'
 rawloc=/Volumes/Hera/Raw/BIDS/7TBrainMech/rawlinks/
+[ ! -d $rawloc/$subj_date/ ] && echo "$rawloc/$subj_date/ missing!" && exit 1
 mrid=$( readlink $(find  $rawloc/$subj_date/ -type l -print -quit) | sed 's:.*Mech/\([^/]*\)/.*:\1:')
 [ -z $mrid ] && echo "cannot find $subj_date in $rawloc" >&2 && exit 1
 
 #csi_si1_csv="/Volumes/Hera/Raw/MRprojects/7TBrainMech/MRSI_BrainMechR01/$mrid/SI1/spreadsheet.csv"
-csi_si1_csv=$(find $BOXMRSI -name spreadsheet.csv -ipath "*/$mrid*")
+csi_si1_csv=$(find -L $BOXMRSI -name spreadsheet.csv -ipath "*/$mrid*")
 
 # file indicating what slice was used. eg. 20181217Luna1/PFC_registration_out/17_10_FlipLR.MPRAGE
 #reg_out_file=$(find $(dirname $(dirname "$csi_si1_csv"))/*registration_out/ \
 #   -maxdepth 1 -type f -iname '[0-9][0-9]*MPRAGE' -print -quit)
-reg_out_file=$(find $BOXMRSI -ipath "*/$mrid*/*registration_out/*" -iname '[0-9][0-9]*MPRAGE' -print -quit )
+reg_out_file=$(find -L $BOXMRSI -ipath "*/$mrid*/*registration_out/*" -iname '[0-9][0-9]*MPRAGE' -print -quit )
 
 check_file(){
     file="$1";shift
     msg="$1";shift
     [ -n "$file" -a -r "$file" ] && return
-    echo "$subj_date: no file: $file"
+    echo "$subj_date ($mrid): no file: $file"
     echo "  # fix: $msg" 
     exit 1
 }
 
 csi_json="$scriptdir/csi_settings.json"
 
-check_file "$scout"                     "run ./01_get_slices.bash"
+check_file "$scout"                     "run ./01_get_slices.bash $subj_date"
 check_file "$FSdir/mri/aparc+aseg.mgz"  "run ../FS/002_fromPSC.bash"
 check_file "$csi_si1_csv"               "run ../001_rsync_MRSI_from_box.bash"
 check_file "$csi_json"                  "see https://github.com/LabNeuroCogDevel/7TBrainMech_scripts/blob/master/mri/MRSI/csi_settings.json"
-check_file "$reg_out_file"              "$BOXMRSI/**$mrid/regirstion_out/*MPRAGE is a product of MRSI box, cannot determine slice"
+check_file "$reg_out_file"              "$BOXMRSI/**$mrid/regirstion_out/*MPRAGE is a product of MRSI box, cannot determine slice ($reg_out_file)"
 
 [ ! -d $data_dir ] && mkdir $data_dir
 
