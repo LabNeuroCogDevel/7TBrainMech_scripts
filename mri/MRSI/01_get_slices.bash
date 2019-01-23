@@ -12,7 +12,10 @@
 # depends on preprocessFunctional having been already run
 
 # run as lncd
-[ "$(whoami)" != "lncd" ] && echo "run as lncd: sudo su -l lncd $(readlink -f $0) $@" && exit 1
+if [ "$(whoami)" != "lncd" ]; then 
+    sudo su -l lncd $(readlink -f $0) $@
+    exit
+fi
 ! command -v flirt >/dev/null && echo no fsl, export path && exit 1
 
 # setup sane bash
@@ -29,7 +32,17 @@ mni_atlas="/Volumes/Hera/Projects/7TBrainMech/slice_rois_mni_extent.nii.gz"
 
 
 # can take a luna_date or directory. if given nothing find all directories
-[ $# -gt 0 ] && list=($@) || list=( /Volumes/Hera/Raw/BIDS/7TBrainMech/rawlinks/1*_2*/) 
+if [ $# -lt 1 ]; then
+  cat <<HEREDOC
+USAGE:
+  $0 10129_20180917 11299_20180511
+  $0 /Volumes/Hera/Raw/BIDS/7TBrainMech/rawlinks/11299_20180511/
+  $0 all
+HEREDOC
+  exit 1
+fi
+
+[ "$1" != "all" ] && list=($@) || list=( /Volumes/Hera/Raw/BIDS/7TBrainMech/rawlinks/1*_2*/) 
 
 for sraw in ${list[@]}; do
    # maybe we gave a lunaid_date instead of a directoyr?
@@ -42,12 +55,42 @@ for sraw in ${list[@]}; do
 
    # do we have a single scout to work with
    n=$( (ls -d $sraw/*_66 ||echo -n) |wc -l ) 
-   [ $n -ne 2 ] && echo "# $ld8: bad slice raw dir num ($n $sraw/*66*)" >&2 && continue
-   slice_dcm_dir=$(ls -d $sraw/*_66 |sed 1q)
+   if [ $n -eq 2 ]; then
+      slice_dcm_dir=$(ls -d $sraw/*_66 |sed 1q)
+   # hard code subjects based on scan sheet
+   elif [ $ld8 == "10195_20180129" ]; then
+      slice_dcm_dir="$sraw/0023_B0Scout33Slice_66"
+   elif [ $ld8 == "11451_20180216" ]; then
+      slice_dcm_dir="$sraw/0022_B0Scout41Slice_82"
+   elif [ $ld8 == "11685_20180907" ]; then
+      slice_dcm_dir="$sraw/0031_B0Scout33Slice_66"
+   elif [ $ld8 == "11682_20180907" ]; then
+      slice_dcm_dir="$sraw/0027_B0Scout33Slice_66"
+   elif [ $ld8 == "11633_20180426" ]; then
+      slice_dcm_dir="$sraw/0023_B0Scout33Slice_66" # no HC
+   elif [ $ld8 == "11668_20180702" ]; then
+      slice_dcm_dir="$sraw/0023_B0Scout33Slice_66" # no HC
+   elif [ $ld8 == "11634_20180409" ]; then
+      slice_dcm_dir="$sraw/0021_B0Scout41Slice_82" # run after mprage,r2' - no 66 there
+   elif [ $ld8 == "10644_20180216" ]; then
+      slice_dcm_dir="$sraw/0022_B0Scout41Slice_82" # run after mprage,r2' - no 66 there
+
+   # 11668_20180728 # DNE
+   # 11661_20180720 # run twice. only picked up second runn. maybe okay to use only one
+   # missing dicoms!
+   #elif [ $ld8 == "11543_20180804" ]; then
+   #   slice_dcm_dir="$sraw/"
+   else
+      echo "# $ld8: bad slice raw dir num ($n $sraw/*66*, expect 2)" >&2
+      continue
+   fi
+
+   [ $n -ne 2 ] && echo "# $ld8: hard coded protocol $slice_dcm_dir"
+   
 
    # is preprocess mprage done?
    mprage=$t1root/$ld8/mprage.nii.gz
-   [ ! -r $mprage ] && echo "# $ld8: no t1. run: 'pp 7TBrainMech MHT1_2mm $ld8' (missing $mprage)" >&2 && continue
+   [ ! -r $mprage ] && echo "# $ld8: no t1. run: 'pp 7TBrainMech_mgsencmem MHT1_2mm $ld8' (missing $mprage)" >&2 && continue
    wcoef=$t1root/$ld8/template_to_subject_warpcoef.nii.gz 
    [ ! -r $wcoef ] && echo "# $ld8: no warp coef. rerun 'pp 7TBrainMech MHT1_2mm $ld8' (missing $wcoef)" >&2 && continue
 
