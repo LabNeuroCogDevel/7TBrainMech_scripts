@@ -57,6 +57,8 @@ prob_4d = permute(reshape(cell2mat(      ...
               all_masks'),               ... 1x26
               [h,w,length(all_masks),s]),... 216x216x26x99
               [1 2 4 3]);                ... 216x216x99x26
+% TODO: check 
+% prob_4d = idv_nii_to4d(roi_dir,t.nii, h, w, s);
           
 % check that we did this correctly
 % paren = @(x, varargin) x(varargin{:});
