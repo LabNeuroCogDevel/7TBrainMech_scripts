@@ -1,5 +1,13 @@
 function [prob_4d, mprage, flair] = ...
     match_B0_CSI(prob_4d, mprage,flair, filename_csi_json)
+% MATCH_B0_CSI - resample matrices w/B0 scout field of view to match CSI
+%  selects only parts of matrix also in the CSI
+%  * prob_4d - all B0 registered rois as 4d matrix
+%  * mprage - anatomical matrix
+%  * flair - can be empty
+%  * json - csi settings (h,w vectors in fields: 'csi_FOV', 'scout_FOV')
+%
+% TODO: rewrite to take only one input. repeat function for each matrix to adjust
 
 csi_settings = jsondecode(fileread(filename_csi_json));
 

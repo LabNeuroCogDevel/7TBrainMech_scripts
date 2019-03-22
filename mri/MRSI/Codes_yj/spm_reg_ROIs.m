@@ -1,4 +1,4 @@
-function spm_reg_ROIs(ROI_dir, filename_table, filename_scout, filename_flair, t1)
+function spm_reg_ROIs(ROI_dir, filename_table, filename_scout, filename_flair, t1, redo)
 % SPM_REG_ROIs register freesurfer orig and rois to the scout (slice) space
 % * ROI_dir contains scout.nii, orig.nii, and all "roi.nii" files
 % * table, scount, and optional flair filenames are
@@ -18,6 +18,10 @@ if nargin < 5
    t1 = 'orig.nii';
 end
 
+if nargin < 6
+    redo = 0;
+end
+
 %% get filename string for rename (scout=ref)
 % /path/to/scout.nii -> /path/to/scout_resize.nii
 [data_dir, scout_nii, ext ] = fileparts(filename_scout);
@@ -25,7 +29,7 @@ scout_nii = [scout_nii ext];
 pos = strfind(scout_nii,'.'); pos=pos(end); % grab the last . (.nii) problem for .nii.gz
 scout_resized = fullfile(data_dir,[scout_nii(1:(pos-1)),'_resize.nii,1']);
 % check that resized exists
-if ~ exist(scout_resized(1:end-2),'file'), error(sprintf('Do not have %s, rerun img_resize_ft',scout_resized)), end
+if ~ exist(scout_resized(1:end-2),'file'), error('Do not have %s, rerun img_resize_ft',scout_resized), end
 
 %% read in roi list and prepare for spm (rois=other)
 % e.i. repeat what we do in grouping_masks
@@ -49,8 +53,23 @@ roi_file_list = cellfun(dir_vol1,  nii_list, 'UniformOutput',0);
 orig = dir_vol1(t1); % now like roi/dir/orig.nii,1
 
 % check file exist
-if ~ exist(orig(1:end-2),'file'), error(sprintf('Do not have t1 %s',orig)), end
+if ~ exist(orig(1:end-2),'file'), error('Do not have t1 %s',orig), end
 
+%% dont run if we have everything we want
+alreay_done=1;
+for f = [nii_list; t1]'
+    outfile = fullfile(ROI_dir,['r' f{1}]);
+    if ~exist(outfile,'file')
+        alreay_done=0;
+        break
+    %else
+    %    warning('already ran spm registration on %s, have %s', f{1}, outfile);
+    end
+end
+if alreay_done && ~redo
+    fprintf('already ran spm registration on all %s files, skipping\n', ROI_dir)
+    return
+end
 
 %% Coregister MPRAGE to resized Scout (trilinear). 
 % take all the rois with the mprage (freesurfer) into the scout (slice) space

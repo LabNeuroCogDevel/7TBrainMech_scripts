@@ -1,6 +1,9 @@
 function [parc_comb_prob, mprage_ct, flair_ct, mask_ct, parc_comb_ct] = prob_apodize(...
     CurrentScoutSliceNum, filename_csi_json, B0ScoutThk_resize, parc_comb, mask, mprage, flair, nroi)
 % PROB_APODIZE sample PSF and hanning filter. called by csi_roi_label
+%   - *_ct matrices are adjusted to CSI field of view
+%   - B0ScoutThk_resize is mm resolution (thinknness) to resize to
+%   - mask is anywhere there is an roi value (4d parc_comb)
 
     %% settings
     % get csi_size,csi_FOV,csi_thk,scout_FOV,scout_thk
@@ -10,7 +13,8 @@ function [parc_comb_prob, mprage_ct, flair_ct, mask_ct, parc_comb_ct] = prob_apo
     h_FOV_csi = csi_settings.csi_FOV(1)  ; w_FOV_csi = csi_settings.csi_FOV(2);
     B0ScoutThk_org = csi_settings.scout_thk;
     csi_thk        = csi_settings.csi_thk;
-    slice_profile = [0.0135 0.1839 0.4684 0.7768 0.9700 0.9912 0.9402 0.9384 0.9725 0.9939 0.9994 1.0000 1.0000 1.0000 0.9994 0.9939 0.9725 0.9384 0.9402 0.9912 0.9700 0.7768 0.4684 0.1839 0.0135];
+    slice_profile = csi_settings.slice_profile'; 
+    %[0.0135 0.1839 0.4684 0.7768 0.9700 0.9912 0.9402 0.9384 0.9725 0.9939 0.9994 1.0000 1.0000 1.0000 0.9994 0.9939 0.9725 0.9384 0.9402 0.9912 0.9700 0.7768 0.4684 0.1839 0.0135];
 
     
     %% Locate CSI slice

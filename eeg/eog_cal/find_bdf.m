@@ -51,6 +51,14 @@ end
 bdf_files = dir(searchpath);
 bdf_files = arrayfun(@(x) fullfile(x.folder,x.name), bdf_files, 'UniformOutput',0);
 
+%% exclude known bad files
+% remove 11716_20181130_eycal: bad file, fieldtrip cannot read
+% added 20190108
+exclude_list = {'/11716_20181130_eyecal.bdf'};
+exclude = cellfun(@(e) contains(bdf_files,e), exclude_list,'UniformOutput',0);
+exclude = sum(cell2mat(exclude),2) > 0;
+bdf_files = bdf_files(~exclude);
+
 %% limit to given 'subjs'
 % get idex of 'subjects', look one past that
 % use contains against each list

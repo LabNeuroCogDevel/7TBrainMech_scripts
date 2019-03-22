@@ -3,6 +3,7 @@
 # make niftis in BIDS dir format
 # expect raw dicoms like rawlinks/subj_date/seqno_protcol_ndcm
 # output nii.gz into sub-$lunaid/$vdate/{anat,func}/*.nii.gz
+setwd("/Volumes/Hera/Raw/BIDS/7TBrainMech/")
 
 library(dplyr)
 write_and_note <- function(f, cmd) {

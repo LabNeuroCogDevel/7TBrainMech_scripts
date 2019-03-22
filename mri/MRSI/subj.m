@@ -23,7 +23,7 @@ query = [...
 d=db_query(query);
 
 %% find the subjects we have
-files=dir('/Volumes/Hera/Raw/MRprojects/7TBrainMech/MRSI_BrainMechR01/*/SI1/spreadsheet.csv');
+files=dir('/Volumes/Hera/Raw/MRprojects/7TBrainMech/MRSI_BrainMechR01/*L*/SI1/spreadsheet.csv');
 csi_visits = cellfun(@(x) basename(dirname(x)), {files.folder}, 'Un',0);
 have_idx = ismember(d.stid, csi_visits);
 d_have_csi = d(have_idx,:);
@@ -37,8 +37,9 @@ rois_max_col = nan(nroi, nsubject);
 for i=1:nsubject
     try
         [rois_max_row(:,i), rois_max_col(:,i) ] = csi_roi_vox(d_have_csi.ld8{i});
-    catch
+    catch e
         fprintf('missing for subject %s\n',d_have_csi.ld8{i})
+        rethrow(e)
     end
 end
 
@@ -55,10 +56,12 @@ for subj_i=1:nsubject
             max_roi_subj_col=rois_max_col(roi_j,subj_i);
             max_roi_subj_row=rois_max_row(roi_j,subj_i);
             lunaid= d_have_csi.ld8{subj_i};
+            dob= d_have_csi.dob{subj_i};
+            sex= d_have_csi.sex{subj_i};
             val=extract_csi_by_pos(csi, measure, max_roi_subj_row, max_roi_subj_col);
             if isempty(val), val=0; end
-            fprintf(fid, '%s %d %s %.3f\n', lunaid, roi_j, measure, val);
+            fprintf(fid, '%s %s %s %d %s %.3f\n', lunaid, dob, sex, roi_j, measure, val);
         end 
     end
 end 
-fclose(fid)
+fclose(fid);

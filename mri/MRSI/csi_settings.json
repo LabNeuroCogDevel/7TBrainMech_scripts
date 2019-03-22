@@ -6,5 +6,6 @@
    "scout_FOV": [216,216], 
    "csi_thk":   10,
    "scout_thk": 3,
-   "ml_inst": "read in: jsondecode(fileread('csi_settings.json')) %R2016b"
+   "ml_inst": "read in: jsondecode(fileread('csi_settings.json')) %R2016b",
+   "slice_profile": [0.0135,0.1839,0.4684,0.7768,0.9700,0.9912,0.9402,0.9384,0.9725,0.9939,0.9994,1.0000,1.0000,1.0000,0.9994,0.9939,0.9725,0.9384,0.9402,0.9912,0.9700,0.7768,0.4684,0.1839,0.0135]
 }

@@ -75,10 +75,16 @@ sheet_id_all = outerjoin(sheets, lunaid_7TID, 'Key','mrid','Type','Left');
 % we only want what has a spreadsheet and an id we can work with
 sheet_id = sheet_id_all(~arrayfun(@(x) isempty(x{1}), sheet_id_all.lunaid),{'lunaid','id','sheet'});
 % but we should track missing, so we can fix
-regexp(...
-    [sheet_id_all.sheet{arrayfun(@(x) isempty(x{1}), sheet_id_all.lunaid)}],...
-    '\d{8}[^/]*','match')
-% 20180216Luna1 exists? 11451_20180216
+unkown_ids_i = arrayfun(@(x) isempty(x{1}), sheet_id_all.lunaid);
+if nnz(unkown_ids_i) > 0
+    regexp(...
+        [sheet_id_all.sheet{unkown_ids_i}],...
+        '\d{8}[^/]*','match')
+end
+% 11299_20180511
+% /Volumes/Hera/Raw/MRprojects/7TBrainMech/20180511Luna/20180511LUNA|sheetissue
+% 11665_20180628 /Volumes/Hera/Raw/MRprojects/7TBrainMech/20180628Luna1/20180628LUNA1DCMALOL/
+
 
 %% CSI Values
 %%% for each row, find roi files asccoated with sheet and read both in
@@ -86,9 +92,10 @@ regexp(...
 
 % how to threshold inv crlb value
 crlb_thres=@(x) (1 ./ x) <= 20;
-tissue_thres = .6;
-gm_thres = .6;
-thal_thres = .6;
+tissue_thres = .4;
+gm_thres = .4;
+thal_thres = .4;
+frontal_thres =.3;
 care_about = {'GABA','Glu'}; % which MRSI values in the sheet to look at
 
 clear smry_metric % we build this itertively, so get rid of any hold out
@@ -109,10 +116,17 @@ for row=1:height(sheet_id)
         tissue=read_in_2d_csi_mat(tissue_file);
         gm=read_in_2d_csi_mat(strtrim(ls(fullfile(csi_roi_dir,'*_FractionGM_FlipLR'))));
         thal=read_in_2d_csi_mat(strtrim(ls(fullfile(csi_roi_dir,'*_csivoxel_FlipLR.THA'))));
+        front=read_in_2d_csi_mat(strtrim(ls(fullfile(csi_roi_dir,'*_csivoxel_FlipLR.FGM'))));
+        % see e.g.
+        %  cd /Volumes/Hera/Projects/7TBrainMech/subjs/11669_20180712/slice_PFC/MRSI/
+        %  afni mprage_in_slice.nii.gz all_csi.nii.gz all_probs.nii.gz,scout.nii
     catch
         tissue=Inf(24,24);
         gm=Inf(24,24);
         thal=Inf(24,24);
+        front=Inf(24,24);
+        fprintf('Victor code has not run on %s (%s)\n', ...
+            sheet_id.id{row}, sheet_id.sheet{row}) 
     end
 
     %%% whats going on with just the tissue probabilities
@@ -137,8 +151,10 @@ for row=1:height(sheet_id)
         crlb_t  = crlb_thres(crlb);
         crlb_i = crlb_t & crlb_cre_thres;
         i = crlb_i & tissue_i;
-        thal_i = thal_thres > .6;
+        thal_i = thal_thres > .4;
         thal_i = thal > thal_thres;
+        frontal_i = frontal_thres > .4;
+        frontal_i = front > frontal_thres;
               
         
         smry_metric(row).id = sheet_id.id(row);
@@ -161,6 +177,10 @@ for row=1:height(sheet_id)
         smry_metric(row).([roi '_thal_Mean']) = mean(val(i & thal_i));
         smry_metric(row).([roi '_thal_n'])    = nnz(thal_i);
         smry_metric(row).([roi '_thal_gm']) = mean(gm(i & thal_i));
+        %frontal 
+        smry_metric(row).([roi '_frontal_Mean']) = mean(val(i & frontal_i));
+        smry_metric(row).([roi '_frontal_n'])    = nnz(frontal_i);
+        smry_metric(row).([roi '_frontal_gm']) = mean(gm(i & frontal_i));
     end
 end
 

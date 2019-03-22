@@ -11,8 +11,10 @@
 # 3. bring slice roi atlas into mprage and slice space (nonlinear)
 # depends on preprocessFunctional having been already run
 
+lsscout(){ ls -d $1/*_66 2>/dev/null || ls -d $1/*_82 2>/dev/null ; }
+
 # run as lncd
-if [ "$(whoami)" != "lncd" ]; then 
+if [ "$(whoami)" != "lncd" -a $(hostname) == "rhea.wpic.upmc.edu" ]; then 
     sudo su -l lncd $(readlink -f $0) $@
     exit
 fi
@@ -42,7 +44,12 @@ HEREDOC
   exit 1
 fi
 
-[ "$1" != "all" ] && list=($@) || list=( /Volumes/Hera/Raw/BIDS/7TBrainMech/rawlinks/1*_2*/) 
+case $1 in
+   all) list=( /Volumes/Hera/Raw/BIDS/7TBrainMech/rawlinks/1*_2*/);;
+   missing) list=( $(for i in $(cat missing_subjects.txt ); do grep $i txt/ids.txt ; done|cut -f 1 -d' '));;
+   *) list=($@);;
+esac
+
 
 for sraw in ${list[@]}; do
    # maybe we gave a lunaid_date instead of a directoyr?
@@ -54,14 +61,14 @@ for sraw in ${list[@]}; do
    ld8=$BASH_REMATCH
 
    # do we have a single scout to work with
-   n=$( (ls -d $sraw/*_66 ||echo -n) |wc -l ) 
+   n=$( (lsscout "$sraw" || echo -n) |wc -l ) 
    if [ $n -eq 2 ]; then
-      slice_dcm_dir=$(ls -d $sraw/*_66 |sed 1q)
+      slice_dcm_dir=$(lsscout "$sraw" |sed 1q)
    # hard code subjects based on scan sheet
    elif [ $ld8 == "10195_20180129" ]; then
       slice_dcm_dir="$sraw/0023_B0Scout33Slice_66"
    elif [ $ld8 == "11451_20180216" ]; then
-      slice_dcm_dir="$sraw/0022_B0Scout41Slice_82"
+      slice_dcm_dir="$sraw/0024_B0Scout41Slice_82"
    elif [ $ld8 == "11685_20180907" ]; then
       slice_dcm_dir="$sraw/0031_B0Scout33Slice_66"
    elif [ $ld8 == "11682_20180907" ]; then
@@ -72,8 +79,16 @@ for sraw in ${list[@]}; do
       slice_dcm_dir="$sraw/0023_B0Scout33Slice_66" # no HC
    elif [ $ld8 == "11634_20180409" ]; then
       slice_dcm_dir="$sraw/0021_B0Scout41Slice_82" # run after mprage,r2' - no 66 there
+   elif [ $ld8 == "11626_20180312" ]; then
+      slice_dcm_dir="$sraw/0024_B0Scout41Slice_82"
    elif [ $ld8 == "10644_20180216" ]; then
-      slice_dcm_dir="$sraw/0022_B0Scout41Slice_82" # run after mprage,r2' - no 66 there
+      slice_dcm_dir="$sraw/0022_B0Scout41Slice_82" 
+   elif [ $ld8 == "11627_20180323" ]; then
+      slice_dcm_dir="$sraw/0023_B0Scout33Slice_66" 
+   elif [ $ld8 == "11681_20180921" ]; then
+      slice_dcm_dir="$sraw/0023_B0Scout33Slice_66" 
+   elif [ $ld8 == "11688_20181215" ]; then
+      slice_dcm_dir="$sraw/0023_B0Scout33Slice_66"  # have 002_82, 0023_66 -- weird
 
    # 11668_20180728 # DNE
    # 11661_20180720 # run twice. only picked up second runn. maybe okay to use only one
@@ -81,7 +96,7 @@ for sraw in ${list[@]}; do
    #elif [ $ld8 == "11543_20180804" ]; then
    #   slice_dcm_dir="$sraw/"
    else
-      echo "# $ld8: bad slice raw dir num ($n $sraw/*66*, expect 2)" >&2
+      echo "# $ld8: bad slice raw dir num ($n $sraw/*{82,66}*, expect 2)" >&2
       continue
    fi
 

@@ -8,7 +8,14 @@ function [d_struct] = bdf_read_chnl(f, c, varargin)
 if nargin == 3
     h = varargin{1};
 else
-    h = ft_read_header(f);
+    try
+      h = ft_read_header(f);
+    catch ME
+        disp(f)
+        nME = MException('MATLAB:BadFile', ...
+          [f ' cannot be read with ft_read_header!']);
+        throw(nME);
+    end
 end
 
 %% fix channel names: horizontal eye
@@ -38,7 +45,18 @@ catch ME
     % rethrow(ME)
     
 end
-d = ft_read_data(f, 'header', h, 'chanindx', chidx);
+
+
+try
+    d = ft_read_data(f, 'header', h, 'chanindx', chidx);
+catch ME
+    disp(f)
+    nME = MException('MATLAB:BadFile', ...
+      [f ' cannot be read with ft_read_data!']);
+    throw(nME);
+end
+
+
 
 %% fix the status channel if included
 statusidx = strmatch('Status',h.label);

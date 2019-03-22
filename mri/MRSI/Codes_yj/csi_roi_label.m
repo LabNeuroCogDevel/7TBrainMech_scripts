@@ -22,7 +22,7 @@ B0ScoutThk_resize = 1; % resized B0 scout thickness [mm]
 
 % Are we using flair?
 if ~isempty(filename_flair) && exist(filename_flair,'file')
-    img_nii = load_untouch_nii(strcat(data_dir,'r',filename_flair));  % input
+    img_nii = load_untouch_nii(filename_flair);  % input
     flair = img_nii.img;
 else
     flair = [];
@@ -45,35 +45,40 @@ if h ~= w
        h, w, mprage_file);
 end
 
+%% read in rois, combine separate roi files into on 4d matrix
 % read in rois, make names like 'rRAcing_wm.nii' and 'rbrainstem.nii'
 t = readtable(filename_table,'ReadVariableNames',1);
 t = [t rowfun(@name_mask,t(:,{'name','matter'}),'OutputVariable','nii')];
 t.nii = cellfun(@(x) ['r' x], t.nii,'UniformOutput',0);
-% read in nifti images from nii files defined in table
-get_img = @(x) getfield(load_untouch_nii(fullfile(roi_dir,x)),'img');
-all_masks = cellfun(get_img, t.nii, 'UniformOutput', 0);
-% make into a 4d matrix
-prob_4d = permute(reshape(cell2mat(      ...
-              all_masks'),               ... 1x26
-              [h,w,length(all_masks),s]),... 216x216x26x99
-              [1 2 4 3]);                ... 216x216x99x26
-% TODO: check 
-% prob_4d = idv_nii_to4d(roi_dir,t.nii, h, w, s);
-          
-% check that we did this correctly
-% paren = @(x, varargin) x(varargin{:});
-% testmasks=[11:15];
-% for mii = testmasks
-%     [i,j,k]=ind2sub(size(mprage),find(all_masks{mii}));
-%     testit=zeros(length(i),1);
-%     for ii=1:length(i)
-%       testit(ii) = paren(all_masks{mii},i(ii),j(ii),k(ii)) == prob_4d(i(ii),j(ii),k(ii),mii);
-%     end
-%     all(testit)
-% end
+prob_4d = idv_nii_to4d(roi_dir,t.nii);
+% % read in nifti images from nii files defined in table
+% get_img = @(x) getfield(load_untouch_nii(fullfile(roi_dir,x)),'img');
+% all_masks = cellfun(get_img, t.nii, 'UniformOutput', 0);
+% % make into a 4d matrix
+% prob_4d = permute(reshape(cell2mat(      ...
+%               all_masks'),               ... 1x26
+%               [h,w,length(all_masks),s]),... 216x216x26x99
+%               [1 2 4 3]);                ... 216x216x99x26
+% % TODO: check 
+% %   prob_4d_test = idv_nii_to4d(roi_dir,t.nii);
+% %   p4test = prob_4d_test == prob_4d;
+% %   p4test(isnan(prob_4d_test)) = 1;
+% %   all(p4test(:))
+%           
+% % check that we did this correctly
+% % paren = @(x, varargin) x(varargin{:});
+% % testmasks=[11:15];
+% % for mii = testmasks
+% %     [i,j,k]=ind2sub(size(mprage),find(all_masks{mii}));
+% %     testit=zeros(length(i),1);
+% %     for ii=1:length(i)
+% %       testit(ii) = paren(all_masks{mii},i(ii),j(ii),k(ii)) == prob_4d(i(ii),j(ii),k(ii),mii);
+% %     end
+% %     all(testit)
+% % end
 
-% free up some space
-clear all_masks
+% % free up some space
+% %clear all_masks
 
 % index the types of brain matter: white, grey, non-brain
 wm_idx = strncmp('wm',t.matter,2);
@@ -84,6 +89,9 @@ nb_idx = strncmp('nb',t.matter,2);
 %% match grids
 [prob_4d, mprage, flair] = ...
     match_B0_CSI(prob_4d, mprage, flair, filename_csi_json);
+% TODO: do one at a time instead:
+%   mprage = match_B0_CSI_1(mprage, filename_csi_json)
+%   prob_4d = match_B0_CSI_1(prob_4d, filename_csi_json)
 
 %% Combine segmentation results (Tissue w/ max probability will be chosen. no empty space)
 [~, parc_comb] = max(prob_4d, [], 4);

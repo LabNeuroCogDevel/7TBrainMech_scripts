@@ -108,6 +108,9 @@ if(runPREP)
         
     end
     eeglab redraw;
+    disp(pwd);
+    disp(PREPoutputPath);
+    disp(ProcessedDataLocation);
     EEG = pop_saveset( EEG, 'filename',PREPoutputPath,'filepath',ProcessedDataLocation); %save PREP preprocessed output
     eeglab redraw;
     

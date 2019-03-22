@@ -1,11 +1,14 @@
 %function score_eog(subj)
 
+addpath(genpath('~/Documents/MATLAB/fieldtrip-20180926/'))
+
 % get all subjects
 if ~exist('allSubjs', 'var')
     d=eeg_data('#cal', {'Status'});
     allSubjs = {d.id};
 end
 data = [];%nan*ones(1,7);
+allSubjs
 
 VERBOSE = 0;
 
@@ -37,7 +40,7 @@ for subji = 1:length(allSubjs)
 
     if ~exist('cal','var') || ~strcmp(d(1).id, cal.id)
         try
-            cal = make_cal(subj);
+            cal = make_cal(subj, VERBOSE);
         catch
             fprintf(1, '--> %s: Could not load calibration data, skipping\n', subj);
             continue;
@@ -312,3 +315,5 @@ end
 
 datatable = array2table(data);
 datatable.Properties.VariableNames = {'LunaID','ScanDate','Trial','PositionError','DisplacementError','vgsLatency','mgsLatency'};
+
+save(sprintf('eeg_data_%s.mat',datestr(now, 'YYYYmmdd')), 'datatable');

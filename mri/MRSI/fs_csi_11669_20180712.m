@@ -5,8 +5,8 @@ matlabcode_dir='/Volumes/Hera/Projects/7TBrainMech/scripts/mri/MRSI/Codes_yj/';
 roi_file='/Volumes/Hera/Projects/7TBrainMech/scripts/mri/MRSI/roi.txt';
 csi_json='/Volumes/Hera/Projects/7TBrainMech/scripts/mri/MRSI/csi_settings.json';
 
-ROI_dir='/Volumes/Hera/Projects/7TBrainMech/subjs/11686_20180917/slice_PFC/MRSI/parc_group';
-data_dir='/Volumes/Hera/Projects/7TBrainMech/subjs/11686_20180917/slice_PFC/MRSI';
+ROI_dir='/Volumes/Hera/Projects/7TBrainMech/subjs/11669_20180712/slice_PFC/MRSI/parc_group';
+data_dir='/Volumes/Hera/Projects/7TBrainMech/subjs/11669_20180712/slice_PFC/MRSI';
 filename_scout='scout.nii';
 
 cd(matlabcode_dir);
@@ -28,7 +28,7 @@ dir2d_to_niis(csi_2d_dir,csi_2d_dir,csi_template);
 
 
 outdir = fullfile(data_dir,'csi_val');
-csi_csv = '/Volumes/Hera/Raw/MRprojects/7TBrainMech/MRSI_BrainMechR01/20180216Luna1/SI1/spreadsheet.csv';
+csi_csv = '/Volumes/Hera/Raw/MRprojects/7TBrainMech/MRSI_BrainMechR01/20180712Luna2/SI1/spreadsheet.csv';
 SI1_to_nii(csi_csv,csi_template,outdir);
 
 

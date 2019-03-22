@@ -9,7 +9,7 @@
 scriptdir=$(cd $(dirname $0);pwd)
 bidsroot=$scriptdir
 
-source $scriptdir/func.bash # getld8_dcmdir getld8_db
+source $scriptdir/func.bash # getld8: getld8_dcmdir getld8_db
 cd /Volumes/Hera/Raw/BIDS/7TBrainMech/rawlinks
 
 # look through all dicoms in a directory
@@ -65,8 +65,8 @@ link_subjalldcm(){
  [ -z "$d" -o ! -d "$d" ] && echo "bad alldcm subject directory '$d'" >&2  && return
 
  # get id
- id=$(getld8 "$d") || : #continue
- [ -z "$id" ] && echo "no id for $d ($exampledcm)" && return
+ id=$(getld8 "$d" 2>/tmp/getld8msg ) || : #continue
+ [ -z "$id" ] && echo -e "no id for $d ($exampledcm)\n$(sed 's/^/\t/' /tmp/getld8msg)" && return
 
  echo "$id $d"
 
@@ -77,10 +77,16 @@ link_subjalldcm(){
  # separate dicoms into their own dirs
  in_out $d | parallel --colsep ' ' link_glob {1} $id/{2}
 }
-
+if [ $# -eq 0 ]; then
+   cat <<HD
+USAGE: 
+  $0 all
+  $0 /Volumes/Hera/Raw/MRprojects/7TBrainMech/20180607Luna1/20180607LUNA1DCMALL/
+HD
+fi
 # if no input, look at inputdirs.txt
-if [ -z "$1" ]; then
-  $scriptdir/000_gen_idlist.bash
+if [ "$1" == "all" ]; then
+  $scriptdir/000_gen_idlist.bash newer
   echo "# no raw dir given, using 000_gen_idlist.bash (alternate usage: $0 /Volumes/Hera/Raw/MRprojects/7TBrainMech/20180607Luna1/20180607LUNA1DCMALL/)"
   cat $scriptdir/inputdirs.txt | while read d ld8 sub_sess; do
     [ -d $bidsroot/$sub_sess ] && echo "# have $bidsroot/$sub_sess for raw $d" && continue
