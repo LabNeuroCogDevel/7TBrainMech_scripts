@@ -28,20 +28,29 @@ HEREDOC
 fi
 
 if [ $1 == "all" ]; then
-   find $BOXMRSI -iname spreadsheet.csv|
-    perl -MFile::Basename -ple '$_=lc(basename(dirname(dirname($_))))'|
+   find $BOXMRSI -iname spreadsheet.csv |
+    #perl -MFile::Basename -ple '$_=lc(basename(dirname(dirname($_))))'|
+    perl -lne 'print $1 if m:/(20\d{6}[^/]+)/:' |
     while read mrid; do
-       subj_date=$( (grep -i $mrid txt/ids.txt||echo " ") |cut -d' ' -f 1)
+       subj_date=$( (grep -i "$mrid" txt/ids.txt||echo " ") |cut -d' ' -f 1)
        [ -z "$subj_date" ] && echo "cannot find $mrid in txt/ids.txt; rerun ./id_list.bash" && continue
        $0 $subj_date || continue
     done
-    
-    #sort |
-    #join -i -t' ' -1 1 -2 2 - \
-    #   <(sort -t' ' -k2,2 txt/ids.txt)|
-    #   cut -f 2 -d' '|
-    #   xargs -n1 $0
    exit
+fi
+
+if [ $1 == "ALL" ]; then
+
+   # if we havne't updated the id text file in a while
+   [ -z $(find txt/ids.txt -mtime +2 -type f) ] &&
+      echo "# not running ./id_list.bash" ||
+      $(dirname $0)/id_list.bash
+
+   # get from all ids
+   sort -t' ' -k2,2 txt/ids.txt|
+     cut -f 1 -d' '|
+     xargs -n1 $0
+     exit
 fi
 
 ## read subject input
@@ -219,7 +228,7 @@ echo "# running $(pwd)/$mscript"
 
 ### actually run!
 # -nodesktop -nosplash 
-matlab -nodisplay -r "try, ${mscript%.m},catch e, disp(e); end; quit" |tee $log_reg
+matlab -nodisplay -r "try, run('${mscript%.m}'),catch e, disp(e); end; quit" |tee $log_reg
 
 # put niftis together for easy viewing
 3dbucket -overwrite -prefix all_csi.nii.gz csi_val/*nii

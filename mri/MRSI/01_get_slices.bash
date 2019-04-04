@@ -60,48 +60,52 @@ for sraw in ${list[@]}; do
    ! [[ $(basename $sraw) =~ [0-9]{5}_[0-9]{8} ]] && echo "# no lunadate in '$sraw'" >&2 && continue
    ld8=$BASH_REMATCH
 
-   # do we have a single scout to work with
-   n=$( (lsscout "$sraw" || echo -n) |wc -l ) 
-   if [ $n -eq 2 ]; then
-      slice_dcm_dir=$(lsscout "$sraw" |sed 1q)
-   # hard code subjects based on scan sheet
-   elif [ $ld8 == "10195_20180129" ]; then
-      slice_dcm_dir="$sraw/0023_B0Scout33Slice_66"
-   elif [ $ld8 == "11451_20180216" ]; then
-      slice_dcm_dir="$sraw/0024_B0Scout41Slice_82"
-   elif [ $ld8 == "11685_20180907" ]; then
-      slice_dcm_dir="$sraw/0031_B0Scout33Slice_66"
-   elif [ $ld8 == "11682_20180907" ]; then
-      slice_dcm_dir="$sraw/0027_B0Scout33Slice_66"
-   elif [ $ld8 == "11633_20180426" ]; then
-      slice_dcm_dir="$sraw/0023_B0Scout33Slice_66" # no HC
-   elif [ $ld8 == "11668_20180702" ]; then
-      slice_dcm_dir="$sraw/0023_B0Scout33Slice_66" # no HC
-   elif [ $ld8 == "11634_20180409" ]; then
-      slice_dcm_dir="$sraw/0021_B0Scout41Slice_82" # run after mprage,r2' - no 66 there
-   elif [ $ld8 == "11626_20180312" ]; then
-      slice_dcm_dir="$sraw/0024_B0Scout41Slice_82"
-   elif [ $ld8 == "10644_20180216" ]; then
-      slice_dcm_dir="$sraw/0022_B0Scout41Slice_82" 
-   elif [ $ld8 == "11627_20180323" ]; then
-      slice_dcm_dir="$sraw/0023_B0Scout33Slice_66" 
-   elif [ $ld8 == "11681_20180921" ]; then
-      slice_dcm_dir="$sraw/0023_B0Scout33Slice_66" 
-   elif [ $ld8 == "11688_20181215" ]; then
-      slice_dcm_dir="$sraw/0023_B0Scout33Slice_66"  # have 002_82, 0023_66 -- weird
 
+
+   force_dir=( \
+   "10195_20180129/0023_B0Scout33Slice_66"
+   "11451_20180216/0024_B0Scout41Slice_82"
+   "11685_20180907/0031_B0Scout33Slice_66"
+   "11682_20180907/0027_B0Scout33Slice_66"
+   "11633_20180426/0023_B0Scout33Slice_66" # no HC
+   "11668_20180702/0023_B0Scout33Slice_66" # no HC
+   "11634_20180409/0021_B0Scout41Slice_82" # run after mprage,r2' - no 66 there
+   "11626_20180312/0024_B0Scout41Slice_82"
+   "10644_20180216/0022_B0Scout41Slice_82" 
+   "11627_20180323/0023_B0Scout33Slice_66" 
+   "11681_20180921/0023_B0Scout33Slice_66" 
+   "11688_20181215/0023_B0Scout33Slice_66" # have 002_82, 0023_66 -- weird
+   "11724_20190104/0023_B0Scout33Slice_66" # no HC
+   "11752_20190315/0025_B0Scout33Slice_66" # no HC
+   "11634_20180409/0021_B0Scout41Slice_82" # 3, 82 at 002
+   "11757_20190322/0028_B0Map33Slice_66"   # no HC
+   "11731_20190201/0023_B0Scout33Slice_66" # early 66 to be ignored
+   )
    # 11668_20180728 # DNE
    # 11661_20180720 # run twice. only picked up second runn. maybe okay to use only one
+   # 11760_20190311/002[468] # whicch?
    # missing dicoms!
    #elif [ $ld8 == "11543_20180804" ]; then
    #   slice_dcm_dir="$sraw/"
+
+
+   slice_dcm_dir=""
+   for fd in ${force_dir[@]}; do
+      [ $ld8 == ${fd:0:14} ] || continue
+      slice_dcm_dir=$sraw/$(basename $fd)
+      break
+   done
+
+   # do we have a single scout to work with
+   n=$( (lsscout "$sraw" || echo -n) |wc -l ) 
+   if [ -n "$slice_dcm_dir" ]; then 
+      echo "# manually setting $ld8 $slice_dcm_dir" >&2
+   elif [ $n -eq 2 ]; then
+      slice_dcm_dir=$(lsscout "$sraw" |sed 1q)
    else
       echo "# $ld8: bad slice raw dir num ($n $sraw/*{82,66}*, expect 2)" >&2
       continue
    fi
-
-   [ $n -ne 2 ] && echo "# $ld8: hard coded protocol $slice_dcm_dir"
-   
 
    # is preprocess mprage done?
    mprage=$t1root/$ld8/mprage.nii.gz
