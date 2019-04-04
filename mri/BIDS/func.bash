@@ -25,8 +25,9 @@ getld8_dcmdir(){
 # give me a string like yyyymmddLuna#, and i'll give you the luna_date
 getld8_db(){
    read ymd num <<< $(echo $@ | perl -lne 'print $1,"\t",$2?$2:1 if m/(\d{8})Luna([1-3])?/i')
-   echo "$FUNCNAME: $@: ld8 '$ymd' scanno '$num'">&2;
+   echo "$FUNCNAME: $@: ymd '$ymd' scanno '$num'">&2;
    [ -z "$ymd" ] && return
+   set -x
    psql -F $'\t'  --no-align -qt  -h arnold.wpic.upmc.edu  lncddb  lncd -c "
 select
    concat(id, '_', to_char(vtimestamp,'yyyymmdd')) as ld8,
@@ -35,12 +36,14 @@ select
    natural join visit
    natural join enroll
    where 
-   vtype like 'scan' and
+   vtype ilike 'scan' and
    study like 'BrainMechR01' and
    etype like 'LunaID' and
    to_char(vtimestamp,'YYYYmmdd') like '%$ymd%'
    order by vtimestamp asc; 
    " | uniq |tee >( cat|sed 's/^/\t/' >&2) |sed -n ${num}p |cut -f1
+
+   set +x
 }
 
 getld8_hardcoded(){
@@ -77,6 +80,7 @@ getld8(){
    if [ -z "$ld8" -a -z "$ld8db" ]; then
       echo "$d has no luna in dcm or db?!">&2
       local dt=$(basename $(dirname $d))
+      #echo $dt >&2;
       echo -e "psql -h arnold.wpic.upmc.edu lncddb lncd -c \"select id,vtype,study,vtimestamp from visit natural join person natural join visit_study natural join enroll where to_char(vtimestamp,'YYYYmmdd') like '${dt:0:8}%' and etype like 'LunaID'\"" >&2
       return 1
    fi
