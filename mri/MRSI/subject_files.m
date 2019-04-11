@@ -71,7 +71,7 @@ slice_num = NaN;
 if exist(subj.slice_txt,'file'), slice_num = load(subj.slice_txt); end
 % get frac gm
 subj.fracgm_file = sprintf('/Volumes/Hera/Projects/7TBrainMech/subjs/%s/slice_PFC/MRSI/2d_csi_ROI/%d_FractionGM_FlipLR', subj_id, slice_num);
-
+subj.fractis_file = sprintf('/Volumes/Hera/Projects/7TBrainMech/subjs/%s/slice_PFC/MRSI/2d_csi_ROI/%d_MaxTissueProb_FlipLR', subj_id, slice_num);
 
 % csi could be in two other places
 if ~exist(subj.csi,'file') 
