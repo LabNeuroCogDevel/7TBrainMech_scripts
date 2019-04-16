@@ -15,7 +15,7 @@ lsscout(){ ls -d $1/*_66 2>/dev/null || ls -d $1/*_82 2>/dev/null ; }
 
 # run as lncd
 if [ "$(whoami)" != "lncd" -a $(hostname) == "rhea.wpic.upmc.edu" ]; then 
-    sudo su -l lncd $(readlink -f $0) $@
+    sudo -E su -l lncd $(readlink -f $0) $@
     exit
 fi
 ! command -v flirt >/dev/null && echo no fsl, export path && exit 1
@@ -26,12 +26,6 @@ trap 'e=$?; [ $e -ne 0 ] && echo "$0 exited in error"' EXIT
 cd $(dirname $0)
 
 
-# where are things
-subjdir="/Volumes/Hera/Projects/7TBrainMech/subjs"
-t1root="/Volumes/Hera/Projects/7TBrainMech/pipelines/MHT1_2mm"
-mni_atlas="/Volumes/Hera/Projects/7TBrainMech/slice_rois_mni_extent.nii.gz"
-#N.B. need to resample atlas w/ 2mm template so extent matched. bad warp otherwise
-
 
 # can take a luna_date or directory. if given nothing find all directories
 if [ $# -lt 1 ]; then
@@ -40,12 +34,33 @@ USAGE:
   $0 10129_20180917 11299_20180511
   $0 /Volumes/Hera/Raw/BIDS/7TBrainMech/rawlinks/11299_20180511/
   $0 all
+  $0 STUDY=FF 20180125FF
 HEREDOC
   exit 1
 fi
 
+STUDY=7TBrainMech
+[[ $1 =~ ^STUDY=(.*)$ ]] && STUDY=${BASH_REMATCH[1]} && shift
+
+case $STUDY in
+   FF)
+      STUDY_PATH="/Volumes/Hera/Projects/Collab/7TFF/"
+      RAW_PATH="/Volumes/Hera/Raw/BIDS/7TFF/rawlinks"
+      ;;
+   *) 
+      STUDY_PATH=/Volumes/Hera/Projects/7TBrainMech
+      RAW_PATH=/Volumes/Hera/Raw/BIDS/7TBrainMech/rawlinks
+      ;;
+esac
+
+# where are things
+subjdir="$STUDY_PATH/subjs"
+t1root="$STUDY_PATH/pipelines/MHT1_2mm"
+mni_atlas="/Volumes/Hera/Projects/7TBrainMech/slice_rois_mni_extent.nii.gz"
+#N.B. need to resample atlas w/ 2mm template so extent matched. bad warp otherwise
+
 case $1 in
-   all) list=( /Volumes/Hera/Raw/BIDS/7TBrainMech/rawlinks/1*_2*/);;
+   all) list=($RAW_PATH/[12]*/);;
    missing) list=( $(for i in $(cat missing_subjects.txt ); do grep $i txt/ids.txt ; done|cut -f 1 -d' '));;
    *) list=($@);;
 esac
@@ -53,12 +68,17 @@ esac
 
 for sraw in ${list[@]}; do
    # maybe we gave a lunaid_date instead of a directoyr?
-   [ ! -d $sraw ] && sraw=/Volumes/Hera/Raw/BIDS/7TBrainMech/rawlinks/$sraw
+   [ ! -d $sraw ] && sraw=$RAW_PATH/$sraw
    [ ! -d $sraw ] && echo "# bad input: no directory like $sraw" >&2 && continue
 
    # is this a luna_date
-   ! [[ $(basename $sraw) =~ [0-9]{5}_[0-9]{8} ]] && echo "# no lunadate in '$sraw'" >&2 && continue
-   ld8=$BASH_REMATCH
+   if [[ $STUDY_PATH =~ 7TBrainMech ]]; then
+      ! [[ $(basename $sraw) =~ [0-9]{5}_[0-9]{8} ]] && echo "# no lunadate in '$sraw'" >&2 && continue
+      ld8=$BASH_REMATCH
+   else
+      # Fabio subject
+      ld8=$(basename $sraw)
+   fi
 
 
 
@@ -81,6 +101,8 @@ for sraw in ${list[@]}; do
    "11757_20190322/0028_B0Map33Slice_66"   # no HC
    "11731_20190201/0023_B0Scout33Slice_66" # early 66 to be ignored
    "11760_20190311/0023_B0Scout33Slice_66" # mixed date data, this is from separate scout dir
+   # FF scans
+   "20180824FF2/0023_B0Scout33Slice_66"
    )
    # 11668_20180728 # DNE
    # 11661_20180720 # run twice. only picked up second runn. maybe okay to use only one
@@ -92,7 +114,8 @@ for sraw in ${list[@]}; do
 
    slice_dcm_dir=""
    for fd in ${force_dir[@]}; do
-      [ $ld8 == ${fd:0:14} ] || continue
+      # TODO if ld8 is FF -- will need to fix
+      [ $ld8 == $(dirname $fd) ] || continue
       slice_dcm_dir=$sraw/$(basename $fd)
       break
    done

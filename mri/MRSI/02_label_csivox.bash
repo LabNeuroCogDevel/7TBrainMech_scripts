@@ -16,31 +16,55 @@ set -euo pipefail
 export AFNI_COMPRESSOR="" AFNI_NIFTI_TYPE_WARN=NO
 scriptdir=$(cd $(dirname $0);pwd)
 
-BOXMRSI=/Volumes/Hera/Raw/MRprojects/7TBrainMech/MRSI_BrainMechR01/
 if [ $# -eq 0 ]; then
    cat <<HEREDOC 
    USAGE:
      $0 subj_date
      $0 all 
+     $0 STUDY=FF all 
      # see /Volumes/Hera/Projects/7TBrainMech/pipelines/MHT1_2mm/ for subj list
 HEREDOC
   exit 1
 fi
 
+# get study from first argumetn if given
+# otherwise assume 7T
+STUDY=7TBrainMech
+[[ $1 =~ ^STUDY=(.*)$ ]] && STUDY=${BASH_REMATCH[1]} && shift
+
+case $STUDY in
+   FF) BOXMRSI="/Volumes/Hera/Raw/MRprojects/Other/FF/MRSI/"
+       STUDYDIR="/Volumes/Hera/Projects/Collab/7TFF/"
+       RAWDIR=/Volumes/Hera/Raw/BIDS/7TFF/rawlinks/;;
+   *)  BOXMRSI="/Volumes/Hera/Raw/MRprojects/7TBrainMech/MRSI_BrainMechR01/" 
+       STUDYDIR="/Volumes/Hera/Projects/7TBrainMech"
+       RAWDIR=/Volumes/Hera/Raw/BIDS/7TBrainMech/rawlinks/;;
+esac
+echo $STUDY $STUDYDIR
+
 if [ $1 == "all" ]; then
-   find $BOXMRSI -iname spreadsheet.csv |
+   find $BOXMRSI -iname spreadsheet.csv -and -not -ipath '*Thal*'  |
     #perl -MFile::Basename -ple '$_=lc(basename(dirname(dirname($_))))'|
     perl -lne 'print $1 if m:/(20\d{6}[^/]+)/:' |
     while read mrid; do
-       subj_date=$( (grep -i "$mrid" txt/ids.txt||echo " ") |cut -d' ' -f 1)
-       [ -z "$subj_date" ] && echo "cannot find $mrid in txt/ids.txt; rerun ./id_list.bash" && continue
-       $0 $subj_date || continue
+       if [ $STUDY == "7TBrainMech" ]; then
+          subj_date=$( (grep -i "$mrid" txt/ids.txt||echo " ") |cut -d' ' -f 1)
+          [ -z "$subj_date" ] &&
+             echo "cannot find $mrid in txt/ids.txt; rerun ./id_list.bash" &&
+             continue
+          studystr=""
+       else
+          subj_date=$mrid
+          studystr=STUDY=$STUDY
+       fi
+       $0 $studystr $subj_date || continue
     done
    exit
 fi
 
 if [ $1 == "ALL" ]; then
 
+   [ $STUDY != "7TBrainMech" ] && echo "not implemented for $STUDY" && exit 1
    # if we havne't updated the id text file in a while
    [ -z $(find txt/ids.txt -mtime +2 -type f) ] &&
       echo "# not running ./id_list.bash" ||
@@ -59,24 +83,30 @@ fi
 subj_date=$1
 
 # check if we've already run
-data_dir="/Volumes/Hera/Projects/7TBrainMech/subjs/$subj_date/slice_PFC/MRSI"
+data_dir="$STUDYDIR/subjs/$subj_date/slice_PFC/MRSI"
 final=$data_dir/all_probs.nii.gz
 [ -r  "$final" ] && echo "$subj_date: already finished. rm $final # to redo all" && exit 0
 
 # files
 subj=${subj_date%%_*}
-FSdir=/Volumes/Hera/Projects/7TBrainMech/FS/$subj/ 
-scout="/Volumes/Hera/Projects/7TBrainMech/subjs/$subj_date/slice_PFC/slice_pfc.nii.gz"
+FSdir=$STUDYDIR/FS/$subj/ 
+scout="$STUDYDIR/subjs/$subj_date/slice_PFC/slice_pfc.nii.gz"
 # no need for mprage -- using freesurfer's orig.nii
 # could use link
 #filename_MRSI=spreadsheet  # MRSI excel file name after excluding '_SI*'
-rawloc=/Volumes/Hera/Raw/BIDS/7TBrainMech/rawlinks/
-[ ! -d $rawloc/$subj_date/ ] && echo "$rawloc/$subj_date/ missing!" && exit 1
-mrid=$( readlink $(find  $rawloc/$subj_date/ -type l -print -quit) | sed 's:.*Mech/\([^/]*\)/.*:\1:')
-[ -z $mrid ] && echo "cannot find $subj_date in $rawloc" >&2 && exit 1
+[ ! -d $RAWDIR/$subj_date/ ] && echo "$RAWDIR/$subj_date/ missing!" && exit 1
+
+# find lunaid <-> MR ID (not needed for FF)
+if [ $STUDY == 7TBrainMech ]; then
+   mrid=$( readlink $(find  $RAWDIR/$subj_date/ -type l -print -quit) |
+           sed 's:.*Mech/\([^/]*\)/.*:\1:')
+   [ -z $mrid ] && echo "cannot find $subj_date in $RAWDIR" >&2 && exit 1
+else
+   mrid=$subj
+fi
 
 #csi_si1_csv="/Volumes/Hera/Raw/MRprojects/7TBrainMech/MRSI_BrainMechR01/$mrid/SI1/spreadsheet.csv"
-csi_si1_csv=$(find -L $BOXMRSI -name spreadsheet.csv -ipath "*/$mrid*" -print -quit)
+csi_si1_csv=$(find -L $BOXMRSI -name spreadsheet.csv -ipath "*/$mrid*" -and -not -ipath '*Thal*' -print -quit)
 
 # file indicating what slice was used. eg. 20181217Luna1/PFC_registration_out/17_10_FlipLR.MPRAGE
 #reg_out_file=$(find $(dirname $(dirname "$csi_si1_csv"))/*registration_out/ \
