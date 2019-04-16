@@ -80,6 +80,7 @@ for sraw in ${list[@]}; do
    "11634_20180409/0021_B0Scout41Slice_82" # 3, 82 at 002
    "11757_20190322/0028_B0Map33Slice_66"   # no HC
    "11731_20190201/0023_B0Scout33Slice_66" # early 66 to be ignored
+   "11760_20190311/0023_B0Scout33Slice_66" # mixed date data, this is from separate scout dir
    )
    # 11668_20180728 # DNE
    # 11661_20180720 # run twice. only picked up second runn. maybe okay to use only one
@@ -106,6 +107,7 @@ for sraw in ${list[@]}; do
       echo "# $ld8: bad slice raw dir num ($n $sraw/*{82,66}*, expect 2)" >&2
       continue
    fi
+
 
    # is preprocess mprage done?
    mprage=$t1root/$ld8/mprage.nii.gz

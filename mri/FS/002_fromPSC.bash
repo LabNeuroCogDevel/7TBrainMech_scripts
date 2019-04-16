@@ -9,6 +9,6 @@ if [ $(whoami) != "lncd" ]; then
    sudo -u lncd $0
    exit
 fi
-s luna@psc './status.bash'
 rsync -azvhir luna@bridges.psc.xsede.org:scratch/FS  /Volumes/Hera/preproc/7TBrainMech_rest/  
+ssh luna@psc './status.bash'
 

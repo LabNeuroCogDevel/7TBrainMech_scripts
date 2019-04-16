@@ -29,11 +29,11 @@ in_out() {
   find -type f | sed 's:^./::' |  cut -f1-4 -d. | sort | uniq -c |
   while read cnt filepart; do 
      seqno=${filepart: -4}
-     exampledcm=$(ls $filepart*|sed 1q)
+     exampledcm=$(find -iname "$filepart*" -type f,l -print -quit )
      prtcl=$(dicom_hinfo -no_name -tag 0008,103e $exampledcm|tr -cs '[\nA-Za-z0-9]' -)
      dirname=${seqno}_${prtcl}_$cnt
      # sanity check
-     npattmatch=$(ls $(pwd)/$filepart*|wc -l)
+     npattmatch=$(find $(pwd)/ -iname "$filepart*"|wc -l)
      [ "$npattmatch" -ne "$cnt" ] && echo "glob $(pwd)/$filepart* ($npattmatch) not uniq cnt ($cnt)" >&2
      echo "$(pwd)/$filepart* $dirname";
   done
@@ -45,7 +45,7 @@ link_glob(){
   [ -z "$2" ] && echo "link_glob needs second argument" >&2 && return
   if [ -d "$2" ]; then 
      expectn=$(echo $2|cut -f4 -d_) 
-     haven=$(ls $2|wc -l)
+     haven=$(find $2 -maxdepth 1 -type l,f |wc -l)
      echo "already have $2 ($haven/$expectn files)" 
      [ "$expectn" -ne "$haven" ] && echo "[WARNING] rm $2 # to try again" >&2
      return
@@ -55,7 +55,9 @@ link_glob(){
   [ -n "$DRYRUN" ] && return
 
   [ ! -d "$2" ] && mkdir "$2"
-  find $1 -type f | xargs -I{} ln -s {} $2 || echo "issue with $2"
+  indir="$(dirname "$1")"
+  patt="$(basename "$1")"
+  find "$indir" -iname "$patt" -type f | xargs -I{} ln -s {} $2 || echo "issue with $2"
 }
 export -f link_glob
 
@@ -75,7 +77,7 @@ link_subjalldcm(){
  [ ! -d $id ] && mkdir $id
  
  # separate dicoms into their own dirs
- in_out $d | parallel --colsep ' ' link_glob {1} $id/{2}
+ in_out $d | parallel --colsep ' ' link_glob "{1}" $id/{2}
 }
 if [ $# -eq 0 ]; then
    cat <<HD

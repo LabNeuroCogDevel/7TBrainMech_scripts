@@ -62,6 +62,7 @@ getld8_hardcoded(){
    # luna1 noshowed, script cannot find causes error
    [ $patname == '20191119Luna2' ] && ld8="11711_20181119"  # came in twice 09-21 and 10-12
    [ $patname == '20181001Luna2' ] && ld8="11693_20181001"  # no luna1?
+   [ $patname == '20190222Luna2' ] && ld8="11651_20190222"  # no luna1 was dropped -- did half protocol
    
    #[[ $patname == '20180521Luna1' ]] && patname=xxxxx_20180521
 

@@ -76,7 +76,7 @@ mrid=$( readlink $(find  $rawloc/$subj_date/ -type l -print -quit) | sed 's:.*Me
 [ -z $mrid ] && echo "cannot find $subj_date in $rawloc" >&2 && exit 1
 
 #csi_si1_csv="/Volumes/Hera/Raw/MRprojects/7TBrainMech/MRSI_BrainMechR01/$mrid/SI1/spreadsheet.csv"
-csi_si1_csv=$(find -L $BOXMRSI -name spreadsheet.csv -ipath "*/$mrid*")
+csi_si1_csv=$(find -L $BOXMRSI -name spreadsheet.csv -ipath "*/$mrid*" -print -quit)
 
 # file indicating what slice was used. eg. 20181217Luna1/PFC_registration_out/17_10_FlipLR.MPRAGE
 #reg_out_file=$(find $(dirname $(dirname "$csi_si1_csv"))/*registration_out/ \
