@@ -11,7 +11,7 @@ function[row_of_max, col_of_max]= gmmax_vox(parc_comb, fracgm, plotroi)
 %  fracgm = read_in_2d_csi_mat(s{3}.fracgm_file);
 %  gmmax_vox(parc_comb, fracgm, 0);
 
-
+fprintf('thresholding of mean %f\n', mean(fracgm(:)))
 % use parc_comb_prob to get nroi
 if(nargin < 3), plotroi=0; end
 %  nzmean is mean of verything > .001
@@ -36,9 +36,11 @@ for roi_num=1:nroi
          subplot(2,2,3); imagesc((fracgm>=nzmean(fracgm(:))) .* roi_comb_prob);
          subplot(2,2,4); imagesc((roi_comb_prob>=nzmean(roi_comb_prob(:))) .* fracgm);
     end
-    thresh = 0.8;
+    thresh = 0.5;
     mask = fracgm>=thresh;
     roi_mask_by_gm = mask.* roi_comb_prob;
+    
+  
     
     [parc_max,parc_idx] = max(roi_mask_by_gm(:));
     [row_of_max(roi_num),col_of_max(roi_num)] = ind2sub(size(parc_comb), parc_idx);
