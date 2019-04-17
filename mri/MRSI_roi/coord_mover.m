@@ -4,6 +4,8 @@ function [f, coords] = coord_mover(ld8)
 
   % example subj:
   % ld8 = '11323_20180316';
+  % [f, orig_coord] = coord_mover('11323_20180316')
+  
   n_rois = 12;
   
   %% find raw dir
@@ -67,10 +69,7 @@ function [f, coords] = coord_mover(ld8)
                  sprintf(html, i, rgb2hex(data.roi_colors(i,:)), roi_label{i}), ...
                  1:n_rois, 'Un',0);
   
-  %% GUI figure
-
-  
-  
+  %% GUI figure  
   a_w = 216*2; a_h= 216*2;
   % where should we show slice
   z_mid = ceil(size(nii.img,3)/2);
@@ -212,7 +211,7 @@ function draw_rectangles(f,all_ax)
    % remove any previous rectangles
    for rr=data.rects
        for r=rr{1}
-           delete(r)
+           delete(r{1})
        end
    end
    
@@ -234,7 +233,7 @@ function draw_rectangles(f,all_ax)
                   'EdgeColor', colors(i,:), ...
                   'LineWidth', 1,...
                    'HitTest', 'off'), ...
-                 1:nroi);
+                 1:nroi,'Un',0);
    end
    
    % update sag
@@ -257,7 +256,7 @@ function draw_rectangles(f,all_ax)
                   'EdgeColor', colors(i,:), ...
                   'LineWidth', 1,...
                    'HitTest', 'off'), ...
-                 show_rois);
+                 show_rois, 'Un',0);
    end
    
    % corronal
@@ -280,7 +279,7 @@ function draw_rectangles(f,all_ax)
                   'EdgeColor', colors(i,:), ...
                   'LineWidth', 1,...
                    'HitTest', 'off'), ...
-                 show_rois);
+                 show_rois, 'Un',0);
    end
    
    % update text
