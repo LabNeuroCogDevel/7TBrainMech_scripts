@@ -32,7 +32,7 @@ rois_max_row = nan(nroi, nsubject);
 rois_max_col = nan(nroi, nsubject);
 %% print to file
 fid=fopen('GABA_Glu_GM_tis_20190418.txt','w');
-fprintf(fid, 'LunaID DOB Sex Row Col Measure Val FracTis FracGM\n')
+fprintf(fid, 'LunaID DOB Sex Row Col Measure Crlb CSI FracTis FracGM\n')
 for subj_i=1:nsubject
    try
         csi=readtable(s{subj_i}.csi);
@@ -41,21 +41,27 @@ for subj_i=1:nsubject
         lunaid = s{subj_i}.subj_id;
         fractis = read_in_2d_csi_mat(s{subj_i}.fractis_file);
         fracgm = read_in_2d_csi_mat(s{subj_i}.fracgm_file);
-        for measure={'GABA_Cre', 'GABA_SD', 'Glu_Cre', 'Glu_SD'}
+        for measure={'GABA_Cre', 'Glu_Cre'}
             measure=measure{1};
+            crlb_name = regexprep(measure,'_Cre','_SD');
             m = csi.(measure); 
+            crlb = csi.(crlb_name);
             for col_i = unique(csi.Col)'
                 for row_i = unique(csi.Row)'
                     i = find(csi.Row==row_i & csi.Col==col_i);
                     if isempty(i), continue, end
                     val = m(i);
              
-                    fprintf(fid, '%s %s %s %d %d %s %.3f %.3f %.3f\n', lunaid, dob, sex,row_i, col_i, measure, val, fractis(row_i, col_i), fracgm(row_i, col_i));
+                    fprintf(fid,'%s %s %s %d %d %s %.3f %.3f %.3f %.3f\n', ...
+                        lunaid, dob, sex,row_i, col_i, measure, crlb(i), val,...
+                        fractis(row_i, col_i), fracgm(row_i, col_i));
                 end
             end
           
         end
-         
+       
+    catch e
+       disp(e);
     end
 end 
 fclose(fid);
