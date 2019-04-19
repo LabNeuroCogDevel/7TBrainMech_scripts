@@ -6,8 +6,8 @@ subj_id = mrid;
 subj.roi_mprage=sprintf('%s/subjs/%s/slice_PFC/roi_mprage.nii.gz', project_dir,subj_id);
 subj.slice_txt=sprintf('%s/subjs/%s/slice_PFC/MRSI/scout_slice_num.txt',project_dir,subj_id);
 subj.filename_scout=sprintf('%s/subjs/%s/slice_PFC/MRSI/scout.nii',project_dir,subj_id);
-subj.subj_mprage=sprintf('/Volumes/Hera/Projects/7TBrainMech/subjs/%s/slice_PFC/ppt1/mprage.nii.gz',subj_id);
-subj.csi = NaN; % get later
+subj.subj_mprage=sprintf('%s/subjs/%s/slice_PFC/ppt1/mprage.nii.gz',project_dir, subj_id);
+subj.csi = '/DNE'; % get later
 % get slice number for files dependent on it
 slice_num = NaN;
 if exist(subj.slice_txt,'file'), slice_num = load(subj.slice_txt); end

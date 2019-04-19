@@ -1,4 +1,5 @@
-function [parc_comb_prob]= csi_vox_probcomb(subj_id)
+function [parc_comb_prob]= csi_vox_probcomb(subj_id, project_dir)
+
 %% toolboxes and functions
 addpath('/home/ni_tools/matlab_toolboxes');
 addpath('/Volumes/Hera/Projects/7TBrainMech/scripts/mri/MRSI/Codes_yj')
@@ -6,6 +7,11 @@ addpath('/opt/ni_tools/matlab_toolboxes/spm12/');
 
 %% csi settings
 csi_json='/Volumes/Hera/Projects/7TBrainMech/scripts/mri/MRSI/csi_settings.json';
+
+%% default project is Luna 7T (cf. Collab/FF)
+if nargin < 2
+   project_dir = '/Volumes/Hera/Projects/7TBrainMech';
+end
 
 %% subject info/files
 % can take in a struct, or lookup the struct
@@ -20,10 +26,10 @@ roi_mprage = subj.roi_mprage;
 filename_scout = subj.filename_scout;
 subj_mprage= subj.subj_mprage;
 center_slice = subj.scout_slice;
-data_dir=sprintf('/Volumes/Hera/Projects/7TBrainMech/subjs/%s/slice_PFC/atlas_roi',subj_id);
+data_dir=sprintf('%s/subjs/%s/slice_PFC/atlas_roi',project_dir, subj_id);
 
 %% load data if we have it -- dont redo every time
-output_mat=sprintf('/Volumes/Hera/Projects/7TBrainMech/subjs/%s/slice_PFC/atlas_roi/func_atlas.mat',subj_id);
+output_mat=sprintf('%s/subjs/%s/slice_PFC/atlas_roi/func_atlas.mat',project_dir, subj_id);
 if exist(output_mat,'file')
     fprintf('have %s; not reruning apodize\n',output_mat);
     load(output_mat,'parc_comb_prob');

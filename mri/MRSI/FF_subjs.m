@@ -8,7 +8,7 @@
 
 %% find the subjects we have
 % also remove duplicates and ones without files 
-files= dir('/Volumes/Hera/Raw/MRprojects/Other/FF/MRSI/FFdata041519/20180125FF/CSI*PFC/spreadsheet.csv') ;
+files= dir('/Volumes/Hera/Raw/MRprojects/Other/FF/MRSI/FFdata041519/*/CSI*PFC/spreadsheet.csv') ;
          
 csi_visits_all = cellfun(@(x) basename(dirname(x)), {files.folder}, 'Un',0);
 csi_visits = unique(csi_visits_all);
@@ -37,7 +37,7 @@ rois_max_col = nan(nroi, nsubject);
 %% process csi
 for i=1:nsubject
     try
-        parc_comb = csi_vox_probcomb(s{i});
+        parc_comb = csi_vox_probcomb(s{i}, '/Volumes/Hera/Projects/Collab/7TFF');
         %merging ROIs
         parc_comb(:,:,12)=parc_comb(:,:,1)+parc_comb(:,:,3);
         parc_comb(:,:,13)=parc_comb(:,:,2)+parc_comb(:,:,4);
