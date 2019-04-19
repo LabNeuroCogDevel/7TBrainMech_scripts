@@ -5,6 +5,7 @@ function [f, coords] = coord_mover(varargin)
   % example subj:
   % ld8 = '11323_20180316';
   % [f, orig_coord] = coord_mover('11323_20180316')
+  %  loads slice_roi_CM_%s_16.txt, rorig.nii, and gm_sum.nii from subj dir
   %
   %  or mni coordinates
   % [f, orig_coord] = coord_mover('mkcoords/mni_ijk.txt','mkcoords/slice_mni.nii');
@@ -17,7 +18,7 @@ function [f, coords] = coord_mover(varargin)
   fclose(fid);
   roi_label = cellfun(@(x) regexprep(x,':.*',''), roi_mnicoord,'Un',0);
   roi_label = roi_label(~cellfun(@isempty, roi_label));
-  
+  mask_nii = [];
   
   %% if we are only given a lunaid, we can find nii and coord
   if length(varargin) == 1
@@ -42,6 +43,16 @@ function [f, coords] = coord_mover(varargin)
       % grab it
       nii = load_untouch_nii(mprage_file);
 
+      %% look for parc files -- can give rough est of gm
+      gm_file = [rdir '/gm_sum.nii'];
+      if ~exist(gm_file,'file')
+         warning('cannot read subject gm parc file in slice space "%s"; run: ./000_setupdirs.bash %s', gm_file, ld8)
+      else
+          mask_nii = load_untouch_nii(gm_file);
+          mask_nii = mask_nii.img;
+      end
+      
+      
       %% get coords_file
       % like /Volumes/Hera/Projects/7TBrainMech/subjs/11323_20180316/slice_PFC/MRSI_roi/raw/slice_roi_CM_11323_20180316_16.txt
       %  0	63  63
@@ -52,6 +63,9 @@ function [f, coords] = coord_mover(varargin)
       if ~exist(coords_file, 'file')
          error('cannot read coord file "%s"; run: ./000_setupdirs.bash %s', coords_file, ld8)
       end
+      
+
+      %% we are moving in a fixed slice. z is not free
       data.z_free = 0;
       
   elseif length(varargin) == 2
@@ -62,6 +76,13 @@ function [f, coords] = coord_mover(varargin)
       error('input should be lunaid or (coordfile, image.nii)')
   end
   
+  if isempty(mask_nii) 
+      mask_nii = nan(size(nii.img));
+  end
+
+  if ~all(size(mask_nii) == size(nii.img))
+      error('mask (gm) is not the same size as the input nifti!')
+  end
   
   n_rois = length(roi_label); % probably 12
 
@@ -112,12 +133,10 @@ function [f, coords] = coord_mover(varargin)
   
   a_w = xdim*2; a_h= ydim*2;
   % where should we show slice
-  z_above = z_mid + 5;
-  z_below = z_mid - 5;
   % how to update axial images
-  funcs.mk_ax = @(x,y) axes('Units','Pixels', ...
-                       'Position', [x, y, a_w, a_h]);
-  funcs.mk_brain = @(ax, c) imagesc(ax, flipud(rot90(nii.img(:,:,c))));
+  mk_ax = @(x,y,t) axes('Units','Pixels', ...
+                       'Position', [x, y, a_w, a_h],...
+                       'Tag', t);
 
 
   % pos: dist from left, dist from bottom, width, hieght
@@ -125,30 +144,29 @@ function [f, coords] = coord_mover(varargin)
   
   % put coords into gui data
   data.coords = coords;
-  data.funcs = funcs;
   data.z_mid = z_mid;
+  data.vox_size = [9 9 10];
   data.nii = nii;
+  data.mask = mask_nii;
   guidata(f,data);
   
   % draw axial images
-  colormap bone
-  axial_above = make_axl_axis(10,       40, z_above, 'axabove', funcs);
-  axial_mid   = make_axl_axis(10+a_w,   40, z_mid,   'axmid',   funcs);
-  axial_below = make_axl_axis(10+a_w*2, 40, z_below, 'axbelow', funcs);
+  colormap bone;
+  mk_ax(10,       40, 'axabove');
+  mk_ax(10+a_w,   40, 'axmid');
+  mk_ax(10+a_w*2, 40, 'axbelow');
   
   % sagital
-  sagax  = axes('Units','Pixels', ...
-              'Position', [a_w*2, a_h+40, ydim*2, zdim*2]);
-  set(sagax,'Tag', 'sag');
+  axes('Units','Pixels', ...
+       'Position', [a_w*2, a_h+40, ydim*2, zdim*2], ...
+       'Tag', 'sag');
   
   %coronal
-  corax  = axes('Units','Pixels', ...
-              'Position', [a_w, a_h+40, xdim*2, zdim*2]);
-  set(corax,'Tag', 'cor');
+  axes('Units','Pixels', ...
+       'Position', [a_w, a_h+40, xdim*2, zdim*2], ...
+       'Tag', 'cor');
   
-  % draw all the rectangles
-  update_display(f); %,[axial_above, axial_mid, axial_below])
-  
+
   % box to select rois
   roibox = uicontrol('Position',[20, a_h+40, floor(a_w/2), a_h-80], ...
                      'String',roibox_str,...
@@ -158,23 +176,23 @@ function [f, coords] = coord_mover(varargin)
 
 
   % Buttons
-  rbtn   = uicontrol('Position',[20, a_h+20, 100, 20], ...
+  uicontrol('Position',[20, a_h+20, 100, 20], ...
                      'String','Reset',...
                      'Tag', 'reset_button', ...
                      'Callback', @reset_coords ...
                      );
                    
-  sbtn   = uicontrol('Position',[120, a_h+20, 100, 20], ...
+  uicontrol('Position',[120, a_h+20, 100, 20], ...
                      'String','Save',...
                      'Tag', 'save_button', ...
                      'Callback', @(s,e) msgbox('not implemented') ...
                      );
-  lbtn  = uicontrol('Position',[220, a_h+20, 100, 20], ...
+  uicontrol('Position',[220, a_h+20, 100, 20], ...
                      'String','Load',...
                      'Tag', 'load_button', ...
                      'Callback', @(s,e) msgbox('not implemented') ...
                      );
-  rbtn1  = uicontrol('Position',[320, a_h+20, 100, 20], ...
+  uicontrol('Position',[320, a_h+20, 100, 20], ...
                      'String','Reset1',...
                      'Tag', 'reset1_button', ...
                      'Callback', @reset_coords1 ...
@@ -182,20 +200,18 @@ function [f, coords] = coord_mover(varargin)
                  
   % roi positions original and new
   % TODO: combine into one, add html color
-  dspcrd = uicontrol('Position',[20+a_w/3, a_h+40, a_w/3, a_h-80], ...
+  uicontrol('Position',[20+a_w/3, a_h+40, a_w/3, a_h-80], ...
                      'String',sprintf('%d %d %d\n', coords'),...
                      'Style','text', ...
                      'Tag', 'disp_orig');
-  crntcrd= uicontrol('Position',[a_w*2/3, a_h+40, a_w/3, a_h-80], ...
+  uicontrol('Position',[a_w*2/3, a_h+40, a_w/3, a_h-80], ...
                      'String',sprintf('%d %d %d\n', coords'),...
                      'Style','text', ...
                      'Tag', 'disp_current');
-  % each click changes the selected roi
-  %set(axial_mid,'NextPlot','add')
-  axial_above.ButtonDownFcn = @(src, event) set_coord(src, roibox);
-  axial_mid.ButtonDownFcn = @(src, event) set_coord(src, roibox);
-  axial_below.ButtonDownFcn = @(src, event) set_coord(src, roibox);
 
+
+  % draw all the rectangles
+  update_display(f); %,[axial_above, axial_mid, axial_below])
   
   
   f.Visible = 'on';
@@ -273,64 +289,70 @@ function update_display(f,all_ax)
    colors = data.roi_colors;
    roibox = findobj(f,'Tag','roibox');
    cur_roi = get(roibox, 'Value');
-   if(~isempty(cur_roi)), colors(cur_roi,:) = 1; end
+   if ~isempty(cur_roi)
+       % cur_roi = 1;
+       colors(cur_roi,:) = 1;
+   end
+
+   %% Calc number of true voxels in it
+   rng = @(center, size) (center-floor(size/2)):(center+floor(size/2));
+   crd = data.coords(cur_roi,2:4);
+   vsz = data.vox_size;
+   mcnt = data.mask(rng(crd(1),vsz(1)),...
+                    rng(crd(2),vsz(2)),...
+                    rng(crd(3),vsz(3)) );
    
-   % update all axial
+   data.mask_sum = sum(mcnt(:));
+   %fprintf('msk cnt: %d\n', data.mask_sum)
+   
+   
+   %% update all axial
    for ax_i = 1:numel(all_ax)
        set(f,'CurrentAxes',all_ax(ax_i));
-       if isempty(cur_roi) || ~data.z_free
+       if isempty(cur_roi)
+           roi_z = data.z_mid;
            show_rois = 1:nroi;
        else
            roi_z = data.coords(cur_roi,4);
            show_rois = find( abs(data.coords(:,4) - roi_z) < 10 );
-           
-          
-           a = all_ax(ax_i);
-           zpos=roi_z -5 + 5*(ax_i-1);
-           im_at_coords = flipud(rot90(data.nii.img(:,:,zpos)));
-           update_brain(a, im_at_coords);
-           update_callback(a, 1, [1 2], roibox);
-           text(a,10,10,sprintf('Right; z=%d',zpos) ,'Color','White')
-
        end
        
-       data.rects{ax_i} = arrayfun(@(i) rectangle(...
-                  'Position', [data.coords(i,2)-4.5,...
-                               data.coords(i,3)-4.5,...
-                               9,...
-                               9], ...
-                  'EdgeColor', colors(i,:), ...
-                  'LineWidth', 1,...
-                   'HitTest', 'off'), ...
-                 show_rois,'Un',0);
+       % put axial images up
+       a = all_ax(ax_i);
+       zpos=roi_z -5 + 5*(ax_i-1);
+       im_at_coords = flipud(rot90(data.nii.img(:,:,zpos)));
+       update_brain(a, im_at_coords);
+       update_callback(a, 1, [1 2], roibox);
+       text(a,10,10,sprintf('Right; z=%d; %dGM',zpos, data.mask_sum) ,'Color','White')
+       data.first_ax=1; % only need to draw once if z isn't free
+       
+       
+       data.rects{ax_i} = arrayfun(@(i) ...
+          draw_rect(data.coords(i,2), data.coords(i,3), colors(i,:), [9,9]),...
+          show_rois,'Un',0);
    end
    
-   % update sag
+   %% update sag
    s = findobj(f,'Tag','sag');
    if(~isempty(s) && ~isempty(cur_roi))
        roi_x = data.coords(cur_roi,2);
        % update sag view       
        im_at_coords = fliplr(rot90(squeeze(data.nii.img(roi_x,:,:)),3));
-       update_brain(s, im_at_coords)
+       update_brain(s, im_at_coords);
        update_callback(s, data.z_free, [2 3], roibox);
        text(s,10,10,sprintf('x=%d',roi_x) ,'Color','White')
 
        % draw boxes for rois in range
        show_rois = find( abs(data.coords(:,2) - roi_x) < 10 );
        set(f,'CurrentAxes',s);
-       data.rects{numel(all_ax)+1} = ...
-           arrayfun(@(i) rectangle(...
-                  'Position', [data.coords(i,3)-5, data.coords(i,4) - 5,...
-                               9,                  10], ...
-                  'EdgeColor', colors(i,:), ...
-                  'LineWidth', 1,...
-                   'HitTest', 'off'), ...
-                 show_rois, 'Un',0);
+       data.rects{numel(all_ax)+1} = arrayfun(@(i) ...
+            draw_rect(data.coords(i,3), data.coords(i,4), colors(i,:), [9, 10]),...
+            show_rois, 'Un',0);
              
          
    end
    
-   % corronal
+   %% coronal
    c = findobj(f,'Tag','cor');
    if(~isempty(c) && ~isempty(cur_roi))
        roi_y = data.coords(cur_roi,3);
@@ -343,37 +365,33 @@ function update_display(f,all_ax)
        % draw boxes for rois in range
        show_rois = find( abs(data.coords(:,3) - roi_y) < 10 );
        set(f,'CurrentAxes',c);
-       data.rects{numel(all_ax)+1} = ...
-           arrayfun(@(i) rectangle(...
-                  'Position', [data.coords(i,2)-5, data.coords(i,4) - 5,...
-                               9,                  10], ...
-                  'EdgeColor', colors(i,:), ...
-                  'LineWidth', 1,...
-                   'HitTest', 'off'), ...
-                 show_rois, 'Un',0);
+       data.rects{numel(all_ax)+1} = arrayfun(@(i) ...
+           draw_rect(data.coords(i,2), data.coords(i,4), colors(i,:), [9, 10]),...
+           show_rois, 'Un',0);
    end
    
    % update text
    t = findobj(f,'Tag','disp_current');
    if(~isempty(t))
-     t.String = sprintf('%d %d %d\n', data.coords');
+     t.String = sprintf('%d %d %d %d\n', data.coords');
    end
+   
+
    
    % put rects backinto gui data
    guidata(f,data)
 end
 
-% things to do when reploting an axis
-function ax = make_axl_axis(x, y, z, tag, funcs)
-  ax   = funcs.mk_ax(x, y);
-  p = funcs.mk_brain(ax, z);
-  % flipud(rot90(nii.img(:,:,z)))
-  set(p,'HitTest', 'off');
-  set(ax,'YDir','normal');
-  set(ax,'Tag',tag);
-  text(ax,10,10,'Right','Color','White')
 
-  %set(ax,'HitTest','off')
+function r = draw_rect(x, y, color, d)
+  % x, y is center
+  % d is width, and height
+   pos = [x-d(1)/2, y-d(2)/2, d(1), d(2)];
+   r= rectangle(...
+      'Position', pos, ...
+      'EdgeColor', color, ...
+      'LineWidth', 1,...
+      'HitTest', 'off');
 end
 
 function p = update_brain(ax, imdata)
