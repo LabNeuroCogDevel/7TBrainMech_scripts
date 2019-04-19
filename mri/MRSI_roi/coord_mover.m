@@ -7,7 +7,7 @@ function [f, coords] = coord_mover(varargin)
   % [f, orig_coord] = coord_mover('11323_20180316')
   %
   %  or mni coordinates
-  % [f, orig_coord] = coord_mover('mni_coords_nolabel.txt','~/standard/mni_icbm152_nlin_asym_09c/mni_icbm152_t1_tal_nlin_asym_09c.nii')
+  % [f, orig_coord] = coord_mover('mkcoords/mni_ijk.txt','mkcoords/slice_mni.nii');
   
   
   %% set mni coords (use for labels
@@ -34,7 +34,12 @@ function [f, coords] = coord_mover(varargin)
       if ~exist(mprage_file,'file')
          error('cannot read subject mprage (FS) in slice space "%s"; run: ./000_setupdirs.bash %s', mprage_file, ld8)
       end
-      addpath('/Volumes/Hera/Projects/7TBrainMech/scripts/mri/MRSI/Codes_yj/NIfTI');
+      
+      % need nii reader in path
+      if isempty(which('load_untouch_nii'))
+          addpath('/Volumes/Hera/Projects/7TBrainMech/scripts/mri/MRSI/Codes_yj/NIfTI');
+      end
+      % grab it
       nii = load_untouch_nii(mprage_file);
 
       %% get coords_file
@@ -142,14 +147,14 @@ function [f, coords] = coord_mover(varargin)
   set(corax,'Tag', 'cor');
   
   % draw all the rectangles
-  draw_rectangles(f); %,[axial_above, axial_mid, axial_below])
+  update_display(f); %,[axial_above, axial_mid, axial_below])
   
   % box to select rois
   roibox = uicontrol('Position',[20, a_h+40, floor(a_w/2), a_h-80], ...
                      'String',roibox_str,...
                      'Style','listbox', ...
                      'Tag', 'roibox');
-  roibox.Callback = @(s,r) draw_rectangles(gcf);
+  roibox.Callback = @(s,r) update_display(gcf);
 
 
   % Buttons
@@ -211,15 +216,15 @@ function set_coord(src, roibox, fromidx, toidx)
   xyz = get(src, 'CurrentPoint');
   cur_roi = get(roibox, 'Value');
   
-  fprintf('from: '); disp(data.coords(cur_roi,:));
-  fprintf('changing idx: '); disp(toidx);
-  fprintf('to: ');disp(xyz(1,fromidx));
+  %fprintf('from: '); disp(data.coords(cur_roi,:));
+  %fprintf('changing idx: '); disp(toidx);
+  %fprintf('to: ');disp(xyz(1,fromidx));
   data.coords(cur_roi,toidx+1) = round(xyz(1,fromidx));  
   guidata(src, data)
   
   root=groot;
-  draw_rectangles(root.CurrentFigure)
-  fprintf('roi %d: %d %d %d\n',cur_roi, data.coords(cur_roi,2:4))
+  update_display(root.CurrentFigure)
+  %fprintf('roi %d: %d %d %d\n',cur_roi, data.coords(cur_roi,2:4))
 end
 
 function reset_coords1(varargin)
@@ -228,7 +233,7 @@ function reset_coords1(varargin)
   data = guidata(f);
   data.coords(cur_roi,:) = data.orig_coords(cur_roi,:);
   guidata(f,data);
-  draw_rectangles(f);
+  update_display(f);
 end
 
 function reset_coords(varargin)
@@ -236,10 +241,10 @@ function reset_coords(varargin)
   data = guidata(f);
   data.coords = data.orig_coords;
   guidata(f,data);
-  draw_rectangles(f);
+  update_display(f);
 end
 
-function draw_rectangles(f,all_ax)
+function update_display(f,all_ax)
    % rectantles
    data = guidata(f);
       
@@ -279,14 +284,12 @@ function draw_rectangles(f,all_ax)
            roi_z = data.coords(cur_roi,4);
            show_rois = find( abs(data.coords(:,4) - roi_z) < 10 );
            
+          
            a = all_ax(ax_i);
-           this_tag = a.Tag;
            zpos=roi_z -5 + 5*(ax_i-1);
-           ax_p = data.funcs.mk_brain(a, zpos);
-           set(ax_p,'HitTest', 'off');
-           set(a,'YDir', 'normal');
-           set(a,'Tag', this_tag); % this gets lost every imagesc
-           a.ButtonDownFcn = @(src, event) set_coord(src, roibox, 1:2, [1 2]);
+           im_at_coords = flipud(rot90(data.nii.img(:,:,zpos)));
+           update_brain(a, im_at_coords);
+           update_callback(a, 1, [1 2], roibox);
            text(a,10,10,sprintf('Right; z=%d',zpos) ,'Color','White')
 
        end
@@ -306,16 +309,10 @@ function draw_rectangles(f,all_ax)
    s = findobj(f,'Tag','sag');
    if(~isempty(s) && ~isempty(cur_roi))
        roi_x = data.coords(cur_roi,2);
-       % update sag view
-       sag_p =imagesc(s,fliplr(rot90(squeeze(data.nii.img(roi_x,:,:)),3)));
-       set(sag_p,'HitTest', 'off');
-       set(s,'YDir', 'normal');
-       set(s,'Tag', 'sag'); % this gets lost every imagesc
-       if data.z_free
-          s.ButtonDownFcn = @(src, event) set_coord(src, roibox, 1:2, [2 3]);
-       else
-          s.ButtonDownFcn = @(src, event) set_coord(src, roibox, 1, 2);
-       end
+       % update sag view       
+       im_at_coords = fliplr(rot90(squeeze(data.nii.img(roi_x,:,:)),3));
+       update_brain(s, im_at_coords)
+       update_callback(s, data.z_free, [2 3], roibox);
        text(s,10,10,sprintf('x=%d',roi_x) ,'Color','White')
 
        % draw boxes for rois in range
@@ -338,16 +335,10 @@ function draw_rectangles(f,all_ax)
    if(~isempty(c) && ~isempty(cur_roi))
        roi_y = data.coords(cur_roi,3);
        % update sag view
-       sag_p =imagesc(c,fliplr(rot90(squeeze(data.nii.img(:,roi_y,:)),3)));
-       set(sag_p,'HitTest', 'off');
-       set(c,'YDir', 'normal');
-       set(c,'Tag', 'cor'); % this gets lost every imagesc
-       if data.z_free
-          c.ButtonDownFcn = @(src, event) set_coord(src, roibox, 1:2, [1 3]);
-       else
-          c.ButtonDownFcn = @(src, event) set_coord(src, roibox, 1, 1);
-       end
-       text(c,10,10,sprintf('y=%d',roi_y) ,'Color','White')
+       im_at_coords = fliplr(rot90(squeeze(data.nii.img(:,roi_y,:)),3));
+       update_brain(c, im_at_coords);
+       update_callback(c, data.z_free, [1 3], roibox);
+       text(c,10,10,sprintf('y=%d',roi_y) ,'Color','White');
 
        % draw boxes for rois in range
        show_rois = find( abs(data.coords(:,3) - roi_y) < 10 );
@@ -376,10 +367,28 @@ end
 function ax = make_axl_axis(x, y, z, tag, funcs)
   ax   = funcs.mk_ax(x, y);
   p = funcs.mk_brain(ax, z);
+  % flipud(rot90(nii.img(:,:,z)))
   set(p,'HitTest', 'off');
   set(ax,'YDir','normal');
   set(ax,'Tag',tag);
   text(ax,10,10,'Right','Color','White')
 
   %set(ax,'HitTest','off')
+end
+
+function p = update_brain(ax, imdata)
+   % update view given data
+   this_tag = get(ax,'Tag');
+   p =imagesc(ax, imdata);
+   set(p,'HitTest', 'off');
+   set(ax,'YDir', 'normal');
+   set(ax,'Tag', this_tag); % this gets lost every imagesc
+end
+
+function update_callback(ax, isfree, coord_idxs, roibox)
+   if isfree
+      ax.ButtonDownFcn = @(src, event) set_coord(src, roibox, 1:2, coord_idxs);
+   else
+      ax.ButtonDownFcn = @(src, event) set_coord(src, roibox, 1, coord_idxs(1));
+   end
 end
