@@ -1,40 +1,77 @@
-function [f, coords] = coord_mover(ld8)
+function [f, coords] = coord_mover(varargin)
 %COORD_MOVER Summary of this function goes here
 %   Detailed explanation goes here
 
   % example subj:
   % ld8 = '11323_20180316';
   % [f, orig_coord] = coord_mover('11323_20180316')
+  %
+  %  or mni coordinates
+  % [f, orig_coord] = coord_mover('mni_coords_nolabel.txt','~/standard/mni_icbm152_nlin_asym_09c/mni_icbm152_t1_tal_nlin_asym_09c.nii')
   
-  n_rois = 12;
   
-  %% find raw dir
-  % raw dir collects everything we need. depends on ./000_setupdirs.bash
-  rdir = sprintf('/Volumes/Hera/Projects/7TBrainMech/subjs/%s/slice_PFC/MRSI_roi/raw/', ld8);
-  if ~exist(rdir,'dir')
-     error('cannot read subject raw dir "%s"; run: ./000_setupdirs.bash %s', rdir, ld8)
-  end
+  %% set mni coords (use for labels
+  % read in left and right
+  fid=fopen('./mni_coords.txt','r'); 
+  roi_mnicoord = strsplit(fread(fid,'*char')','\n');
+  fclose(fid);
+  roi_label = cellfun(@(x) regexprep(x,':.*',''), roi_mnicoord,'Un',0);
+  roi_label = roi_label(~cellfun(@isempty, roi_label));
   
-  %% read mprage
-  mprage_file = [rdir '/rorig.nii'];
-  if ~exist(mprage_file,'file')
-     error('cannot read subject mprage (FS) in slice space "%s"; run: ./000_setupdirs.bash %s', mprage_file, ld8)
-  end
-  addpath('/Volumes/Hera/Projects/7TBrainMech/scripts/mri/MRSI/Codes_yj/NIfTI');
-  nii = load_untouch_nii(mprage_file);
+  
+  %% if we are only given a lunaid, we can find nii and coord
+  if length(varargin) == 1
+      ld8 = varargin{1};
+       %% find raw dir
+      % raw dir collects everything we need. depends on ./000_setupdirs.bash
+      rdir = sprintf('/Volumes/Hera/Projects/7TBrainMech/subjs/%s/slice_PFC/MRSI_roi/raw/', ld8);
+      if ~exist(rdir,'dir')
+         error('cannot read subject raw dir "%s"; run: ./000_setupdirs.bash %s', rdir, ld8)
+      end
 
-  %% read in coordinates
-  % like /Volumes/Hera/Projects/7TBrainMech/subjs/11323_20180316/slice_PFC/MRSI_roi/raw/slice_roi_CM_11323_20180316_16.txt
-  %  0	63  63
-  %  1	68  92
-  %  2	60  90
-  coords_file=sprintf('%s/slice_roi_CM_%s_16.txt',rdir,ld8);
-  % TODO: find slice number might not be 16
-  if ~exist(coords_file, 'file')
-     error('cannot read coord file "%s"; run: ./000_setupdirs.bash %s', coords_file, ld8)
+      %% read mprage
+      mprage_file = [rdir '/rorig.nii'];
+      if ~exist(mprage_file,'file')
+         error('cannot read subject mprage (FS) in slice space "%s"; run: ./000_setupdirs.bash %s', mprage_file, ld8)
+      end
+      addpath('/Volumes/Hera/Projects/7TBrainMech/scripts/mri/MRSI/Codes_yj/NIfTI');
+      nii = load_untouch_nii(mprage_file);
+
+      %% get coords_file
+      % like /Volumes/Hera/Projects/7TBrainMech/subjs/11323_20180316/slice_PFC/MRSI_roi/raw/slice_roi_CM_11323_20180316_16.txt
+      %  0	63  63
+      %  1	68  92
+      %  2	60  90
+      coords_file=sprintf('%s/slice_roi_CM_%s_16.txt',rdir,ld8);
+      % TODO: find slice number might not be 16
+      if ~exist(coords_file, 'file')
+         error('cannot read coord file "%s"; run: ./000_setupdirs.bash %s', coords_file, ld8)
+      end
+      data.z_free = 0;
+      
+  elseif length(varargin) == 2
+      coords_file=varargin{1};
+      nii = load_untouch_nii(varargin{2});
+      data.z_free=1;
+  else
+      error('input should be lunaid or (coordfile, image.nii)')
   end
+  
+  
+  n_rois = length(roi_label); % probably 12
+
+  z_mid = ceil(size(nii.img,3)/2);
+  
   coords = load(coords_file);
   coords = coords(coords(:,1)~=0,:); % remove roi 0
+  
+  % make 3rd coordinate middle of nifti if not provided
+  if(size(coords,2) == 3)
+      coords(:,4) = z_mid;
+  end
+
+  
+
   if length(coords) ~= n_rois
      warning('expected %d rois, have %d in %s', n_rois, length(coords), coords_file)
      % replace missing rois with 0s
@@ -47,13 +84,7 @@ function [f, coords] = coord_mover(ld8)
   %% keep track of old coords
   data.orig_coords = coords;
   
-    %% set coords
-  % read in left and right
-  fid=fopen('./mni_coords.txt','r'); 
-  roi_mnicoord = strsplit(fread(fid,'*char')','\n');
-  fclose(fid);
-  roi_label = cellfun(@(x) regexprep(x,':.*',''), roi_mnicoord,'Un',0);
-  roi_label = roi_label(~cellfun(@isempty, roi_label));
+  % check roi labels match number of coordinates
   if length(roi_label) ~= length(coords)
       error('wrong number of rois in %s vs mni_coords.txt', coords_file)
   end
@@ -70,9 +101,12 @@ function [f, coords] = coord_mover(ld8)
                  1:n_rois, 'Un',0);
   
   %% GUI figure  
-  a_w = 216*2; a_h= 216*2;
+  xdim = nii.hdr.dime.dim(2);
+  ydim = nii.hdr.dime.dim(3);
+  zdim = nii.hdr.dime.dim(4);
+  
+  a_w = xdim*2; a_h= ydim*2;
   % where should we show slice
-  z_mid = ceil(size(nii.img,3)/2);
   z_above = z_mid + 5;
   z_below = z_mid - 5;
   % how to update axial images
@@ -99,12 +133,12 @@ function [f, coords] = coord_mover(ld8)
   
   % sagital
   sagax  = axes('Units','Pixels', ...
-              'Position', [a_w*2, a_h+40, a_w, a_h]);
+              'Position', [a_w*2, a_h+40, ydim*2, zdim*2]);
   set(sagax,'Tag', 'sag');
   
   %coronal
   corax  = axes('Units','Pixels', ...
-              'Position', [a_w, a_h+40, a_w, a_h]);
+              'Position', [a_w, a_h+40, xdim*2, zdim*2]);
   set(corax,'Tag', 'cor');
   
   % draw all the rectangles
@@ -163,16 +197,29 @@ function [f, coords] = coord_mover(ld8)
 end
 
 
-function set_coord(src, roibox)
+
+function set_coord(src, roibox, fromidx, toidx)
+% src is the plot source
+% roibox is the listbox with current roi
+% fromidx is x,y of plot
+% toidx is coord dimensions
+  if nargin < 3
+      fromidx=1:2;
+      toidx=1:2;
+  end
   data = guidata(src);
   xyz = get(src, 'CurrentPoint');
   cur_roi = get(roibox, 'Value');
-  data.coords(cur_roi,2:3) = round(xyz(1,1:2));
+  
+  fprintf('from: '); disp(data.coords(cur_roi,:));
+  fprintf('changing idx: '); disp(toidx);
+  fprintf('to: ');disp(xyz(1,fromidx));
+  data.coords(cur_roi,toidx+1) = round(xyz(1,fromidx));  
   guidata(src, data)
   
   root=groot;
   draw_rectangles(root.CurrentFigure)
-  fprintf('roi %d: %d %d\n',cur_roi, data.coords(cur_roi,2:3))
+  fprintf('roi %d: %d %d %d\n',cur_roi, data.coords(cur_roi,2:4))
 end
 
 function reset_coords1(varargin)
@@ -211,7 +258,7 @@ function draw_rectangles(f,all_ax)
    % remove any previous rectangles
    for rr=data.rects
        for r=rr{1}
-           delete(r{1})
+           if ~isempty(r),  delete(r{1}); end
        end
    end
    
@@ -219,12 +266,31 @@ function draw_rectangles(f,all_ax)
    nroi = size(data.roi_colors,1);
    % set colors. current ROI is white
    colors = data.roi_colors;
-   cur_roi = get(findobj(f,'Tag','roibox'), 'Value');
+   roibox = findobj(f,'Tag','roibox');
+   cur_roi = get(roibox, 'Value');
    if(~isempty(cur_roi)), colors(cur_roi,:) = 1; end
    
    % update all axial
    for ax_i = 1:numel(all_ax)
        set(f,'CurrentAxes',all_ax(ax_i));
+       if isempty(cur_roi) || ~data.z_free
+           show_rois = 1:nroi;
+       else
+           roi_z = data.coords(cur_roi,4);
+           show_rois = find( abs(data.coords(:,4) - roi_z) < 10 );
+           
+           a = all_ax(ax_i);
+           this_tag = a.Tag;
+           zpos=roi_z -5 + 5*(ax_i-1);
+           ax_p = data.funcs.mk_brain(a, zpos);
+           set(ax_p,'HitTest', 'off');
+           set(a,'YDir', 'normal');
+           set(a,'Tag', this_tag); % this gets lost every imagesc
+           a.ButtonDownFcn = @(src, event) set_coord(src, roibox, 1:2, [1 2]);
+           text(a,10,10,sprintf('Right; z=%d',zpos) ,'Color','White')
+
+       end
+       
        data.rects{ax_i} = arrayfun(@(i) rectangle(...
                   'Position', [data.coords(i,2)-4.5,...
                                data.coords(i,3)-4.5,...
@@ -233,7 +299,7 @@ function draw_rectangles(f,all_ax)
                   'EdgeColor', colors(i,:), ...
                   'LineWidth', 1,...
                    'HitTest', 'off'), ...
-                 1:nroi,'Un',0);
+                 show_rois,'Un',0);
    end
    
    % update sag
@@ -245,18 +311,26 @@ function draw_rectangles(f,all_ax)
        set(sag_p,'HitTest', 'off');
        set(s,'YDir', 'normal');
        set(s,'Tag', 'sag'); % this gets lost every imagesc
-       
+       if data.z_free
+          s.ButtonDownFcn = @(src, event) set_coord(src, roibox, 1:2, [2 3]);
+       else
+          s.ButtonDownFcn = @(src, event) set_coord(src, roibox, 1, 2);
+       end
+       text(s,10,10,sprintf('x=%d',roi_x) ,'Color','White')
+
        % draw boxes for rois in range
        show_rois = find( abs(data.coords(:,2) - roi_x) < 10 );
        set(f,'CurrentAxes',s);
        data.rects{numel(all_ax)+1} = ...
            arrayfun(@(i) rectangle(...
-                  'Position', [data.coords(i,3)-5, data.z_mid - 5,...
+                  'Position', [data.coords(i,3)-5, data.coords(i,4) - 5,...
                                9,                  10], ...
                   'EdgeColor', colors(i,:), ...
                   'LineWidth', 1,...
                    'HitTest', 'off'), ...
                  show_rois, 'Un',0);
+             
+         
    end
    
    % corronal
@@ -268,13 +342,19 @@ function draw_rectangles(f,all_ax)
        set(sag_p,'HitTest', 'off');
        set(c,'YDir', 'normal');
        set(c,'Tag', 'cor'); % this gets lost every imagesc
-       
+       if data.z_free
+          c.ButtonDownFcn = @(src, event) set_coord(src, roibox, 1:2, [1 3]);
+       else
+          c.ButtonDownFcn = @(src, event) set_coord(src, roibox, 1, 1);
+       end
+       text(c,10,10,sprintf('y=%d',roi_y) ,'Color','White')
+
        % draw boxes for rois in range
        show_rois = find( abs(data.coords(:,3) - roi_y) < 10 );
        set(f,'CurrentAxes',c);
        data.rects{numel(all_ax)+1} = ...
            arrayfun(@(i) rectangle(...
-                  'Position', [data.coords(i,2)-5, data.z_mid - 5,...
+                  'Position', [data.coords(i,2)-5, data.coords(i,4) - 5,...
                                9,                  10], ...
                   'EdgeColor', colors(i,:), ...
                   'LineWidth', 1,...
@@ -303,9 +383,3 @@ function ax = make_axl_axis(x, y, z, tag, funcs)
 
   %set(ax,'HitTest','off')
 end
-
-function n=num_from_html(s)
- id_n=regexp(s,'id="(\d+)"','tokens','once');
- n = str2double(id_n{1});
-end
-
