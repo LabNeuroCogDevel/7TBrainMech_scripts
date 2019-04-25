@@ -13,12 +13,20 @@ function [f, coords] = coord_mover(varargin)
   
   %% set mni coords (use for labels
   % read in left and right
-  fid=fopen('./mni_coords.txt','r'); 
+  mni_label_file='./mni_coords_MPOR_20190425_labeled.txt';
+  fid=fopen(mni_label_file,'r'); 
   roi_mnicoord = strsplit(fread(fid,'*char')','\n');
   fclose(fid);
   roi_label = cellfun(@(x) regexprep(x,':.*',''), roi_mnicoord,'Un',0);
   roi_label = roi_label(~cellfun(@isempty, roi_label));
   mask_nii = [];
+  data.who = inputdlg('Your Initials')
+  if isempty(data.who)
+     data.who = 'UNKOWN';
+  else
+     data.who = upper(data.who{1});
+  end
+
   
   %% if we are only given a lunaid, we can find nii and coord
   if length(varargin) == 1
@@ -58,7 +66,7 @@ function [f, coords] = coord_mover(varargin)
       %  0	63  63
       %  1	68  92
       %  2	60  90
-      coords_file=sprintf('%s/slice_roi_CM_%s_16.txt',rdir,ld8);
+      coords_file=sprintf('%s/slice_roi_MPOR20190425_CM_%s_16.txt',rdir,ld8);
       % TODO: find slice number might not be 16
       if ~exist(coords_file, 'file')
          error('cannot read coord file "%s"; run: ./000_setupdirs.bash %s', coords_file, ld8)
@@ -109,10 +117,13 @@ function [f, coords] = coord_mover(varargin)
   
   %% keep track of old coords
   data.orig_coords = coords;
+
+  % input filename
+  data.coords_file = coords_file;
   
   % check roi labels match number of coordinates
   if length(roi_label) ~= length(coords)
-      error('wrong number of rois in %s vs mni_coords.txt', coords_file)
+      error('wrong number of rois in %s vs %s', coords_file, mni_label_file)
   end
   
   %% roi choices
@@ -185,7 +196,7 @@ function [f, coords] = coord_mover(varargin)
   uicontrol('Position',[120, a_h+20, 100, 20], ...
                      'String','Save',...
                      'Tag', 'save_button', ...
-                     'Callback', @(s,e) msgbox('not implemented') ...
+                     'Callback', @(s,e) save_coords() ...
                      );
   uicontrol('Position',[220, a_h+20, 100, 20], ...
                      'String','Load',...
@@ -258,6 +269,15 @@ function reset_coords(varargin)
   data.coords = data.orig_coords;
   guidata(f,data);
   update_display(f);
+end
+
+function out=save_coords()
+  f=gcf;
+  data = guidata(f);
+  [d n e] = fileparts(data.coords_file);
+  outname=fullfile(d,sprintf('%s_%f_%s.txt',n,datenum(datetime),data.who))
+  dlmwrite(outname, data.coords, 'delimiter','\t')
+  % todo use recommend (2019a): writematrix(data.coords, outname)
 end
 
 function update_display(f,all_ax)

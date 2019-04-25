@@ -2,7 +2,8 @@
 set -e
 trap 'e=$?; [ $e -ne 0 ] && echo "$0 exited in error"' EXIT
 cd $(dirname $0)
-mni_atlas=$(pwd)/csi_rois_mni.nii.gz
+#mni_atlas=$(pwd)/csi_rois_mni.nii.gz
+mni_atlas=$(pwd)/csi_rois_mni_MPRO_20190425.nii.gz
 
 #
 # creates directory with raw files need to run SVR1HFinal
@@ -54,7 +55,7 @@ slice_num_0=$((($slice_num - 1)))
 
 ## check final output -- no need to run if we already have it
 sdir=/Volumes/Hera/Projects/7TBrainMech/subjs/$ld8/slice_PFC/MRSI_roi/raw
-finalout=$sdir/slice_roi_CM_${ld8}_${slice_num_0}.txt
+finalout=$sdir/slice_roi_MPOR20190425_CM_${ld8}_${slice_num_0}.txt
 [ -r "$finalout" ] && echo "# have $finalout; rm -r '$sdir' # to redo" && exit 0
 
 ## warp files (from preprocessing and 01_get_slices.bash)
