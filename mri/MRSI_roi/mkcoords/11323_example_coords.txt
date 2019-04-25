@@ -1,0 +1,12 @@
+Right Middle Occipital Gyrus 64  68  50
+Left Middle Occipital Gyrus  150 68  50
+Right Anterior Insula        76  127 50
+Left Anterior Insula         143 126 50
+Right Posterior Insula       72  107 50
+Left Posterior Insula        145 108 50
+MPFC                         110 178 50
+ACC                          110 154 50
+Left DLPFC                   140 162 50
+Right DLPFC                  76  163 50
+Left Caudate                 119 131 50
+Right Caudate                97  132 50
