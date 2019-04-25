@@ -42,10 +42,8 @@ for i=1:nsubject
         %merging ROIs
         parc_comb(:,:,12)=parc_comb(:,:,1)+parc_comb(:,:,3);
         parc_comb(:,:,13)=parc_comb(:,:,2)+parc_comb(:,:,4);
-        
-        % what??????? nroi should be gm threshold
-        %[rois_max_row(:,i), rois_max_col(:,i) ] = gmmax_vox(parc_comb,nroi);
-        % or we can try with greymatter
+       
+        % we can try with greymatter
         fractis = read_in_2d_csi_mat(s{i}.fractis_file);
         fracgm = read_in_2d_csi_mat(s{i}.fracgm_file); % 24x24 matrix
         [rois_max_row(:,i), rois_max_col(:,i)] = gmmax_vox_tis(parc_comb, fracgm, fractis);
