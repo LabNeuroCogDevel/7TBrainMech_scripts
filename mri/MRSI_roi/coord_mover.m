@@ -20,12 +20,7 @@ function [f, coords] = coord_mover(varargin)
   roi_label = cellfun(@(x) regexprep(x,':.*',''), roi_mnicoord,'Un',0);
   roi_label = roi_label(~cellfun(@isempty, roi_label));
   mask_nii = [];
-  data.who = inputdlg('Your Initials')
-  if isempty(data.who)
-     data.who = 'UNKOWN';
-  else
-     data.who = upper(data.who{1});
-  end
+  
 
   
   %% if we are only given a lunaid, we can find nii and coord
@@ -96,24 +91,7 @@ function [f, coords] = coord_mover(varargin)
 
   z_mid = ceil(size(nii.img,3)/2);
   
-  coords = load(coords_file);
-  coords = coords(coords(:,1)~=0,:); % remove roi 0
-  
-  % make 3rd coordinate middle of nifti if not provided
-  if(size(coords,2) == 3)
-      coords(:,4) = z_mid;
-  end
-
-  
-
-  if length(coords) ~= n_rois
-     warning('expected %d rois, have %d in %s', n_rois, length(coords), coords_file)
-     % replace missing rois with 0s
-     coords_new = zeros(n_rois,3); 
-     coords_new(:,1) = 1:n_rois;
-     coords_new(coords(:,1),:) = coords;
-     coords = coords_new;
-  end
+  coords = read_coords(coords_file, n_rois, z_mid);
   
   %% keep track of old coords
   data.orig_coords = coords;
@@ -159,6 +137,16 @@ function [f, coords] = coord_mover(varargin)
   data.vox_size = [9 9 10];
   data.nii = nii;
   data.mask = mask_nii;
+  
+  % as well as user label for output file
+  data.who = inputdlg('Your Initials');
+  if isempty(data.who)
+     data.who = 'UNKOWN';
+  else
+     data.who = upper(data.who{1});
+  end
+  
+  % save data to figure
   guidata(f,data);
   
   % draw axial images
@@ -201,7 +189,7 @@ function [f, coords] = coord_mover(varargin)
   uicontrol('Position',[220, a_h+20, 100, 20], ...
                      'String','Load',...
                      'Tag', 'load_button', ...
-                     'Callback', @(s,e) msgbox('not implemented') ...
+                     'Callback', @(s,e) load_coords(n_rois,z_mid) ...
                      );
   uicontrol('Position',[320, a_h+20, 100, 20], ...
                      'String','Reset1',...
@@ -212,7 +200,7 @@ function [f, coords] = coord_mover(varargin)
   % roi positions original and new
   % TODO: combine into one, add html color
   uicontrol('Position',[20+a_w/3, a_h+40, a_w/3, a_h-80], ...
-                     'String',sprintf('%d %d %d\n', coords'),...
+                     'String',sprintf('%d %d %d\n', coords(:,1:3)'),...
                      'Style','text', ...
                      'Tag', 'disp_orig');
   uicontrol('Position',[a_w*2/3, a_h+40, a_w/3, a_h-80], ...
@@ -271,13 +259,47 @@ function reset_coords(varargin)
   update_display(f);
 end
 
-function out=save_coords()
+function outname=save_coords()
   f=gcf;
   data = guidata(f);
   [d n e] = fileparts(data.coords_file);
   outname=fullfile(d,sprintf('%s_%f_%s.txt',n,datenum(datetime),data.who))
   dlmwrite(outname, data.coords, 'delimiter','\t')
   % todo use recommend (2019a): writematrix(data.coords, outname)
+end
+
+function inname=load_coords(n_rois,z_mid)
+  inname='DNE';
+  f=gcf;
+  data = guidata(f);
+  [n, f]  = uigetfile(data.coords_file,'Coord File');
+  if isempty(n), return, end
+  inname = fullfile(f,n);
+  data.coords = read_coords(inname,n_rois,z_mid);
+  guidata(f,data);
+  update_display(f);
+  % todo use recommend (2019a): writematrix(data.coords, outname)
+end
+
+function coords = read_coords(coords_file, n_rois, z_mid)
+  coords = load(coords_file);
+  coords = coords(coords(:,1)~=0,:); % remove roi 0
+  
+  % make 3rd coordinate middle of nifti if not provided
+  if(size(coords,2) == 3)
+      coords(:,4) = z_mid;
+  end
+
+  if length(coords) ~= n_rois
+     warning('expected %d rois, have %d in %s', n_rois, length(coords), coords_file)
+     % replace missing rois with 0s
+     coords_new = zeros(n_rois,size(coords,2)); % TODO: dont hardcode?
+     coords_new(:,4) = 50; % set z to 50
+     coords_new(:,1) = 1:n_rois;
+     coords_new(coords(:,1),:) = coords;   
+       
+     coords = coords_new;
+  end
 end
 
 function update_display(f,all_ax)
@@ -318,12 +340,18 @@ function update_display(f,all_ax)
    rng = @(center, size) (center-floor(size/2)):(center+floor(size/2));
    crd = data.coords(cur_roi,2:4);
    vsz = data.vox_size;
-   mcnt = data.mask(rng(crd(1),vsz(1)),...
-                    rng(crd(2),vsz(2)),...
-                    rng(crd(3),vsz(3)) );
    
-   data.mask_sum = sum(mcnt(:));
+   % only highlight current rois if we have it
+   if(crd(1) ~= 0 && crd(2) ~= 0 )
+       
+       mcnt = data.mask(rng(crd(1),vsz(1)),...
+                        rng(crd(2),vsz(2)),...
+                        rng(crd(3),vsz(3)) );
+      data.mask_sum = sum(mcnt(:));
    %fprintf('msk cnt: %d\n', data.mask_sum)
+   else
+       data.mask_sum = 0;
+   end
    
    
    %% update all axial
@@ -340,6 +368,9 @@ function update_display(f,all_ax)
        % put axial images up
        a = all_ax(ax_i);
        zpos=roi_z -5 + 5*(ax_i-1);
+       % no z? center at half
+       if(zpos<=0), zpos=floor(size(data.nii.img,3)/2); end
+       
        im_at_coords = flipud(rot90(data.nii.img(:,:,zpos)));
        update_brain(a, im_at_coords);
        update_callback(a, 1, [1 2], roibox);
@@ -356,7 +387,8 @@ function update_display(f,all_ax)
    s = findobj(f,'Tag','sag');
    if(~isempty(s) && ~isempty(cur_roi))
        roi_x = data.coords(cur_roi,2);
-       % update sag view       
+       % update sag view
+       if(roi_x <= 0), roi_x = floor(size(data.nii.img,1)/2); end
        im_at_coords = fliplr(rot90(squeeze(data.nii.img(roi_x,:,:)),3));
        update_brain(s, im_at_coords);
        update_callback(s, data.z_free, [2 3], roibox);
@@ -376,6 +408,7 @@ function update_display(f,all_ax)
    c = findobj(f,'Tag','cor');
    if(~isempty(c) && ~isempty(cur_roi))
        roi_y = data.coords(cur_roi,3);
+       if(roi_y <= 0), roi_y = floor(size(data.nii.img,2)/2); end
        % update sag view
        im_at_coords = fliplr(rot90(squeeze(data.nii.img(:,roi_y,:)),3));
        update_brain(c, im_at_coords);
