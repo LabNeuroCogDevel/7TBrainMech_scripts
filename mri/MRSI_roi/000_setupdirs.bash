@@ -15,8 +15,9 @@ mni_atlas=$(pwd)/csi_rois_mni_MPRO_20190425.nii.gz
 if [ $# -le 0 ]; then
    cat <<-EOF
    USAGE: 
-    $0 lunaid_date
-    $0 all
+    $0 lunaid_date   # specify single subject
+    $0 all           # all subjects (print errors for missing)
+    $0 have          # only what spreadsheet says we have
    EXAMPLE:
     $0 11323_20180316
 	EOF
@@ -31,6 +32,17 @@ if [ $1 == "all" ]; then
    exit 0
 fi
 
+# only preproc what the sheet says we have
+if [ $1 == "have" ]; then
+   statusfile="$(dirname $0)/../txt/status.csv"
+   [ ! -r "$statusfile" ] && echo "missing status files, run ../900_status.R" && exit 1
+   Rio -e 'df$ld8[!is.na(df$csipfc_raw)&!is.na(df$ld8)]' < "$statusfile" |
+    sed 's/\\n/\n/g' |
+    xargs -rn1 $0  
+    #xargs -rn1 echo $0 
+   exit 0
+fi
+
 
 ## input is subject id
 ld8="$1"
@@ -39,6 +51,10 @@ ld8="$1"
 ## get mrid from id lookup (from id_list.bash)
 MRID="$(grep "$ld8" ../MRSI/txt/ids.txt|cut -d' ' -f2)"
 [ -z "$MRID" ] && echo "cannot find MRID for '$ld8'; try ../MRSI/id_list.bash" && exit 1
+
+# need slices
+[ ! -d /Volumes/Hera/Projects/7TBrainMech/subjs/$ld8/slice_PFC/ ] &&
+   echo "cannot find $ld8/slice_PFC dir; run ../MRSI/01_get_slices.bash $ld8" && exit 1
 
 ## find mprage (output of 02_label_csivox.bash)
 MPRAGE="$(find /Volumes/Hera/Projects/7TBrainMech/subjs/$ld8/slice_PFC/MRSI/struct_ROI/ -maxdepth 1 -type f,l -iname '*_7_FlipLR.MPRAGE')"
