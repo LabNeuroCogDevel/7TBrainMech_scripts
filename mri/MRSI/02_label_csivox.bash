@@ -125,7 +125,7 @@ check_file(){
 csi_json="$scriptdir/csi_settings.json"
 
 check_file "$scout"                     "run ./01_get_slices.bash $subj_date"
-check_file "$FSdir/mri/aparc+aseg.mgz"  "run ../FS/002_fromPSC.bash"
+check_file "$FSdir/mri/aparc+aseg.mgz"  "run ../FS/002_fromPSC.bash (or /Volumes/Hera/Projects/Collab/7TFF/scripts/030_FS.bash)"
 check_file "$csi_si1_csv"               "run ../001_rsync_MRSI_from_box.bash"
 check_file "$csi_json"                  "see https://github.com/LabNeuroCogDevel/7TBrainMech_scripts/blob/master/mri/MRSI/csi_settings.json"
 #check_file "$reg_out_file"              "$BOXMRSI/**$mrid/regirstion_out/*MPRAGE is a product of MRSI box, cannot determine slice ($reg_out_file)"
