@@ -24,7 +24,10 @@ This is esp. weird for GM/WM identification. If both WM & GM have near 0 percent
 
 ## glossary
  * [Freesurfer](https://surfer.nmr.mgh.harvard.edu) -> anatomical segmentation
- * [LCModel](http://s-provencher.com/lcm-manual.shtml) -> spreadsheet.csv
+ * [LCModel](http://s-provencher.com/lcm-manual.shtml) [(ref)](https://onlinelibrary.wiley.com/doi/epdf/10.1002/mrm.1910300604) -> spreadsheet.csv
+    * %SD == CRLB == Cramer-Rao lower bounds == estimated standard devation (model fit)
+    > %SD≈20% indicates that only changes of about 40% can be detected with reliability, e.g., the approximate doubling of Gln/Glu in several pathologies. A %SD<20% has been used by many as a very rough criterion for estimates ofacceptable reliability. However, it is only a subjective indication, not a rigorous limit.
+
  * FSL: flirt applywarp inversewarp -> registration = warping
  * MRSI == CSI
  * preprocessMprage
