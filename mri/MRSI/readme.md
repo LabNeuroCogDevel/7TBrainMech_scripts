@@ -1,21 +1,46 @@
 # CSI voxel labeling
 
 ## overview
-Use MRRC (Victor) Matlab code to convert LC model spreadsheet output (24x24 pixel matrix of 9x9x10mm voxels) to upsampled 1mm^3 Freesurfer ROI parcilation.
-Identifies percentage in roi and csi value (for each molecule) in 1mm nifti as well as matlab matricies.
-ROI pixel labeling is winner take all of best percentage. WM/GM labeling is particularly weird because of this (if both near 0, picks GM). Use tissue mask!
+This repo uses MRRC (Victor) Matlab code to label 24x24 csi pixel/voxel grid with upsampled 1mm^3 Freesurfer parcilation and assign LC model spreadsheet molecule values to FS regions of interest.
+The code is repurposed to do the same for an MNI ROI atlas (registered from MNI to slice space via fsl's inversewarp on preprocessMprage's warpcoef).
+
+Each pixel is given a percentage (via hanning filter?) overlap with each ROI. ROI pixel labeling is winner-take-all. 
+
+N.B! 
+Every pixel/voxel on the slice 24x24 plane is labeled as an ROI even when none are reasonable.
+This is esp. weird for GM/WM identification. If both WM & GM have near 0 percentages, code still picks one. Use the tissue mask!
+
 
 ## output
-* `all_probs.nii.gz`  - percent in ROI 
-* `all_csi.nii.gz`  
-* `mprage_in_slice.nii.gz`
-* `2d_csi_ROI/*lut*`
-* coregistration affine matrix
+* Freesurfer ROIS
+   * `MRSI/all_probs.nii.gz`  - percent in FS ROI 
+   * `MRSI/all_csi.nii.gz`    - CSI LC Model values, one brick per molecule value or CRLB
+   * `MRSI/mprage_in_slice.nii.gz` - anatomical registred (linear warped) into slice orientation
+   * `MRSI/2d_csi_ROI/*lut*`     - lookup table
+   * `MRSI/parc_group/mprage_to_scout_*txt` - SPM coregistration affine matrix 
 
+* MNI ROI Atlas
+   * `atlas_roi/func_atlas.mat` - matlab struct of atlas roi labels
+
+## glossary
+ * [Freesurfer](https://surfer.nmr.mgh.harvard.edu) -> anatomical segmentation
+ * [LCModel](http://s-provencher.com/lcm-manual.shtml) -> spreadsheet.csv
+ * FSL: flirt applywarp inversewarp -> registration = warping
+ * MRSI == CSI
+ * preprocessMprage
+ * Matlab:[SPM](https://www.fil.ion.ucl.ac.uk/spm/)
+ * Files
+    * `r*nii` - Nifti files that start with `r` are registered to scout/slice.
 
 ## data input
+Initial Freesurfer labeling
  * Freesurfer output (need mprage as orig.mgz, aparc+aseg.mgz, wmparc.mgz)
  * B0 scout
+ * spreadsheet.csv: 24x24 pixel melted matrix of 9x9x10mm CSI LC Model values for each molecule and CRLB
+
+Additionally, for atlas ROIs
+ * a priori ROI atlas
+ * preprocessMprage's warpcoef
 
 ## methods input
  * `csi_settings.json` - FOV, mat size, and thickness of B0 scout and CSI acquisition
@@ -24,8 +49,6 @@ ROI pixel labeling is winner take all of best percentage. WM/GM labeling is part
 ## code dependencies
 * matlab toolbox: `NIfTI` and `spm12`  
 * `SPMcoreg.mat` (included) - coregistration settings for spm
-
-## sequence
 
 ## Notes
 * `RAS` matrix orientation!!??
