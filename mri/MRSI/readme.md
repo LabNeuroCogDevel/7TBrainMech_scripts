@@ -1,7 +1,12 @@
 # CSI voxel labeling
 
+## overview
+Use MRRC (Victor) Matlab code to convert LC model spreadsheet output (24x24 pixel matrix of 9x9x10mm voxels) to upsampled 1mm^3 Freesurfer ROI parcilation.
+Identifies percentage in roi and csi value (for each molecule) in 1mm nifti as well as matlab matricies.
+ROI pixel labeling is winner take all of best percentage. WM/GM labeling is particularly weird because of this (if both near 0, picks GM). Use tissue mask!
+
 ## output
-* `all_probs.nii.gz`  
+* `all_probs.nii.gz`  - percent in ROI 
 * `all_csi.nii.gz`  
 * `mprage_in_slice.nii.gz`
 * `2d_csi_ROI/*lut*`
