@@ -14,10 +14,11 @@ SUBJROOT="/Volumes/Hera/Projects/7TBrainMech/subjs/"
 
 # find most recent labeling like txt/subj_label_val_20190503.csv
 # use that to get list of files like slice_roi_MPOR20190425_CM_11323_20180316_16_737541.477512_OR.txt
-coord_file="$(\ls txt/subj_label_val_*.csv | tac |sed 1q)"
+coord_file="$(\ls txt/subj_label_val_20*.csv | tac |sed 1q)"
 [ -z "$coord_file" -o ! -r "$coord_file" ] && echo 'no txt/subj_label_val_*.csv' && exit 1
 # PULLVERSION=pulled$(basename ${coord_file/*_/} .csv)
 
+echo $coord_file
 # get id and file like
 # 11323_20180316 slice_roi_MPOR20190425_CM_11323_20180316_16_737541.477512_OR.txt
 perl -lne 'print "$2 $1" if m/,"?([^,]+(\d{5}_\d{8})[^,]+.txt)/' "$coord_file" |sort |uniq |
@@ -56,6 +57,7 @@ perl -lne 'print "$2 $1" if m/,"?([^,]+(\d{5}_\d{8})[^,]+.txt)/' "$coord_file" |
     # did we already run?
     [ -r finish_mniwarp.flag ] && echo "finished $(pwd) $(cat finish_mniwarp.flag)" &&  continue
 
+    echo $coord
     ### DO STUFF
     set -x
 
