@@ -106,13 +106,13 @@ function [f, coords] = siarray_ifft_gui(ld8)
       lr=side{i}(1); % L or R
       % TODO: confirm value is 'L' or 'R'
       
-      % TODO: confirm row and col
+      % TODO: confirm row and col 20190430 -- flip col is left/right
       % TODO: confirm orientation RAI vs LPI?
       % set row
-      lbl = sprintf('%s%d%s', lr, d.(lr),'Row');
+      lbl = sprintf('%s%d%s', lr, d.(lr),'Col');
       setobj(lbl, coords(i,2));
       % and col      
-      lbl = sprintf('%s%d%s', lr, d.(lr),'Col');
+      lbl = sprintf('%s%d%s', lr, d.(lr),'Row');
       setobj(lbl, coords(i,3));
       % z is always 50 hopefully
       

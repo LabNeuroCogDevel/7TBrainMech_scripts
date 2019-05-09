@@ -272,9 +272,9 @@ function inname=load_coords(n_rois,z_mid)
   inname='DNE';
   f=gcf;
   data = guidata(f);
-  [n, f]  = uigetfile(data.coords_file,'Coord File');
+  [n, fn]  = uigetfile(data.coords_file,'Coord File');
   if isempty(n), return, end
-  inname = fullfile(f,n);
+  inname = fullfile(fn,n);
   data.coords = read_coords(inname,n_rois,z_mid);
   guidata(f,data);
   update_display(f);

@@ -4,6 +4,7 @@ trap 'e=$?; [ $e -ne 0 ] && echo "$0 exited in error"' EXIT
 cd $(dirname $0)
 #mni_atlas=$(pwd)/csi_rois_mni.nii.gz
 mni_atlas=$(pwd)/csi_rois_mni_MPRO_20190425.nii.gz
+statusfile="$(dirname $0)/../txt/status.csv"
 
 #
 # creates directory with raw files need to run SVR1HFinal
@@ -35,7 +36,6 @@ fi
 
 # only preproc what the sheet says we have
 if [ $1 == "have" ]; then
-   statusfile="$(dirname $0)/../txt/status.csv"
    [ ! -r "$statusfile" ] && echo "missing status files, run ../900_status.R" && exit 1
    Rio -e 'df$ld8[!is.na(df$csipfc_raw)&!is.na(df$ld8)]' < "$statusfile" |
     sed 's/\\n/\n/g' |
@@ -94,15 +94,19 @@ SIARRAY="$(
    xargs -r dirname
 )"
 # nothing in raw data, try box
-[ -z "$SIARRAY" ] &&
+[ -z "$SIARRAY" -a -d "$boxsiarray" ] &&
   SIARRAY="$(
-     find "$boxsiarray" -maxdepth 1 -type f,l -iname 'siarray.*' -print -quit |
+     find -L "$boxsiarray" -maxdepth 1 -type f,l -iname 'siarray.*' -print -quit |
      sed 1q |
      xargs -r dirname
   )"
 
 if [ -z "$SIARRAY" -o ! -d "$SIARRAY" ]; then
    echo "cannot find siarray files in $rawdir or $boxsiarray; get data from Hoby or Victor (../001_rsync_MRSI_from_box.bash)!"
+   # if we can use q to query the csv file w/sql, use it
+   which q >/dev/null && [ -r "$statusfile" ] &&
+      q -d, -H "select csipfc_raw from - where ld8 like '$ld8'" < $statusfile |
+      xargs echo "expect NA in $statusfile $ld8 for csipfc_raw file timestamp: "
    exit 1
 fi
 
