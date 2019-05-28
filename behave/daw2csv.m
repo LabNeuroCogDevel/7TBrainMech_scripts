@@ -9,6 +9,8 @@ for t=dir('/Volumes/L/bea_res/Data/Temporary Raw Data/7T/1*_2*/*_task.mat')'
    a=load(mat);
    t=table(repmat({a.name},200,1),a.choice1',a.choice2',a.state',a.money');
    t.Properties.VariableNames = {'id' 'choice1' 'choice2' 'state','money'};
+   % 11630_20180313_737132579_task.mat was misnamed with matfile as 29180313?
+   % already fixed (before 20190528)
    out=fullfile(sdir,a.name,'daw',['daw_' a.name '.txt']);
    disp(out);
    mkdir(fileparts(out));
