@@ -22,6 +22,24 @@ This is esp. weird for GM/WM identification. If both WM & GM have near 0 percent
 * MNI ROI Atlas
    * `atlas_roi/func_atlas.mat` - matlab struct of atlas roi labels
 
+### ROI name and number
+```
+cat /Volumes/Hera/Projects/7TBrainMech/subjs/*/slice_PFC/MRSI/2d_csi_ROI/ParcelCSIvoxel_lut.txt | sort -nu
+1   CAcing            CACGM
+2   PIcing            PICGM
+3   RAcing            RACGM
+4   abnormal          AGM
+5   basal_ganglia     BGA
+6   frontal           FGM
+7   insula            IGM
+8   occipital         OGM
+9   parietal          PGM
+10  subcortical       SCGM
+11  temporal_lateral  TLGM
+12  temporal_medial   TMGM
+13  thalamus          THA
+```
+
 ## glossary
  * [Freesurfer](https://surfer.nmr.mgh.harvard.edu) -> anatomical segmentation
  * [LCModel](http://s-provencher.com/lcm-manual.shtml) [(ref)](https://onlinelibrary.wiley.com/doi/epdf/10.1002/mrm.1910300604) -> spreadsheet.csv
