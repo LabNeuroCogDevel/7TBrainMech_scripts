@@ -1,4 +1,4 @@
-# ROI based CSI extraction (cf. coord based in ../MRSI/)
+# Coordinate/ROI based CSI extraction (cf. grid based FS+ROI in ../MRSI/)
 
 ```
 mni roi -> slice row+col center -> sepectrum -> concentration
