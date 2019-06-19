@@ -1,6 +1,12 @@
 function [f, coords] = coord_mover(varargin)
-%COORD_MOVER Summary of this function goes here
-%   Detailed explanation goes here
+%COORD_MOVER move subject coordinates about the z plane
+%   can take a subject id (and will find needed files)
+%   or two args: coordinate.txt and t1.nii
+% coordinate.txt has columns: roi#, x, and y. (z is optional)
+%  1	64  69
+%  2	150  68
+%  ...
+% labels for roi number are extracted from 'mni_label_file'
 
   % example subj:
   % ld8 = '11323_20180316';
@@ -57,7 +63,7 @@ function [f, coords] = coord_mover(varargin)
       
       
       %% get coords_file
-      % like /Volumes/Hera/Projects/7TBrainMech/subjs/11323_20180316/slice_PFC/MRSI_roi/raw/slice_roi_CM_11323_20180316_16.txt
+      % like /Volumes/Hera/Projects/7TBrainMech/subjs/11323_20180316/slice_PFC/MRSI_roi/raw/slice_roi_MPOR20190425_CM_11323_20180316_16.txt
       %  0	63  63
       %  1	68  92
       %  2	60  90

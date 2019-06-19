@@ -26,9 +26,11 @@ mni roi -> slice row+col center -> sepectrum -> concentration
  0. `./000_setupdirs.bash 11323_20180316` creates `/Volumes/Hera/Projects/7TBrainMech/subjs/11323_20180316/slice_PFC/MRSI_roi/raw`
  0. `./001_inspect_setup.bash 11323_20180316` opens afni with warp rois loaded
  0. `./010_move_roi.bash 11323_20180316` interactively move rois
+ ![screenshot](./coord_mover.png?raw=True)
  0. `./020_matlab_subject.bash 11323_20180316` generates files to be used by LC model
  0. `./030_send_files.bash` - create a zip for given subjects to send to MRRC
- 0. `./040_fetchFiles.bash` - stream all spreadsheet.csv in zip file(s) into one file
+ 0. `../001_rsync_MRSI_from_box.bash` - to get new MRSI zip files
+ 0. `./040_fetchFiles.bash` - stream all spreadsheet.csv in zip file(s) into one file -- *EDIT* to include more zip files
  0. `./041_merge_pos_val.R` - merge concatenated spreadsheets and roi number, label, and mni position
  0. `./050_ROIs.bash`       - for only coordinates in the merged data, create mni and anat space roi atlas masks
  0. `./051_GM_Count.bash`   - get fraction gm from anat roi mask
