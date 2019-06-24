@@ -42,15 +42,15 @@ thalamus <- subset(cre_vals, cre_vals$ROI==7)
 
 #lm is YVAR~XVAR
 ldlpfc_Cre_age <- lm(Cre~age, data=ldlpfc)
-summary(dlpfc_Cre_age)
+summary(ldlpfc_Cre_age)
 ggplot(ldlpfc, aes(x=age, y=Cre)) + geom_point()
 
 ldlpfc_GABA_age <- lm(GABA_Cre~age, data=ldlpfc)
-summary(dlpfc_GABA_age)
+summary(ldlpfc_GABA_age)
 ggplot(ldlpfc, aes(x=age, y=GABA_Cre)) + geom_point()
 
 ldlpfc_Glu_age <- lm(Glu_Cre~age, data=ldlpfc)
-summary(dlpfc_Glu_age) 
+summary(ldlpfc_Glu_age) 
 ggplot(ldlpfc, aes(x=age, y=Glu_Cre)) + geom_point()
 
 #### ROI4 ####

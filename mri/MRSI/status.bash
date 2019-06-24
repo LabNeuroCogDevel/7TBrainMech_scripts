@@ -9,7 +9,10 @@ trap 'e=$?; [ $e -ne 0 ] && echo "$0 exited in error"' EXIT
 exists(){ echo -n "$1 $2 "; [ -n "$3" -a -r "$3" ] && echo 1 || echo 0; }
 existb(){ exists $1 $(basename "$2") "$2"; }
 
-for d in /Volumes/Hera/Projects/7TBrainMech/subjs/*/slice_PFC/; do
+# find everyone with a slice_PFC or preproc directory
+ls -d /Volumes/Hera/Projects/7TBrainMech/subjs/*/{preproc,slice_PFC} |
+ xargs -n1 dirname | sort -u | while read d; do
+   d=$d/slice_PFC
    [[ $d =~ [0-9]{5}_[0-9]{8} ]] || continue
    ld8=${BASH_REMATCH}
    mrid=$( (grep $ld8 txt/ids.txt || echo NA NA) | cut -f2 -d' ' |sed 1q)
@@ -24,4 +27,4 @@ for d in /Volumes/Hera/Projects/7TBrainMech/subjs/*/slice_PFC/; do
    existb $ld8 $d/MRSI/scout_resize.nii
    existb $ld8 $d/MRSI/all_csi.nii.gz
    existb $ld8 $d/MRSI/all_probs.nii.gz
-done |  tee >(cat >&2) | Rscript -e 'write.table(file="txt/status.txt",tidyr::spread(read.table(file("stdin")),V2,V3))'
+done |  tee >(cat >&2) | Rscript -e 'write.table(row.names=F, quote=F, file="txt/status.txt", tidyr::spread(read.table(file("stdin")),V2,V3))'
