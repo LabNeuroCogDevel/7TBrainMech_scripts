@@ -28,9 +28,14 @@ in_out() {
   # only compare e.g. "./11451_20180216.MR.TIEJUN_JREF-LUNA.0002." 
   find -type f | sed 's:^./::' |  cut -f1-4 -d. | sort | uniq -c |
   while read cnt filepart; do 
+     [ -z "$filepart" ] && echo "file names did not match expected (cut -d. -f1-4) $cnt" >&2 && continue
+     filepart="$(basename $filepart)"
      seqno=${filepart: -4}
      exampledcm=$(find -iname "$filepart*" -type f,l -print -quit )
+     [ -z "$exampledcm" ] && echo "found no example dicoms: find $(pwd) -iname '$filepart*' -type f,l -print -quit" >&2 && continue
      prtcl=$(dicom_hinfo -no_name -tag 0008,103e $exampledcm|tr -cs '[\nA-Za-z0-9]' -)
+     [ -z "$prtcl" ] && prtcl=$(dicom_hinfo -no_name -tag 0018,1030 $exampledcm|tr -cs '[\nA-Za-z0-9]' -)
+     [ -z "$prtcl" ] && echo "no protocol name: dicom_hinfo -tag 0018,1030 -tag 0008,103e '$exampledcm'" >&2 && continue
      dirname=${seqno}_${prtcl}_$cnt
      # sanity check
      npattmatch=$(find $(pwd)/ -iname "$filepart*"|wc -l)
