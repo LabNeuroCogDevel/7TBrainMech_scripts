@@ -13,7 +13,14 @@ write_and_note <- function(f, cmd) {
    }
 }
 
-dirlist <- Sys.glob("rawlinks/1*_2*/*/")
+args <- commandArgs(trailingOnly=TRUE)
+if(length(args)>0L) {
+   matchesrawlink <- grepl('rawlinks/',args)
+   if(!all(matchesrawlink)) stop('inputs must be rawlink directories!\n Bad inputs:', paste("\n\t", args[!matchesrawlink]))
+   dirlist <- lapply(args,function(x) gsub('^\\.\\*rawlinks/', 'rawlinks/', x) %>% paste0('/*/') %>% Sys.glob) %>% unlist
+} else {
+   dirlist <- Sys.glob("rawlinks/1*_2*/*/")
+}
 
 info <-
    lapply( strsplit(dirlist, "[/_]"),
@@ -36,6 +43,10 @@ idxs <- list(
   rest= grepl("bold.*(REST|tacq2s-180).*", info$protocol) &
              info$ndcm == 10560
 )
+
+if(!any(lapply(idxs,any))) stop("no matching protocols in input!\n",
+                                info %>% filter(grepl('MP2RAGE|bold',protocol)) %>% print.data.frame(max=99) %>%
+                                     capture.output %>% paste(collapse="\n\t"))
 
 # -- apply assignments
 info$process <- NA
