@@ -6,7 +6,7 @@
 ^ Raw      | ''/Volumes/Hera/Raw/MRprojects/7TBrainMech/''           |
 ^ funcs    | ''/Volumes/Hera/preproc/7TBrainMech_{mgsencmemm,rest}'' |
 ^ subjs    | ''/Volumes/Hera/Projects/7TBrainMech/subjs/''           |
-^ scripts  | ''/Volumes/Hera/Projects/7TBrainMech/scripts/mri''      |
+^ scripts  | ''/Volumes/Hera/Projects/7TBrainMech/scripts/''      |
 
 === Pipeline ===
   - Getting Raw Data & BIDS
@@ -30,9 +30,33 @@ https://github.com/LabNeuroCogDevel/7TBrainMech_scripts
 The USB enclosed hard drive we get usually has the structure ''/Data/Luna/$SCANID''. We want to sync all the new subjects into our local mirror ''/Volumes/Hera/Raw/MRprojects/7TBrainMech/$SCANID''. ''$SCANID'' is created/used by the MRRC and like ''20190125Luna2'' -- the 8 digit scan date, "Luna" and the visit number for that day.
 
 
-''000_rsync_fetch_from_usb.bash''
-holds an rsync command to automate this sync when the USB enclosure is connected directly to rhea in the server room. Running this requires (1) the key to access the server room and (2) USB mounted to /mnt/usb. see output of the sync script for mount suggestions and the output of ''sudo dmesg|tail'' from rhea after inserting USB.
+
+
+The easiest and slower way to mirror files is to drag and drop.
+   - Connect the data drive to your local computer
+   - Drag and drop ''Data/Luna/$SCANID' to windows share mounted ''/Volumes/Hera/Raw/MRprojects/7TBrainMech/''
+
+
+The scripted way uses ''000_rsync_fetch_from_usb.bash'':
+an rsync command to automate sync when the USB enclosure is connected directly to rhea in the server room.
+Running this requires
+  - the key to access the server room and
+  - USB mounted to /mnt/usb. see the output of the
+      * sync script for mount suggestions and
+      * ''sudo dmesg|tail'' from rhea after inserting USB for the path to the device (likely ''/dev/sdb2'').
 
 
 ==== Parse ====
 
+Once the data is mirrored locally (in ''/Volumes/Hera/Raw/MRprojects/7TBrainMech/$SCANID''), we need to organize it.
+Scripts in ''BIDS/'' directory are helpful here.
+
+  - Identify the ''$RAWDCMDIR'' folder for a session
+    * all dicoms in one folder (older format, e.g. ''20180907Luna1/20180908LUNA1DCMALL1A'')
+    * hand organized probably in ''DCM'' or ''TIEJUN*'' (eg. ''20190719Luna1/20190719LUNA1/DCM/'', ''20190719Luna2/20190719LUNA2/TIEJUN_JREF-LUNA_20190719_163248_312000/'')
+ - Run linker script
+    * ''010_gen_raw_links.bash $RAWDCMDIR'' for older all in one folder
+    * ''000_dcmfolder_201906fmt.bash $RAWDCMDIR'' for newer per protocol folder
+ - Run BIDS conversion script
+    * ''BIDS/020_mkBIDS.R'' with no arguments to run against all links
+    * e.g. ''BIDS/020_mkBIDS.R rawlinks/11735_20190719'' to try just one (see ''ls /Volumes/Hera/Raw/BIDS/7TBrainMech/rawlinks'')
