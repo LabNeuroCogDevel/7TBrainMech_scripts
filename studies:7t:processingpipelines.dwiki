@@ -1,0 +1,38 @@
+====== Processing Pipelines ======
+
+===== Overview =====
+=== File Locations ===
+^            ^      Location      ^
+^ Raw      | ''/Volumes/Hera/Raw/MRprojects/7TBrainMech/''           |
+^ funcs    | ''/Volumes/Hera/preproc/7TBrainMech_{mgsencmemm,rest}'' |
+^ subjs    | ''/Volumes/Hera/Projects/7TBrainMech/subjs/''           |
+^ scripts  | ''/Volumes/Hera/Projects/7TBrainMech/scripts/mri''      |
+
+=== Pipeline ===
+  - Getting Raw Data & BIDS
+  - t2 preprocessing (rest and task)
+  - Freesurfer
+  - MRSI (grid)
+  - MRSI (roi/atlas)
+
+Scripts are relative to ''/Volumes/Hera/Projects/7TBrainMech/scripts/mri/''
+
+=== Git Repo ===
+https://github.com/LabNeuroCogDevel/7TBrainMech_scripts
+
+===== Raw Data to BIDS =====
+  * Data transfer is over USB snearknet (2019-08: XNAT may soon change this) because network infestructure did not allow for remote file access
+  * raw DICOMS are not organized and have unusual pateint IDs. The scanner syncs all dicoms for each session (all protocols) to a single directory. Because of the large number of dicoms for 3depi, this makes folders with >40,000 files in them! As of sometime in 2019-08, Hobby started organizing dicoms into per protcol directoires by hand.
+  * BIDS is not used for scout or R2'
+
+==== Mirror ====
+
+The USB enclosed hard drive we get usually has the structure ''/Data/Luna/$SCANID''. We want to sync all the new subjects into our local mirror ''/Volumes/Hera/Raw/MRprojects/7TBrainMech/$SCANID''. ''$SCANID'' is created/used by the MRRC and like ''20190125Luna2'' -- the 8 digit scan date, "Luna" and the visit number for that day.
+
+
+''000_rsync_fetch_from_usb.bash''
+holds an rsync command to automate this sync when the USB enclosure is connected directly to rhea in the server room. Running this requires (1) the key to access the server room and (2) USB mounted to /mnt/usb. see output of the sync script for mount suggestions and the output of ''sudo dmesg|tail'' from rhea after inserting USB.
+
+
+==== Parse ====
+
