@@ -6,24 +6,33 @@
 ^ Raw      | ''/Volumes/Hera/Raw/MRprojects/7TBrainMech/''           |
 ^ funcs    | ''/Volumes/Hera/preproc/7TBrainMech_{mgsencmemm,rest}'' |
 ^ subjs    | ''/Volumes/Hera/Projects/7TBrainMech/subjs/''           |
-^ scripts  | ''/Volumes/Hera/Projects/7TBrainMech/scripts/''      |
+^ scripts  | ''/Volumes/Hera/Projects/7TBrainMech/scripts/''         |
 
 === Pipeline ===
   - Getting Raw Data & BIDS
-  - t2 preprocessing (rest and task)
-  - Freesurfer
-  - MRSI (grid)
-  - MRSI (roi/atlas)
+  - MR preprocessing (anat, rest, and task)
+  - Freesurfer (anatomical ROIs)
+  - MRSI grid approach
+  - MRSI roi/atlas approach
 
-Scripts are relative to ''/Volumes/Hera/Projects/7TBrainMech/scripts/mri/''
+Scripts referenced below are relative to ''/Volumes/Hera/Projects/7TBrainMech/scripts/mri/''
 
-=== Git Repo ===
-https://github.com/LabNeuroCogDevel/7TBrainMech_scripts
+=== Links ===
+  * [[https://github.com/LabNeuroCogDevel/7TBrainMech_scripts|github repo]] - source code management
+  * [[http://arnold.wpic.upmc.edu/dokuwiki/doku.php?id=studies:7t:processingpipelines|internal wiki]] - this document rendered nicely
+  * [[https://docs.google.com/spreadsheets/d/1_EdqA8ObwPaqeLd-BJuvXhimotkHG8zvHMTICmGEVyM/edit#gid=2066974508|status gsheet]] - ''status.csv'' upload to google sheets
 
 ===== Raw Data to BIDS =====
-  * Data transfer is over USB snearknet (2019-08: XNAT may soon change this) because network infestructure did not allow for remote file access
-  * raw DICOMS are not organized and have unusual pateint IDs. The scanner syncs all dicoms for each session (all protocols) to a single directory. Because of the large number of dicoms for 3depi, this makes folders with >40,000 files in them! As of sometime in 2019-08, Hobby started organizing dicoms into per protcol directoires by hand.
+
+  * Data transfer is over USB sneakernet (2019-08: XNAT may soon change this) because network infrastructure did not allow for remote file access
+  * raw DICOMS are not organized and have unusual participant IDs. The scanner syncs all dicoms for each session (all protocols) to a single directory. Because of the large number of dicoms for 3depi, this makes folders with >40,000 files in them! As of sometime in 2019-08, the MRRC has started organizing dicoms into per protcol directoires by hand.
   * BIDS is not used for scout or R2'
+
+
+  Organization and BIDS conversion can be done by hand or with scripts. The end product is to have folders like
+    * raw re-organized ''/Volumes/Hera/Raw/BIDS/7TBrainMech/rawlinks/${lunaid}_${yyymmdd}/${seqno}_${protocol_name}_${dcm_cnt}/'' and
+    * BIDS ''/Volumes/Hera/Raw/BIDS/7TBrainMech/sub-${lunaid}/${yyymmdd}/anat/sub-$lunaid}_T1w.nii.gz''
+
 
 ==== Mirror ====
 
@@ -34,7 +43,7 @@ The USB enclosed hard drive we get usually has the structure ''/Data/Luna/$SCANI
 
 The easiest and slower way to mirror files is to drag and drop.
    - Connect the data drive to your local computer
-   - Drag and drop ''Data/Luna/$SCANID' to windows share mounted ''/Volumes/Hera/Raw/MRprojects/7TBrainMech/''
+   - Drag and drop ''Data/Luna/$SCANID'' to windows share mounted ''/Volumes/Hera/Raw/MRprojects/7TBrainMech/''
 
 
 The scripted way uses ''000_rsync_fetch_from_usb.bash'':
@@ -52,11 +61,64 @@ Once the data is mirrored locally (in ''/Volumes/Hera/Raw/MRprojects/7TBrainMech
 Scripts in ''BIDS/'' directory are helpful here.
 
   - Identify the ''$RAWDCMDIR'' folder for a session
-    * all dicoms in one folder (older format, e.g. ''20180907Luna1/20180908LUNA1DCMALL1A'')
-    * hand organized probably in ''DCM'' or ''TIEJUN*'' (eg. ''20190719Luna1/20190719LUNA1/DCM/'', ''20190719Luna2/20190719LUNA2/TIEJUN_JREF-LUNA_20190719_163248_312000/'')
- - Run linker script
-    * ''010_gen_raw_links.bash $RAWDCMDIR'' for older all in one folder
-    * ''000_dcmfolder_201906fmt.bash $RAWDCMDIR'' for newer per protocol folder
- - Run BIDS conversion script
+     * all dicoms in one folder (older format, e.g. ''20180907Luna1/20180908LUNA1DCMALL1A'')
+     * hand organized probably in ''DCM'' or ''TIEJUN*'' (eg. ''20190719Luna1/20190719LUNA1/DCM/'', ''20190719Luna2/20190719LUNA2/TIEJUN_JREF-LUNA_20190719_163248_312000/'')
+  - Run linker script
+     * ''010_gen_raw_links.bash $RAWDCMDIR'' for older all in one folder
+     * ''000_dcmfolder_201906fmt.bash $RAWDCMDIR'' for newer per protocol folder
+  - Run BIDS conversion script
     * ''BIDS/020_mkBIDS.R'' with no arguments to run against all links
     * e.g. ''BIDS/020_mkBIDS.R rawlinks/11735_20190719'' to try just one (see ''ls /Volumes/Hera/Raw/BIDS/7TBrainMech/rawlinks'')
+
+==== Parse Common Failures ====
+  * No raw directory: there is no folder within ''$SCANID'' containing all the dicoms. Need to talk to MRRC
+  * Cannot find id. Hard code ''$SCANID'' to ''$LUNAID'' conversion in ''BIDS/func.bash'' (see source for ''getld8_hardcoded()'' function). A postgres database rebuild will also help.
+
+
+===== Pre/process =====
+
+Scripts can be much friendlier after the data has been organized. Manual steps can mostly be avoided until working with per subject coordinates in ''MRSI_roi''
+
+==== FreeSurfer ====
+
+Freesurfer is done on the Pittsburgh Super Computer. Two scripts manage this. They run without arguments.
+  - ''FS/001_toPSC.bash'' - copy BIDS t1 anat to PSC and start batch process
+  - ''FS/002_fromPSC.bash'' - copy FS output from PSC to local 
+
+ Neither script is destructive (run one at a time but any time). The scripts assume ''~/.ssh/config'' includes a ''host PSC'' section.
+
+==== Functional ====
+
+  * ''010_preproc.bash'' handles preprocessing of T1, task, and rest data. It uses the local preprocessing wrapper tool ''pp''.  
+  * see ''pp_status 7TBrainMech_rest MHRest_nost diff'' for status. 
+
+==== MRSI ====
+
+=== Grid ===
+MRSI depends on FreeSurfer ((anatomical ROIs, done on PSC see ''mri/FS'')) and functional preprocessing ((T1->T2, T1->MNI warps, done by ''mri/010_preproc.bash'')).
+
+  * ''mri/MRSI/90_doall.bash'' - will try to run everyone. Processing errors should also suggest work around/break point.
+  * For specific files used, see ''mri/MRSI/readme.md''
+
+== Grid Common Failures ==
+  * missing MRSI csv files (probably sync from box data). Talk to MRRC
+    * MRRC box update format may have changed. see ''mri/001_rsync_MRSI_from_box.bash'' and ''/Volumes/Hera/Raw/MRprojects/7TBrainMech/MRSI_BrainMechR01''
+    * to organize by hand
+       - move participant's ''spreadsheet.csv'' to ''/Volumes/Hera/Raw/MRprojects/7TBrainMech/MRSI_BrainMechR01/$MRID/SI1/spreadsheet.csv'' where MRID is what the MR has called the scan, like 20190209Luna1
+  * Too many/too few B0 scouts. Need to explicitly identify the PFC scout. Hard code in ''force_dir'' array defined by ''mri/MRSI/01_get_slices.bash''
+  * Resolution of scout is off or SPM causes segfault. add explicit ignore in ''mri/MRSI/Codes_yj/spm_reg_ROIs.m'' to the ''KNOWN_ISSUES'' cell.
+  * MRID <-> LunaID lookup in ''mri/MRSI/txt/id.txt'' (manual changes will eventually be overwritten by ''mri/MRSI/id_list.bash'')
+     * unless typo is on MRSI uploaded data side, missing conversion is probably issue upstream. see [[#Parse Common Failures]]
+  * Freesurfer or preprocessing failed. To fix, fix at previous step.
+
+
+
+=== ROI voxel ===
+
+ROI voxel based approach depends on warps generated by the grid based approach. ''./mri/MRSI_roi/readme.md'' has much more information.
+This method requires
+  - organizing files
+  - identifying center coordinates per subject.
+  - sending spec. at those coordinates back to MRRC for LC Model
+  - retrieving model out csv files
+
