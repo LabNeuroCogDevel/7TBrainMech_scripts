@@ -135,12 +135,12 @@ scout_slice_num=""
 [  -n "$reg_out_file" ] && [[ "$(basename $reg_out_file)" =~ ^([0-9]+)_ ]] && scout_slice_num=${BASH_REMATCH[1]}
 if [ -z "$scout_slice_num" ]; then
    echo "WARNING: DNE $BOXMRSI/**$mrid/regirstion_out/*MPRAGE is a product of MRSI box"
-   echo "trying to get slice number from scout"
-   slices=$(3dNotes $scout 2>/dev/null |perl -lne 'print $1 if m/Slice_(\d+)$/')
+   echo "trying to get slice number from scout '3dinfo $scout'"
+   slices=$(3dNotes $scout 2>/dev/null |perl -lne 'print $1 if m/Slice_(\d+)$/'|uniq)
    case $slices in
      66) scout_slice_num=17;;
      82) scout_slice_num=21;;
-     *) echo "dont know what to do with $slices slices (not 17 or 21!)";;
+     *) echo "dont know what to do with $slices slices (not 66 or 82!)";;
    esac 
 fi
 [ -z "$scout_slice_num" ] && echo "no slice number in $reg_out_file" >&2 && exit 1

@@ -128,7 +128,7 @@ for sraw in ${list[@]}; do
    elif [ $n -eq 2 ]; then
       slice_dcm_dir=$(lsscout "$sraw" |sed 1q)
    else
-      echo "# $ld8: bad slice raw dir num ($n $sraw/*{82,66}*, expect 2)" >&2
+      echo "# $ld8: bad slice raw dir num ($n $sraw/*{82,66}*, expect 2). hardcode fix 'force_dir' in $0" >&2
       continue
    fi
 
@@ -150,7 +150,21 @@ for sraw in ${list[@]}; do
    # create nifti if we need to
    #[ $(find . -maxdepth 1 -type f  -iname '*.nii.gz' |wc -l ) -gt 0 ] || dcm2niix_afni -o ./ -f slice_pfc $slice_dcm_dir
    cmd="dcm2niix_afni -o ./ -f slice_pfc $slice_dcm_dir"
-   [ ! -r slice_pfc.nii.gz ] && eval $cmd && [ -r slice_pfc.nii.gz ] && 3dNotes -h "$cmd" slice_pfc.nii.gz 
+   if [ ! -r slice_pfc.nii.gz ]; then 
+      [ -r slice_pfc_e2_ph.nii.gz ] && echo "# $ld8 $slice_dcm_dir scout is phase instead of mag?! consider hardcoding a different scout image in $0:force_dir?!" && continue
+      eval $cmd
+      if [ -r slice_pfc_e2.nii.gz -a ! -r slice_pfc.nii.gz ]; then
+          mvcmd="mv slice_pfc_e2.nii.gz slice_pfc.nii.gz" 
+          eval $mvcmd
+          cmd="$cmd; $mvcmd" 
+          echo "WARNING: $ld8 has at least two different echos in scout. picked e2 because it had more contrast one time"
+          echo -e "$ld8\t$(date +%F)\tscout dcm2niix has 2 echos, picked _e2!" >> warning_note.txt
+      elif find -maxdepth 1 -iname 'slice_pfc_*.nii.gz' -type f; then
+         echo "# $ld8 BAD DCM2NII: $slice_dcm_dir has unexpected nii convertion: $(find -maxdepth 1 -iname 'slice_pfc_*.nii.gz' -type f)"
+         continue
+      fi
+      AFNI_NO_OBLIQUE_WARNING="YES" 3dNotes -h "$cmd" slice_pfc.nii.gz 
+   fi
    # 20190822 have e1 and e2 for 11575_20190708
    [ ! -r slice_pfc.nii.gz ] && echo "$ld8: 'dcm2niix $slice_dcm_dir' failed!" >&2 && continue
 
