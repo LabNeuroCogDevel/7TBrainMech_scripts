@@ -101,6 +101,7 @@ for sraw in ${list[@]}; do
    "11757_20190322/0028_B0Map33Slice_66"   # no HC
    "11731_20190201/0023_B0Scout33Slice_66" # early 66 to be ignored
    "11760_20190311/0023_B0Scout33Slice_66" # mixed date data, this is from separate scout dir
+   "11728_20190114/0028_B0Map33Slice_66"   # 3 in a row, use the last before rest
    # FF scans
    "20180824FF2/0023_B0Scout33Slice_66"
    )
@@ -149,7 +150,8 @@ for sraw in ${list[@]}; do
    # create nifti if we need to
    #[ $(find . -maxdepth 1 -type f  -iname '*.nii.gz' |wc -l ) -gt 0 ] || dcm2niix_afni -o ./ -f slice_pfc $slice_dcm_dir
    cmd="dcm2niix_afni -o ./ -f slice_pfc $slice_dcm_dir"
-   [ ! -r slice_pfc.nii.gz ] && eval $cmd && 3dNotes -h "$cmd" slice_pfc.nii.gz
+   [ ! -r slice_pfc.nii.gz ] && eval $cmd && [ -r slice_pfc.nii.gz ] && 3dNotes -h "$cmd" slice_pfc.nii.gz 
+   # 20190822 have e1 and e2 for 11575_20190708
    [ ! -r slice_pfc.nii.gz ] && echo "$ld8: 'dcm2niix $slice_dcm_dir' failed!" >&2 && continue
 
    ## flirt

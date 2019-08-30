@@ -71,6 +71,16 @@ if alreay_done && ~redo
     return
 end
 
+%% skip subject that crashes spm_reg_ROIs
+KNOWN_ISSUES={'/Volumes/Hera/Projects/7TBrainMech/subjs/11726_20190111/slice_PFC/atlas_roi'};
+if ismember(ROI_dir, KNOWN_ISSUES)
+    fprintf('FIXME: known problem directory, skipping %s\n', ROI_dir)
+    % TODO: why does this crash?
+    % spm_reg_ROIs('/Volumes/Hera/Projects/7TBrainMech/subjs/11726_20190111/slice_PFC/atlas_roi',{'roi_01.nii'},'/Volumes/Hera/Projects/7TBrainMech/subjs/11726_20190111/slice_PFC/atlas_roi/scout.nii','','mprage.nii') 
+
+    return
+end
+
 %% Coregister MPRAGE to resized Scout (trilinear). 
 % take all the rois with the mprage (freesurfer) into the scout (slice) space
 disp('spm: trilinear warp')

@@ -23,6 +23,9 @@ This is esp. weird for GM/WM identification. If both WM & GM have near 0 percent
    * `atlas_roi/func_atlas.mat` - matlab struct of atlas roi labels
 
 ### ROI name and number
+#### Freesurfer based parcilation
+from `roi.txt`
+
 ```
 cat /Volumes/Hera/Projects/7TBrainMech/subjs/*/slice_PFC/MRSI/2d_csi_ROI/ParcelCSIvoxel_lut.txt | sort -nu
 1   CAcing            CACGM
@@ -39,6 +42,10 @@ cat /Volumes/Hera/Projects/7TBrainMech/subjs/*/slice_PFC/MRSI/2d_csi_ROI/ParcelC
 12  temporal_medial   TMGM
 13  thalamus          THA
 ```
+
+#### Atlas ROI 
+from `slice_rois_mni_extent.nii.gz`
+see `afni /Volumes/Hera/Projects/7TBrainMech/subjs/11641_20180510/slice_PFC/{mprage_in_slice,roi_slice}.nii.gz`
 
 ## glossary
  * [Freesurfer](https://surfer.nmr.mgh.harvard.edu) -> anatomical segmentation

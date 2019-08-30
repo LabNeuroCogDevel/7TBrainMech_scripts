@@ -43,7 +43,7 @@ esac
 echo $STUDY $STUDYDIR
 
 if [ $1 == "all" ]; then
-   find $BOXMRSI -iname spreadsheet.csv -and -not -ipath '*Thal*'  |
+   find $BOXMRSI -iname spreadsheet.csv -and -not -ipath '*Thal*' -and -not -ipath '*20190507processed*'  |
     #perl -MFile::Basename -ple '$_=lc(basename(dirname(dirname($_))))'|
     perl -lne 'print $1 if m:/(20\d{6}[^/]+)/:' |
     while read mrid; do
@@ -117,7 +117,7 @@ check_file(){
     file="$1";shift
     msg="$1";shift
     [ -n "$file" -a -r "$file" ] && return
-    echo "$subj_date ($mrid): no file: $file"
+    echo "$subj_date ($mrid): no file like $BOXMRSI/*/$mrid*/*registration_out/*MPRAGE*"
     echo "  # fix: $msg" 
     exit 1
 }

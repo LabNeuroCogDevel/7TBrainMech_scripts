@@ -38,6 +38,7 @@ rois_max_col = nan(nroi, nsubject);
 %% process csi
 for i=1:nsubject
     try
+        fprintf('# %s\n', csi_visits{i})
         parc_comb = csi_vox_probcomb(s{i});
         %merging ROIs
         parc_comb(:,:,12)=parc_comb(:,:,1)+parc_comb(:,:,3);

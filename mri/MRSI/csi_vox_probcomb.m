@@ -35,6 +35,7 @@ if exist(output_mat,'file')
     load(output_mat,'parc_comb_prob');
     return;
 end
+fprintf('%s not yet created. running apodize\n',output_mat);
 
 % previously h
 %roi_mprage=sprintf('/Volumes/Hera/Projects/7TBrainMech/subjs/%s/slice_PFC/roi_mprage.nii.gz',subj_id);
@@ -80,6 +81,8 @@ img_resize_ft(data_dir,'scout.nii');
 gunzip(subj_mprage, data_dir) 
 
 %run SPM register
+fprintf('running: spm_reg_ROIs(%s,%s,%s,'''',''mprage'') % and %d more rois\n\n\n\n\n\n\n\n\n\n\n\n\n\n',...
+   data_dir, roi_filenames{1}, scout_file, length(roi_filenames)-1)
 spm_reg_ROIs(data_dir, roi_filenames', scout_file, '', 'mprage.nii') 
 
 %% Resize B0 scout
