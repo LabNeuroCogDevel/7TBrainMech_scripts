@@ -122,3 +122,8 @@ This method requires
   - sending spec. at those coordinates back to MRRC for LC Model
   - retrieving model out csv files
 
+
+==== EEG ====
+
+/Volumes/Hera/Projects/7TBrainMech/raw_eeg
+https://github.com/LabNeuroCogDevel/7TBrainMech_scripts/tree/master/eeg
