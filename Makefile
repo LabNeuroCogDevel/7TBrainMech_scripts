@@ -42,3 +42,7 @@ all: mri/txt/status.csv
 
 mri/txt/status.csv: .make/FS.ls .make/preproc.ls .make/MRSI_coord.ls
 	mri/900_status.R
+
+readme.dwiki:
+	# curl -d "u=<username>&p=<password>" --cookie-jar .doku_cjar http://arnold.wpic.upmc.edu/dokuwiki/doku.php?do=login
+	curl --cookie .doku_cjar --cookie-jar .doku_cjar "http://arnold.wpic.upmc.edu/dokuwiki/doku.php?id=studies:7t:processingpipelines&do=export_raw" > $@
