@@ -32,6 +32,13 @@ mni roi -> slice row+col center -> sepectrum -> concentration
  0. `./050_ROIs.bash`       - for only coordinates in the merged data, create mni and anat space roi atlas masks
  0. `./051_GM_Count.bash`   - get fraction gm from anat roi mask
 
+#### Button click order
+ 0. WritePositions
+ 0. Reorient slice
+ 0. IFFT
+ 0. Recon Coords
+ 0. enter, enter
+
 ### Directory initialization
 `Projects/7TBrainMech/subjs/11323_20180316/slice_PFC/MRSI_roi/raw` after `./000_setupdirs.bash 11323_20180316` has these important files
 
