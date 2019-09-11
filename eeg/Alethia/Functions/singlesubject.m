@@ -1,11 +1,11 @@
-function [channels_removed, data_removed, epochs_removed] = singlesubject(inputfile, lowBP, topBP, outpath, FLAG)
+function [channels_removed, data_removed, epochs_removed] = singlesubject(inputfile, lowBP, topBP, outpath, FLAG, varargin)
 
 % what file are we using
 if ~exist(inputfile), error('inputfile "%s" does not exist!', inputfile), end 
 [d, currentName, ext ] = fileparts(inputfile);
 
 % to know how far your script is with running
-disp(currentName)
+fprintf('==========\n%s\n==========\n', currentName)
 
 % where to save things
 filter_folder = 'filtered';
@@ -67,7 +67,7 @@ ALLEEG = [];
     'gui','off');
 
 % split 10129_20180919_mgs_Rem into 
-% subj=10129_20180919 and condition=mgs_Rem
+%    subj=10129_20180919    and    condition=mgs_Rem
 EEG.subject = currentName(1:findstr(currentName,'mgs')-2);
 EEG.condition =  currentName(findstr(currentName,'mgs'):end);
 
@@ -75,9 +75,15 @@ EEG.condition =  currentName(findstr(currentName,'mgs'):end);
 % TODO: params are
 %  EEG, locutoff, hicutoff, filtorder, revfilt, usefft, plotfreqz, minphase);
 % why 3380, 0, [], 0
-% > Warning: Transition band is wider than maximum stop-band width. For better results a minimum filter order of 6760 is recommended. Reported might deviate from effective -6dB cutoff frequency.
-
+% > Warning: Transition band is wider than maximum stop-band width. 
+% For better results a minimum filter order of 6760 is recommended. 
+% Reported might deviate from effective -6dB cutoff frequency.
 EEG = pop_eegfiltnew(EEG, lowBP, topBP, 3380, 0, [], 0);
+% filtorder = 3380 - filter order (filter length - 1). Mandatory even. performing 3381 point bandpass filtering.
+% pop_eegfiltnew() - transition band width: 0.5 Hz
+% pop_eegfiltnew() - passband edge(s): [0.5 90] Hz
+% pop_eegfiltnew() - cutoff frequency(ies) (-6 dB): [0.25 90.25] Hz
+% pop_eegfiltnew() - filtering the data (zero-phase)
 
 %give a new setname and overwrite unfiltered data
 EEG = pop_editset(EEG,'setname',[currentName '_bandpass_filtered']);
@@ -115,7 +121,7 @@ EEG=pop_chanedit(EEG, 'lookup', cap_location);
 %different options for channel rejection are displayed. Option 3 is ued.
 
 % %1.look at standard deviation in bar plots and remove the channels
-%with big std's --> manual
+% with big std's --> manual
 % stdData = std(EEG.data,0,2); 
 % figure(idx); bar(stdData)
 
@@ -136,7 +142,7 @@ EEG = pop_saveset( EEG,'filename', chrm_name, ...
 [ALLEEG EEG] = eeg_store(ALLEEG, EEG, CURRENTSET);
 
 if ~any(find(cellfun (@any,regexpi (fieldnames(EEG.etc), 'clean_channel_mask'))));
-    EEG.etc.clean_channel_mask=5;
+    EEG.etc.clean_channel_mask=42;
 else
 end
 
