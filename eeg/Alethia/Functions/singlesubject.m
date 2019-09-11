@@ -1,8 +1,11 @@
-function [channels_removed,data_removed,epochs_removed] = singlesubject(inputfile, lowBP, topBP, outpath, FLAG)
+function [channels_removed, data_removed, epochs_removed] = singlesubject(inputfile, lowBP, topBP, outpath, FLAG)
 
 % what file are we using
 if ~exist(inputfile), error('inputfile "%s" does not exist!', inputfile), end 
 [d, currentName, ext ] = fileparts(inputfile);
+
+% to know how far your script is with running
+disp(currentName)
 
 % where to save things
 filter_folder = 'filtered';
@@ -10,17 +13,28 @@ chanrj_folder = 'channels_rejected';
 epoch_folder = 'epoched';
 epoch_rj_marked_folder = 'marked_epochs';
 epochrj_folder = 'rejected_epochs';
+icaout = fullfile(outpath, 'ICA');
 
-%to know how far your script is with running
-disp(currentName)
+% and what files will we create
+chrm_name   = [currentName '_badchannelrj'];
+epochrj_name = [currentName '_epochs_rj'];
+% FIXME: these is not actually used!? but is recoreded in data_removed WF20190911 
+datarm_name = [currentName '_baddatarj']; 
+epochrm_name = [currentName '_badepochrj'];
+% TODO: collect other pop_saveset filenames here
 
-% check if we've already run subject
-epochrj = fullfile(outpath, epochrj_folder, [currentName '_Rem_epochs_rj.set']);
-if exist(epochrj)
-   warning('%s already complete (have "%s")!  todo load from file', currentName, epochrj)
-   rj = pop_loadset(epochrj)
-  % SS_chanels = rj.channels_rj
-   %pop_loadset(): loading file Prep/epoched/10129_20180919_mgs_Rem_epochs.set
+% check if we've already run subject 
+% if we have, read in what we need from set file
+epochrj = fullfile(outpath, epochrj_folder, [epochrj_name '.set']);
+if exist(epochrj, 'file')
+   warning('%s already complete (have "%s")! todo load from file', currentName, epochrj)
+   rj = pop_loadset(epochrj);
+   channels_removed = {chrm_name, rj.channels_rj, find(rj.etc.clean_channel_mask==0)}';
+   data_removed = {datarm_name, rj.data_rj, rj.data_rj_nr}';
+   epochs_removed = {epochrm_name, rj.epoch_rj, rj.epoch_rj_nr}';
+   % ica wont rerun if already run
+   runICAss(epochrj, channels_removed, icaout)
+   return
 end
 
 % find the cap to use
@@ -35,7 +49,7 @@ data_removed = cell(3,1,1);
 epochs_removed = cell(3,1,1);
 
 %load EEG set
-EEG = pop_loadset('filename',[currentName,'.set'],'filepath', d);
+EEG = pop_loadset(inputfile);
 
 if(size(EEG.data,1)<100)
    EEG = pop_reref( EEG, [65 66] ); %does this "restore" the 40dB of "lost SNR" ? -was it actually lost? ...this is potentially undone by PREP
@@ -52,11 +66,18 @@ ALLEEG = [];
     'setname',currentName,...
     'gui','off');
 
+% split 10129_20180919_mgs_Rem into 
+% subj=10129_20180919 and condition=mgs_Rem
 EEG.subject = currentName(1:findstr(currentName,'mgs')-2);
 EEG.condition =  currentName(findstr(currentName,'mgs'):end);
 
 %band-pass filter between low and max boundle (or 1 and 90 Hz)
-EEG = pop_eegfiltnew(EEG, lowBP,topBP,3380,0,[],0);
+% TODO: params are
+%  EEG, locutoff, hicutoff, filtorder, revfilt, usefft, plotfreqz, minphase);
+% why 3380, 0, [], 0
+% > Warning: Transition band is wider than maximum stop-band width. For better results a minimum filter order of 6760 is recommended. Reported might deviate from effective -6dB cutoff frequency.
+
+EEG = pop_eegfiltnew(EEG, lowBP, topBP, 3380, 0, [], 0);
 
 %give a new setname and overwrite unfiltered data
 EEG = pop_editset(EEG,'setname',[currentName '_bandpass_filtered']);
@@ -70,7 +91,7 @@ EEG = pop_editset(EEG,'setname',[currentName '_filtered']);
  
 %save filtered data
 EEG = pop_saveset( EEG, 'filename',[currentName '_filtered'], ...
-    'filepath',sprintf('%s/%s/',outpath,filter_folder));
+    'filepath',fullfile(outpath,filter_folder));
 [ALLEEG EEG] = eeg_store(ALLEEG, EEG, CURRENTSET);
     
 
@@ -106,10 +127,10 @@ originalEEG = EEG;
 EEG = clean_rawdata(EEG, 8, [0.25 0.75], 0.7, 5, 15, 0.3); % we can discuss that
 % vis_artifacts(EEG,originalEEG,'NewColor','red','OldColor','black'); 
 %change setname
-EEG = pop_editset(EEG,'setname',[currentName '_badchannelrj']);
+EEG = pop_editset(EEG,'setname', chrm_name);
 [ALLEEG EEG] = eeg_store(ALLEEG, EEG, CURRENTSET);
 
-EEG = pop_saveset( EEG,'filename',[currentName '_badchannelrj'], ...
+EEG = pop_saveset( EEG,'filename', chrm_name, ...
     'filepath',sprintf('%s/%s/',outpath,chanrj_folder));
 
 [ALLEEG EEG] = eeg_store(ALLEEG, EEG, CURRENTSET);
@@ -120,20 +141,20 @@ else
 end
 
 %save the channels that were rejected in a variable
-channels_removed{1} = [currentName '_badchannelrj']; %setname
+channels_removed{1} = chrm_name; %setname
 channels_removed{2} = setdiff({originalEEG.chanlocs.labels},{EEG.chanlocs.labels}, 'stable');
 channels_removed{3} = find(EEG.etc.clean_channel_mask==0);
 %also save the channels that were rejected in the EEG struct
-EEG.channels_rj = setdiff({originalEEG.chanlocs.labels},{EEG.chanlocs.labels}, 'stable');
-EEG.channels_rj_nr = length(setdiff({originalEEG.chanlocs.labels},{EEG.chanlocs.labels}, 'stable'));
+EEG.channels_rj = channels_removed{2};
+EEG.channels_rj_nr = length(EEG.channels_rj);
 
 %save the proportion of the dataset that were rejected in a variable
-data_removed{1} = [currentName '_baddatarj']; %setname
+data_removed{1} = datarm_name; %setname
 data_removed{2} = length(find(EEG.etc.clean_sample_mask==0))/EEG.srate;%
 data_removed{3} = length(find(EEG.etc.clean_sample_mask==0))/length(EEG.etc.clean_sample_mask);%
 %also save the data that were rejected in the EEG struct
-EEG.data_rj =length(find(EEG.etc.clean_sample_mask==0))/EEG.srate;%
-EEG.data_rj_nr = length(find(EEG.etc.clean_sample_mask==0))/length(EEG.etc.clean_sample_mask);%
+EEG.data_rj    = data_removed{2};
+EEG.data_rj_nr = data_removed{3};
 
 %% interpolate channels
 
@@ -188,32 +209,30 @@ EEG = pop_editset(EEG,'setname',[currentName '_epochs_marked']);
 [ALLEEG EEG] = eeg_store(ALLEEG, EEG, CURRENTSET);
 
 EEG = pop_saveset( EEG,'filename',[currentName '_epochs_marked'], ...
-    'filepath',sprintf('%s/%s/',outpath,epoch_rj_marked_folder));
+    'filepath',fullfile(outpath, epoch_rj_marked_folder));
 [ALLEEG EEG] = eeg_store(ALLEEG, EEG, CURRENTSET);
 
 %save the epochs that were rejected in a variable
-epochs_removed{1} = [currentName '_badepochrj']; %setname
+epochs_removed{1} = epochrm_name; %setname
 epochs_removed{2} = length(find(EEG.reject.rejjp))/EEG.trials;
 epochs_removed{3} = length(find(EEG.reject.rejjp));
 %also save the epochs that were rejected in the EEG struct
-EEG.epoch_rj = length(find(EEG.reject.rejjp))/EEG.trials;
-EEG.epoch_rj_nr = length(find(EEG.reject.rejjp));
+EEG.epoch_rj = epochs_removed{2};
+EEG.epoch_rj_nr = epochs_removed{3};
 
 %reject epochs
-EEG = pop_rejepoch( EEG, find(EEG.reject.rejjp) ,0);
+EEG = pop_rejepoch(EEG, find(EEG.reject.rejjp), 0);
 
 %save epochs rejected EEG data
-EEG = pop_editset(EEG,'setname',[currentName '_epochs_rj']);
+EEG = pop_editset(EEG, 'setname', epochrj_name);
 [ALLEEG EEG] = eeg_store(ALLEEG, EEG, CURRENTSET);
 
-EEG = pop_saveset( EEG,'filename',[currentName '_epochs_rj'], ...
-    'filepath',sprintf('%s/%s/',outpath,epochrj_folder));
+EEG = pop_saveset(EEG, 'filename', epochrj_name, 'filepath', fullfile(outpath,epochrj_folder));
 [ALLEEG EEG] = eeg_store(ALLEEG, EEG, CURRENTSET);
 
 
 %% run ICA
 % replaced with `rjpath`
-% rjpath = fullfile(outpath, epochrj_folder, [sujname, '*']);
 %[~, subjname, ~] = fileparts(setfiles{i})
-icaout = fullfile(outpath, 'ICA');
-runICAss(epochrj, SS_chanels, icaout)
+% rjpath = fullfile(outpath, epochrj_folder, [sujname, '*']);
+runICAss(epochrj, channels_removed, icaout)

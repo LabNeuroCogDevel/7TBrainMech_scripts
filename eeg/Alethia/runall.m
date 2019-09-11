@@ -32,12 +32,6 @@ parfor i = 1:n
     try
        [SS_chanels, SS_rdata, SS_repoch] = singlesubject(inputfile, lowBP, topBP, outpath, FLAG);
 
-       % run ICA
-       [~, subjname, ~] = fileparts(setfiles{i})
-       rjpath = fullfile(outpath, 'rejected_epochs', [sujname, '*']);
-       icaout = fullfile(outpath, 'ICA');
-       runICAss(rjpath, SS_chanels, icaout)
-
        % track what is removed
        channels_removed(:,i) = SS_chanels;
        data_removed(:,i)     = SS_rdata;

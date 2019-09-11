@@ -1,15 +1,30 @@
-function [] = runICAss(inpath,schans,outpath)
+function [] = runICAss(inpath, schans, outpath, varargin)
 %% this script runs ICA on all filtered/cleaned/epoched EEG dmt data.
 % PCA is used to decrease the number of components 
+% varargin can contain 'redo' to ignore file already done
+
+
+%% find file
+% if no file, try searching with *.set
+if exist(inpath,'file')
+   EEGfileNames=dir(inpath)
+else
+   EEGfileNames = dir([inpath, '*.set']);
+end
+currentEEG = EEGfileNames.name;
+
+% did we already run?
+finalout = fullfile(outpath, [name '_SAS.set'])
+if exist(finalout, 'file') && ~isempty(strmatch('redo', varargin)))
+   warning('already created %s, not running. add "redo" to ICA call to redo', finalout)
+   return
+end
 
 %% run ICA
-EEGfileNames = dir([inpath, '*.set']);
-currentEEG = EEGfileNames.name;
 eeglab
 
 %load data
-EEG = pop_loadset('filename',currentEEG,...
-    'filepath',fileparts(inpath));
+EEG = pop_loadset('filename',currentEEG, 'filepath', fileparts(inpath));
 [ALLEEG, EEG, CURRENTSET] = eeg_store( ALLEEG, EEG, 0 );
 
 disp(currentEEG);
