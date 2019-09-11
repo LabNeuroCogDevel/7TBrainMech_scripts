@@ -3,19 +3,19 @@ function [] = runICAss(inpath, schans, outpath, varargin)
 % PCA is used to decrease the number of components 
 % varargin can contain 'redo' to ignore file already done
 
-
 %% find file
 % if no file, try searching with *.set
 if exist(inpath,'file')
-   EEGfileNames=dir(inpath)
+   EEGfileNames = dir(inpath);
 else
    EEGfileNames = dir([inpath, '*.set']);
 end
-currentEEG = EEGfileNames.name;
+currentEEG = EEGfileNames(1).name
+[name ext] = fileparts(currentEEG);
 
 % did we already run?
-finalout = fullfile(outpath, [name '_SAS.set'])
-if exist(finalout, 'file') && ~isempty(strmatch('redo', varargin)))
+finalout = fullfile(outpath, [name '_SAS.set']);
+if exist(finalout, 'file') && ~isempty(strmatch('redo', varargin))
    warning('already created %s, not running. add "redo" to ICA call to redo', finalout)
    return
 end
@@ -25,7 +25,13 @@ eeglab
 
 %load data
 EEG = pop_loadset('filename',currentEEG, 'filepath', fileparts(inpath));
-[ALLEEG, EEG, CURRENTSET] = eeg_store( ALLEEG, EEG, 0 );
+
+if(size(EEG.data,1) > 100) 
+   warning('not 64 channel, not sure positions, skipping')
+   return
+end
+
+%[ALLEEG, EEG, CURRENTSET] = eeg_store( ALLEEG, EEG, 0 );
 
 disp(currentEEG);
 
