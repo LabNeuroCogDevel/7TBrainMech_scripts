@@ -36,7 +36,7 @@ if exist(epochrj, 'file')
    data_removed = {datarm_name, rj.data_rj, rj.data_rj_nr}';
    epochs_removed = {epochrm_name, rj.epoch_rj, rj.epoch_rj_nr}';
    % ica wont rerun if already run
-   runICAss(epochrj, channels_removed, icaout)
+   runICAss(epochrj, icaout)
    return
 end
 
@@ -251,4 +251,4 @@ EEG = pop_saveset(EEG, 'filename', epochrj_name, 'filepath', fullfile(outpath,ep
 % replaced with `rjpath`
 %[~, subjname, ~] = fileparts(setfiles{i})
 % rjpath = fullfile(outpath, epochrj_folder, [sujname, '*']);
-runICAss(epochrj, channels_removed, icaout)
+runICAss(epochrj, icaout)

@@ -1,7 +1,9 @@
-function [] = runICAss(inpath, schans, outpath, varargin)
+function [] = runICAss(inpath, outpath, varargin)
 %% this script runs ICA on all filtered/cleaned/epoched EEG dmt data.
 % PCA is used to decrease the number of components 
 % varargin can contain 'redo' to ignore file already done
+
+%files = file_locs(inpath);
 
 %% find file
 % if no file, try searching with *.set
@@ -10,11 +12,11 @@ if exist(inpath,'file')
 else
    EEGfileNames = dir([inpath, '*.set']);
 end
-currentEEG = EEGfileNames(1).name
-[name ext] = fileparts(currentEEG);
+currentEEG = EEGfileNames(1).name;
+[~, name, ext] = fileparts(currentEEG);
 
 % did we already run?
-finalout = fullfile(outpath, [name '_SAS.set']);
+finalout = fullfile(outpath, [name '_ICA_SAS.set']);
 if exist(finalout, 'file') && ~isempty(strmatch('redo', varargin))
    warning('already created %s, not running. add "redo" to ICA call to redo', finalout)
    return
@@ -23,15 +25,15 @@ end
 %% run ICA
 eeglab
 
-%load data
-EEG = pop_loadset('filename',currentEEG, 'filepath', fileparts(inpath));
+% load data to get bad channels and check channel #
+EEG = pop_loadset('filename', currentEEG, 'filepath', fileparts(inpath));
+% TODO: just use clean_channel_mask
+schans = {name, EEG.channels_rj, find(EEG.etc.clean_channel_mask==0)}';
+badchans = schans{3,1};
 
-if(size(EEG.data,1) > 100) 
-   warning('not 64 channel, not sure positions, skipping')
-   return
+if size(EEG.data,1) > 100
+   error('not 64 channel, not sure positions, skipping')
 end
-
-%[ALLEEG, EEG, CURRENTSET] = eeg_store( ALLEEG, EEG, 0 );
 
 disp(currentEEG);
 
@@ -46,20 +48,20 @@ disp(currentEEG);
 %     %change the PCAnr for each dataset individually
 
 ALLEEG = [];
-[ALLEEG EEG CURRENTSET] = pop_newset(ALLEEG, EEG, 0, 'setname', currentEEG, 'gui','off');
+[ALLEEG EEG CURRENTSET] = pop_newset(ALLEEG, EEG, 0, 'setname', name, 'gui','off');
 
 % run ICA
 if(size(EEG.data,1)<100)
     all_ch = 1:64;
-    badchans = schans{3,1};
-    all_ch(badchans) = [];%canales que van para ICA
 else
     all_ch = 1:128;
-    badchans = schans{3,1};
-    all_ch(badchans) = [];%canales que van para ICA
 end
+%canales que van para ICA
+all_ch(badchans) = [];
 
 
+% old call: EEG = pop_runica(EEG, 'extended',1,'stop',1e-07,'interupt','on','pca',newRank);
+% new call:
 EEG = pop_runica(EEG, 'extended', 1, 'interupt', 'on', 'chanind', all_ch);
 %create file name
 name = EEG.setname;
@@ -68,17 +70,45 @@ name = EEG.setname;
 name = [name, '_ICA'];
 
 %change set name
-EEG = pop_editset(EEG,...
-    'setname',name);
+fprintf('saving %s\n', fullfile(outpath, [name '.set']))
+EEG = pop_editset(EEG, 'setname', name);
 [ALLEEG EEG] = eeg_store(ALLEEG, EEG, CURRENTSET);
-
-%save set
-EEG = pop_saveset( EEG, 'filename',[name,'.set'],'filepath',outpath);
+EEG = pop_saveset(EEG, 'filename', [name '.set'], 'filepath', outpath);
 
 %% SASICA Command
 
 %Then the user would pull up ICA'd results, and run SAS:
-EEG = eeg_SASICA(EEG,'MARA_enable',0,'FASTER_enable',0,'FASTER_blinkchanname','EX5','ADJUST_enable',0,'chancorr_enable',1,'chancorr_channames','No channel','chancorr_corthresh','auto 4','EOGcorr_enable',0,'EOGcorr_Heogchannames','No channel','EOGcorr_corthreshH','auto 4','EOGcorr_Veogchannames','No channel','EOGcorr_corthreshV','auto 4','resvar_enable',0,'resvar_thresh',15,'SNR_enable',1,'SNR_snrcut',1,'SNR_snrBL',[-Inf 0] ,'SNR_snrPOI',[0 Inf] ,'trialfoc_enable',0,'trialfoc_focaltrialout','auto','focalcomp_enable',1,'focalcomp_focalICAout','auto','autocorr_enable',1,'autocorr_autocorrint',20,'autocorr_dropautocorr','auto','opts_noplot',0,'opts_nocompute',0,'opts_FontSize',14);
-EEG = pop_saveset( EEG, 'filename',[name,'_SAS'],'filepath',outpath); %save final preprocessed output
+EEG = eeg_SASICA(EEG, ...
+    'MARA_enable',0, ...
+    'FASTER_enable',0,...
+    'FASTER_blinkchanname','EX5', ...
+    'ADJUST_enable',0,...
+    'chancorr_enable',1,...
+    'chancorr_channames','No channel',...
+    'chancorr_corthresh','auto 4',...
+    'EOGcorr_enable',0,...
+    'EOGcorr_Heogchannames','No channel', ...
+    'EOGcorr_corthreshH','auto 4',...
+    'EOGcorr_Veogchannames','No channel',...
+    'EOGcorr_corthreshV','auto 4',...
+    'resvar_enable',0,...
+    'resvar_thresh',15,...
+    'SNR_enable',1,...
+    'SNR_snrcut',1,...
+    'SNR_snrBL',[-Inf 0] ,...
+    'SNR_snrPOI',[0 Inf] ,...
+    'trialfoc_enable',0,...
+    'trialfoc_focaltrialout','auto',...
+    'focalcomp_enable',1,...
+    'focalcomp_focalICAout','auto',...
+    'autocorr_enable',1,...
+    'autocorr_autocorrint',20,...
+    'autocorr_dropautocorr','auto',...
+    'opts_nocompute',0,...
+    'opts_FontSize',14, ...
+    'opts_noplot', 1);
+
+fprintf('saving %s\n', fullfile(outpath, [name '_SAS.set']))
+EEG = pop_saveset( EEG, 'filename',[name,'_SAS.set'], 'filepath', outpath); %save final preprocessed output
 
 end
