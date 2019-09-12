@@ -44,9 +44,10 @@ disp(currentEEG);
 %     %PCAnr = EEG.nbchan - EEG.channels_rj_nr; %or if you are not interested
 %     %in component analysis but want to use ICA only for artifact removal
 %     %change the PCAnr for each dataset individually
-%
-%     %[ALLEEG EEG] = eeg_store(ALLEEG, EEG, CURRENTSET);
-%     EEG = pop_runica(EEG, 'extended',1,'interupt','on','PCA',PCAnr);
+
+ALLEEG = [];
+[ALLEEG EEG CURRENTSET] = pop_newset(ALLEEG, EEG, 0, 'setname', currentEEG, 'gui','off');
+
 % run ICA
 if(size(EEG.data,1)<100)
     all_ch = 1:64;
@@ -59,7 +60,7 @@ else
 end
 
 
-EEG = pop_runica(EEG, 'extended',1,'interupt','on','chanind',all_ch);    
+EEG = pop_runica(EEG, 'extended', 1, 'interupt', 'on', 'chanind', all_ch);
 %create file name
 name = EEG.setname;
 %name = EEG.filename(1:end-4);

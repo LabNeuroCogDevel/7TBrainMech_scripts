@@ -7,6 +7,9 @@ if ~exist(inputfile), error('inputfile "%s" does not exist!', inputfile), end
 % to know how far your script is with running
 fprintf('==========\n%s\n==========\n', currentName)
 
+% where to find eeglab stuff
+eeglabpath = fileparts(which('eeglab'));
+
 % where to save things
 filter_folder = 'filtered';
 chanrj_folder = 'channels_rejected';
@@ -37,12 +40,6 @@ if exist(epochrj, 'file')
    return
 end
 
-% find the cap to use
-eeglabpath = fileparts(which('eeglab'));
-cap_location = fullfile(eeglabpath,'/plugins/dipfit2.3/standard_BESA/standard-10-5-cap385.elp');
-if ~exist(cap_location, 'file'), error('cannot find cap elp file: %s', cap_location), end
-
-
 % allocate cells
 channels_removed = cell(3,1,1);
 data_removed = cell(3,1,1);
@@ -51,13 +48,19 @@ epochs_removed = cell(3,1,1);
 %load EEG set
 EEG = pop_loadset(inputfile);
 
-if(size(EEG.data,1)<100)
-   EEG = pop_reref( EEG, [65 66] ); %does this "restore" the 40dB of "lost SNR" ? -was it actually lost? ...this is potentially undone by PREP
-   EEG = eeg_checkset( EEG );
+if size(EEG.data,1) < 100
+   EEG = pop_reref(EEG, [65 66]); %does this "restore" the 40dB of "lost SNR" ? -was it actually lost? ...this is potentially undone by PREP
+   EEG = eeg_checkset(EEG);
+   % find the cap to use
+   cap_location = fullfile(eeglabpath,'/plugins/dipfit2.3/standard_BESA/standard-10-5-cap385.elp');
+   if ~exist(cap_location, 'file'), error('cannot find 64 channel cap elp file: %s', cap_location), end
 else
     %[129 130] are the mastoid externals for the 128 electrode
-    EEG = pop_reref( EEG, [129 130] ); %does this "restore" the 40dB of "lost SNR" ? -was it actually lost? ...this is potentially undone by PREP
-    EEG = eeg_checkset( EEG );
+    EEG = pop_reref(EEG, [129 130]); %does this "restore" the 40dB of "lost SNR" ? -was it actually lost? ...this is potentially undone by PREP
+    EEG = eeg_checkset(EEG);
+    % TODO: find cap 
+    cap_location = [];
+    if ~exist(cap_location, 'file'), error('cannot find file for 128 channel cap: %s', cap_location), end
 end
 
 %stores EEG set in ALLEEG, give setname
@@ -90,7 +93,13 @@ EEG = pop_editset(EEG,'setname',[currentName '_bandpass_filtered']);
 
 % %50 hz notch filter: 47.5-52.5
 % EEG = pop_eegfiltnew(EEG, 47.5,52.5,826,1,[],0);
-    
+ 
+% Downsample the data to 100Hz using antialiasing filter
+EEG = pop_resample(EEG, 100, 0.8, 0.4);
+% % Downsample the data to 512Hz
+% EEGb = pop_resample( EEG, 512);
+EEG = eeg_checkset(EEG);
+
 %change setname
 EEG = pop_editset(EEG,'setname',[currentName '_filtered']);
 [ALLEEG EEG] = eeg_store(ALLEEG, EEG, CURRENTSET);
@@ -103,7 +112,8 @@ EEG = pop_saveset( EEG, 'filename',[currentName '_filtered'], ...
 
 %% CHANELS
 % remove external channels
-EEG = pop_select( EEG,'nochannel',{'EX1' 'EX2' 'EX3' 'EX4' 'EX5' 'EX6' 'EX7' 'EX8'});
+EEG = pop_select( EEG,'nochannel',{'EX1' 'EX2' 'EX3' 'EX4' 'EX5' 'EX6' 'EX7' 'EX8' 'EXG3' 'EXG4' 'EXG5' 'EXG6' 'EXG7' 'EXG8' 'GSR1' 'GSR2' 'Erg1' 'Erg2' 'Resp' 'Plet' 'Temp'});
+
 [ALLEEG EEG] = eeg_store(ALLEEG, EEG, CURRENTSET); 
 %import channel locations
 
