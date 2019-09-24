@@ -79,7 +79,8 @@ function [f, coords] = coord_mover(varargin)
       
   elseif length(varargin) == 2
       coords_file=varargin{1};
-      nii = load_untouch_nii(varargin{2});
+      mprage_file = varargin{2};
+      nii = load_untouch_nii(mprage_file);
       data.z_free=1;
   else
       error('input should be lunaid or (coordfile, image.nii)')
@@ -143,6 +144,7 @@ function [f, coords] = coord_mover(varargin)
   data.vox_size = [9 9 10];
   data.nii = nii;
   data.mask = mask_nii;
+  data.mprage_file = mprage_file;
   
   % as well as user label for output file
   data.who = inputdlg('Your Initials');
@@ -202,7 +204,11 @@ function [f, coords] = coord_mover(varargin)
                      'Tag', 'reset1_button', ...
                      'Callback', @reset_coords1 ...
                      );                 
-                 
+  uicontrol('Position',[420, a_h+20, 100, 20], ...
+                     'String','mni',...
+                     'Tag', 'mni_button', ...
+                     'Callback', @mni ...
+                     );                 
   % roi positions original and new
   % TODO: combine into one, add html color
   uicontrol('Position',[20+a_w/3, a_h+40, a_w/3, a_h-80], ...
@@ -255,6 +261,22 @@ function reset_coords1(varargin)
   data.coords(cur_roi,:) = data.orig_coords(cur_roi,:);
   guidata(f,data);
   update_display(f);
+end
+
+function mni(varargin)
+  f=gcf;
+  data = guidata(f);
+  master = data.mprage_file;
+  [d n e] = fileparts(data.coords_file);
+  dtime=datenum(datetime);
+  outname=fullfile(d,sprintf('%s_%f_%s_for_mni.txt',n,dtime,data.who));
+  nativeroi=fullfile(d,sprintf('native_roi_%s.txt',dtime));
+  dlmwrite(outname, data.coords, 'delimiter','\t')
+  % see 050_ROIs.bash and subjcoord2mni.bash
+  cmd = sprintf('env -i bash -lc "./subjcoord2mni.bash %s %s/../../ppt1/ %s/../.. mni_examples"', ...
+        outname, d, d)
+  system(cmd)
+  fprintf('====\nif not already open, run: afni %s/mni_examples\n\n', pwd)
 end
 
 function reset_coords(varargin)
