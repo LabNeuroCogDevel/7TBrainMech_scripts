@@ -41,20 +41,20 @@ qualtrics_to_visit_task <- function(s, taskname, vtype="behave") {
 }
 
 ini <- read.ini("qualtircs.ini")
-registerOptions(api_token=ini$api$api_token, root_url=ini$api$root_url)
+qualtrics_api_credentials(api_key=ini$api$api_token, base_url=ini$api$root_url)
 
-survey_list <- getSurveys() %>%  filter(grepl("7T", name))
+survey_list <- all_surveys() %>%  filter(grepl("7T", name))
 # show by date
 survey_list %>%
     arrange(-isActive, -order(lastModified)) %>%
     select(c( "name", "isActive", "lastModified", "id") ) %>% print(n=Inf)
 
 # get all the surveys and junk the ones with too few responses
-all_surveys <- lapply(survey_list$id, function(x)
+svys <- lapply(survey_list$id, function(x)
                       tryCatch(getSurvey(x, root_url=ini$api$root_url, force=T),
                                error=function(e) NULL))
-names(all_surveys) <- survey_list$name
-survey_cnt <- sapply(all_surveys, function(x) ifelse(is.null(x), 0, nrow(x)))
+names(svys) <- survey_list$name
+survey_cnt <- sapply(svys, function(x) ifelse(is.null(x), 0, nrow(x)))
 
 cat("\nignoring these\n")
 survey_cnt[survey_cnt<5] %>% data.frame(name=names(.), n=.) %>% arrange(-n) %>% print.data.frame(row.names=F)
@@ -64,8 +64,8 @@ survey_cnt[survey_cnt>=5]
 
 
 
-d <- qualtrics_to_visit_task(all_surveys[["7T Screening: Youth (10)"]], "Youth Screening", vtype="behave")
-d <- qualtrics_to_visit_task(all_surveys[["7T Y1 Male Adult Survey Battery"]], "7TY1Male_Survey", vtype="behave")
+d <- qualtrics_to_visit_task(svys[["7T Screening: Youth (10)"]], "Youth Screening", vtype="behave")
+d <- qualtrics_to_visit_task(svys[["7T Y1 Male Adult Survey Battery"]], "7TY1Male_Survey", vtype="behave")
 
 con <- DBI::dbConnect(RPostgreSQL::PostgreSQL(),
                       host="arnold.wpic.upmc.edu",
