@@ -1,5 +1,12 @@
 function [channels_removed, data_removed, epochs_removed] = singlesubject(inputfile, lowBP, topBP, outpath, FLAG, varargin)
 
+% inputfile = 'Prep/marked_epochs/11634_20180329_MGS_Rem_epochs_marked.set'
+% lowBP = 0.5;
+% topBP = 70;
+% FLAG = 1;
+% outpath = hera('Projects/7TBrainMech/scripts/eeg/Alethia/Prep');
+
+
 % what file are we using
 if ~exist(inputfile,'file'), error('inputfile "%s" does not exist!', inputfile), end
 [d, currentName, ext ] = fileparts(inputfile);
@@ -188,10 +195,10 @@ end
 
 %3.clean_rawdata
 xEEG = load_if_exists(subj_files.chanrj);
+originalEEG = EEG;
 if isstruct(xEEG)
    [ALLEEG EEG] = eeg_store(ALLEEG, xEEG, CURRENTSET);
 else
-   originalEEG = EEG;
    EEG = clean_rawdata(EEG, 8, [0.25 0.75], 0.7, 5, 15, 0.3); % we can discuss that
    % vis_artifacts(EEG,originalEEG,'NewColor','red','OldColor','black');
    %change setname
@@ -231,7 +238,8 @@ else
 
    %% interpolate channels
    if Flag128 == 1
-       EEG_i = pop_interp(EEG, [find(EEG.etc.clean_channel_mask==0) 2   3  35  36 ], 'spherical'); 
+       notclean_channels = find(EEG.etc.clean_channel_mask==0)';
+       EEG_i = pop_interp(EEG, [notclean_channels 2   3  35  36 ], 'spherical'); 
        % 128    'AF7' --> 64    'AF5' In this point channel 2
        % 128    'AF3' --> 64    'AF1' In this point channel 3
        % 128    'AF4' --> 64    'AF2' In this point channel 35   
@@ -274,6 +282,8 @@ end
 % Whole data ICA run
 if ~exist(subj_files.icawhole, 'file')
    runICAss(icawholein, icawholeout)
+else
+   fprintf('have %s, not rerunning\n', subj_files.icawholeout)
 end
 
 %%% epoching: 2 seconds
