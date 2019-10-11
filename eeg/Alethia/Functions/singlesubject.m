@@ -1,11 +1,19 @@
 function [channels_removed, data_removed, epochs_removed] = singlesubject(inputfile, lowBP, topBP, outpath, FLAG, varargin)
 
-% inputfile = 'Prep/marked_epochs/11634_20180329_MGS_Rem_epochs_marked.set'
+% addpath(genpath('Functions'));
+% addpath(hera('Projects/7TBrainMech/scripts/eeg/toolbox/eeglab14_1_2b'));
+
+%% to run singlesubject one at a time
+% -- run me as a function!
+% setfiles = dir(hera('Projects/7TBrainMech/scripts/eeg/Alethia/Prep/remarked/11667*.set'));
+% 
+% inputfile = [setfiles.folder '/' setfiles.name];
 % lowBP = 0.5;
 % topBP = 70;
 % FLAG = 1;
 % outpath = hera('Projects/7TBrainMech/scripts/eeg/Alethia/Prep');
-
+% singlesubject(inputfile, lowBP, topBP, outpath, FLAG)
+%% 
 
 % what file are we using
 if ~exist(inputfile,'file'), error('inputfile "%s" does not exist!', inputfile), end
@@ -72,8 +80,10 @@ epochrj = fullfile(outpath, epochrj_folder, [epochrj_name '.set']);
 % end
 % 
 icawholein = fullfile(outpath, icawholein_folder, [rerefwhole_name '.set']);
-% if exist(icawholein, 'file')
-%     warning('%s already complete (have "%s")! todo load from file', currentName, rerefwhole_name)
+if exist(icawholein, 'file')
+     warning('%s already complete (have "%s")! todo load from file', currentName, rerefwhole_name)
+     return
+end
 %     % ica wont rerun if already run
 %     runICAss(icawholein, icawholeout)
 %     return
@@ -211,14 +221,14 @@ end
 
 xEEG = load_if_exists(subj_files.rerefwhole_name);
 if isstruct(xEEG)
-   [ALLEEG EEG] = eeg_store(ALLEEG, xEEG, CURRENTSET);
+    [ALLEEG EEG] = eeg_store(ALLEEG, xEEG, CURRENTSET);
 else
-   [ALLEEG EEG] = eeg_store(ALLEEG, EEG, CURRENTSET);
-
-   if ~any(find(cellfun (@any,regexpi (fieldnames(EEG.etc), 'clean_channel_mask'))));
-       EEG.etc.clean_channel_mask=42;
-   else
-   end
+    [ALLEEG EEG] = eeg_store(ALLEEG, EEG, CURRENTSET);
+    
+    if ~any(find(cellfun (@any,regexpi (fieldnames(EEG.etc), 'clean_channel_mask'))));
+        EEG.etc.clean_channel_mask=42;
+    else
+    end
 
    %save the channels that were rejected in a variable
    channels_removed{1} = chrm_name; %setname
@@ -237,9 +247,36 @@ else
    EEG.data_rj_nr = data_removed{3};
 
    %% interpolate channels
+   
    if Flag128 == 1
-       notclean_channels = find(EEG.etc.clean_channel_mask==0)';
-       EEG_i = pop_interp(EEG, [notclean_channels 2   3  35  36 ], 'spherical'); 
+       nchan = 64
+       ngood = length(EEG.chanlocs)
+       %  128 cap doesn't have exactly the same postions as 64
+       % remove 4 that are in the wrong place and reinterpret
+       % AND interp any bad channels
+       % do this by removing the 4 128weirdos
+       % from the already trimmed (no bad channels) in EEG.chanlocs
+
+       need_128interp = [2  3  35  36 ];
+       % get the names of those to remove
+       n128name = {originalEEG.chanlocs(need_128interp).labels};
+       % should always be {'AF5','AF1','AF2','AF6'} ??
+
+       % find where they are in current EEG files (if they haven't already been removed)
+       n128here_idx = find(ismember({EEG.chanlocs.labels},n128name));
+       % keep those that aren't the ones we matched
+       % remove from chanlocs, data and update nbcan
+       % WARNING -- who knows what else we should have changed to update the set info!
+       keep_idx = setdiff(1:ngood, n128here_idx)
+       EEG.chanlocs = EEG.chanlocs(keep_idx);
+       EEG.data = EEG.data(keep_idx,:);
+       EEG.nbchan = length(keep_idx);
+
+       %EEG_i = pop_interp(EEG, interp_ch, 'spherical'); 
+       fprintf('%d channels in orig; want to interpolate %d bad and move %d\n',...
+          originalEEG.nbchan, nchan - ngood, length(need_128interp))
+       EEG_i = pop_interp(EEG, originalEEG.chanlocs, 'spherical'); 
+
        % 128    'AF7' --> 64    'AF5' In this point channel 2
        % 128    'AF3' --> 64    'AF1' In this point channel 3
        % 128    'AF4' --> 64    'AF2' In this point channel 35   
