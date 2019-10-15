@@ -11,8 +11,8 @@ usage() {
    [ $# -gt 1 ] && msg="$@!\n" || msg=""
  echo -e "${msg}USAGE:
 $0 place SUBJ [NUMBER=24]
-$0 view SUBJ MASK
 $0 mkmask MASKNAME mni_examples/SUBJ_MNI_ROI.nii.gz
+$0 view SUBJ MASKNAME
 $0 mni
 
 example:
@@ -27,7 +27,9 @@ see also doc of coord_mover.m
 }
 [ $# -eq 0 ] && usage
 
-mlrun(){ matlab -nodesktop -nosplash -r "try; $@; catch(e); disp(e); quit(); end"; }
+mlrun(){ 
+   echo "$*"
+   matlab -nodesktop -nosplash -r "try; $@; catch e; disp(e); quit(); end"; }
 
 
 
@@ -37,9 +39,17 @@ case "$action" in
       [ $# -lt 1 ] && usage "bad place args"
       subj="$1"; shift
       [ $# -gt 0 ] && n="$1" || n=24
-      seq 1 $n|sed s/$/:/ > tmp/roilist_labels_$n.txt
-      sed 's/:/\t50\t50/g' tmp/roilist_labels_$n.txt > tmp/empty_coords_$n.txt
-      mlrun "coord_mover('$subj', 'roilist','tmp/roilist_labels_$n.txt','subjcoords', 'tmp/empty_coords_$n.txt')"
+      if [ $n -eq 24 ]; then
+         roi_list="tmp/labels_MP20191015.txt"
+         coord_list=tmp/MProi20191015.txt
+         [ ! -r coord_list ] && seq 1 $n|sed 's/$/\t50\t50/' > $coord_list
+      else
+         roi_list=tmp/roilist_labels_$n.txt
+         coord_list=tmp/empty_coords_$n.txt
+         seq 1 $n|sed s/$/:/ > $roi_list
+         sed 's/:/\t50\t50/g' $roi_list > $coord_list
+      fi
+      mlrun "coord_mover('$subj', 'roilist','$roi_list','subjcoords', '$coord_list')"
       ;;
    mkmask)
       [ $# -ne 2 ] && usage "bad mkmask args"
@@ -50,20 +60,17 @@ case "$action" in
       mkcoords/subjroimni2mniroi.bash $(basename $name .nii.gz).nii.gz $subj_mni_roi
       ;;
    view)
-      [ $# -ne 3 ] && usage
+      [ $# -ne 2 ] && usage "need 3 args for view"
       subj="$1"; shift
-      n="$1"; shift
-      mask="$1"; shift
+      MASK="$1"; shift
       # eg. mask="ROI_mni_MP_20191004.nii.gz"
-      [ ! -r $MASK ] && MASK=/Volumes/Hera/Projects/7TBrainMech/scripts/mri/MRSI_roi/$MASK 
-      [ ! -r $MASK ] && echo "no roi mask $MASK" && exit 1
+      [ ! -r $MASK ] && MASK="mkcoords/$MASK"
+      [ ! -r $MASK ] && echo "no roi mask '$MASK'" && exit 1
 
       # make subject file
-      cd /Volumes/Hera/Projects/7TBrainMech/scripts/mri/MRSI_roi/mni_examples
-      ./warp_to_example_subjs.bash ../mkcoords/$MASK $subj
-      cd -
+      mni_examples/warp_to_example_subjs.bash $MASK $subj
 
-      subj_coord=mni_examples/scout_space/$(basename $MASK)/${subj}_scout_cm.txt
+      subj_coord=mni_examples/scout_space/$(basename $MASK .nii.gz)/${subj}_scout_cm.txt
       [ ! -r "$subj_coord" ] && echo "failed to make $subj_coord! see mni_examples/warp_to_example_subjs.bash" && exit 1
 
       mlrun "coord_mover('$subj', 'roilist','tmp/roilist_labels.txt','subjcoords', '$subj_coord')"
