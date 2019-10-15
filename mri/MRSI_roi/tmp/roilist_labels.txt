@@ -1,0 +1,24 @@
+1:R MOG
+2:L MOG
+3:R Anterior Insula
+4:L Anterior Insula
+5:R Posterior Insula
+6:L Posterior Insula
+7:R Caudate
+8:L Caudate
+9:ACC
+10:MPFC
+11:R DLPFC
+12:L DLPFC
+13:R STS
+14:L STS
+15:R SFS
+16:L SFS
+17:WM
+18:WM
+19:WM
+20:WM
+21:R BA 6
+22:L BA 6
+23:R (dm ?)Thalamus
+24:L (dm?) Thalamus
