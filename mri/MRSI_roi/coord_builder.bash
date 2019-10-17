@@ -6,23 +6,34 @@ cd $(dirname $0)
 #
 # "build"/place coordinates and inspect them on different subjects
 #  20191015WF  init
+#  20191017WF  rename options to sphere and blob
 
 usage() {
    [ $# -gt 1 ] && msg="$@!\n" || msg=""
- echo -e "${msg}USAGE:
-$0 place SUBJ [NUMBER=24]
-$0 mkmask MASKNAME mni_examples/SUBJ_MNI_ROI.nii.gz
-$0 view SUBJ MASKNAME
-$0 mni
+cat <<HEREDOC 
+${msg}USAGE:
+ $0 place SUBJ [NUMBER=24]
+ $0 mni-subj-blob subj coordfile ppt1dir slice_dir outdir   # run by coord_mover.m
+ $0 mni-cm-sphere MASKNAME mni_examples/SUBJ_MNI_ROI.nii.gz # temp file for coord_mover.m
+ $0 view SUBJ MASKNAME
+ $0 mni
 
-example:
-$0 place 11734_20190128
-$0 mkmask ROI_mni_MP_20191004.nii.gz mni_examples/empty_coords_737713.587918_MP_for_mni.txt_mni.nii.gz
-$0 view 10129_20180917 ROI_mni_MP_20191004.nii.gz
-$0 mni
+EXAMPLE:
+ # 1. run coord_mover.m to place roi coordinates on a single subject in slice space
+ $0 place 11734_20190128
 
-see also doc of coord_mover.m
-"
+ # 2. click "mni" warps subject square rois into mni, runs
+ # $0 mni-subjblob <generated_coord> <t1_dir> <slice_dir> mni_examples/ 
+
+ # 3. new mni sphers from cm of subj-in-mni rois. explictly named
+ $0 mni-cm-sphere ROI_mni_MP_20191004.nii.gz mni_examples/empty_coords_737713.587918_MP_for_mni.txt_mni.nii.gz
+
+ # 4. view mni coords as placed in a subjects slice space using matlab gui coord_viewer
+ $0 view 10129_20180917 ROI_mni_MP_20191004.nii.gz
+
+ # x. open coord_mover on an mni brain with z-coord unlocked. not currently useful
+ $0 mni
+HEREDOC
    exit 1
 }
 [ $# -eq 0 ] && usage
@@ -51,7 +62,13 @@ case "$action" in
       fi
       mlrun "coord_mover('$subj', 'roilist','$roi_list','subjcoords', '$coord_list')"
       ;;
-   mkmask)
+   mni-subjblob)
+      # run from matlab. generate squares from coords positioned interatively in matlab on subject scout. warp to mni
+      # only here for lookup/reference - run from subjcoord2mni.bash in coord_mover.m
+      ./subjcoord2mni.bash $@
+      ;;
+   mni-cm-sphere)
+      # get cm from mni-subjblob. generates spheres there.
       [ $# -ne 2 ] && usage "bad mkmask args"
       name="$1"; shift
       subj_mni_roi="$1"; shift
@@ -60,7 +77,7 @@ case "$action" in
       mkcoords/subjroimni2mniroi.bash $(basename $name .nii.gz).nii.gz $subj_mni_roi
       ;;
    view)
-      [ $# -ne 2 ] && usage "need 3 args for view"
+      [ $# -ne 2 ] && usage "view needs 2 args! subj and mask, not '$*' "
       subj="$1"; shift
       MASK="$1"; shift
       # eg. mask="ROI_mni_MP_20191004.nii.gz"

@@ -1,25 +1,51 @@
-function [f, coords] = coord_mover(varargin)
+function [f, coords] = coord_mover(ld8, varargin)
 %COORD_MOVER move subject coordinates about the z plane
 %   can take a subject id (and will find needed files)
-%   or two args: coordinate.txt and t1.nii
+%    coord_mover('10129_20180917')
+%   or set subjid to
+%    coord_mover('','subjcoords', 'coordinate.txt', 'brain','t1.nii')
+%   can also specify 
+%    coord_mover(...,'roilist','mni_label_file.txt')
+%
 % coordinate.txt has columns: roi#, x, and y. (z is optional)
 %  1	64  69
 %  2	150  68
 %  ...
 % labels for roi number are extracted from 'mni_label_file'
+%
+% EXAMPLE SUBJ:
+% [f, orig_coord] = coord_mover('11323_20180316')
+%  loads slice_roi_CM_%s_16.txt, rorig.nii, and gm_sum.nii from subj dir
+%
+% EXAMPLE CORD BUILDER
+%   # seq 1 24|sed s/$/:/ > tmp/roilist_labels.txt
+%   # sed 's/:/\t50\t50/g' tmp/roilist_labels.txt > tmp/empty_coords.txt
+%   [f, orig_coord] = coord_mover('11323_20180316', 'roilist','tmp/roilist_labels.txt','subjcoords', 'tmp/empty_coords.txt')
+%
+% EXAMPLE view warped
+% 
+%   # cd /Volumes/Hera/Projects/7TBrainMech/scripts/mri/MRSI_roi/mni_examples
+%   # ./warp_to_example_subjs.bash ../mkcoords/ROI_mni_MP_20191004.nii.gz 10129_20180917 11734_20190128
+%   [f, orig_coord] = coord_mover('10129_20180917', 'roilist','tmp/roilist_labels.txt','subjcoords', 'mni_examples/scout_space/ROI_mni_MP_20191004/10129_20180917_scout_cm.txt')
+%
+% EXAMPLE MNI COORDS
+%  [f, orig_coord] = coord_mover('','subjcoords','mkcoords/mni_ijk.txt','brain','mkcoords/slice_mni.nii');
 
-  % example subj:
-  % ld8 = '11323_20180316';
-  % [f, orig_coord] = coord_mover('11323_20180316')
-  %  loads slice_roi_CM_%s_16.txt, rorig.nii, and gm_sum.nii from subj dir
-  %
-  %  or mni coordinates
-  % [f, orig_coord] = coord_mover('mkcoords/mni_ijk.txt','mkcoords/slice_mni.nii');
+  mni_label_file='./mni_coords_MPOR_20190425_labeled.txt';
+  disp(varargin)
+  p = inputParser;
+  p.addRequired('ld8');
+  p.addOptional('roilist', mni_label_file, @isfile);
+  p.addOptional('subjcoords', '', @isfile);
+  p.addOptional('brain', '', @isfile); 
+  parse(p,ld8,varargin{:});
+  disp(p.Results)
+  mni_label_file = p.Results.roilist;
+
   
   
   %% set mni coords (use for labels
   % read in left and right
-  mni_label_file='./mni_coords_MPOR_20190425_labeled.txt';
   fid=fopen(mni_label_file,'r'); 
   roi_mnicoord = strsplit(fread(fid,'*char')','\n');
   fclose(fid);
@@ -29,15 +55,16 @@ function [f, coords] = coord_mover(varargin)
   
 
   
+  data.ld8=ld8;
   %% if we are only given a lunaid, we can find nii and coord
-  if length(varargin) == 1
-      ld8 = varargin{1};
+  if isempty(p.Results.brain)
        %% find raw dir
       % raw dir collects everything we need. depends on ./000_setupdirs.bash
       rdir = sprintf('/Volumes/Hera/Projects/7TBrainMech/subjs/%s/slice_PFC/MRSI_roi/raw/', ld8);
       if ~exist(rdir,'dir')
          error('cannot read subject raw dir "%s"; run: ./000_setupdirs.bash %s', rdir, ld8)
       end
+      data.rdir=rdir;
 
       %% read mprage
       mprage_file = [rdir '/rorig.nii'];
@@ -67,8 +94,13 @@ function [f, coords] = coord_mover(varargin)
       %  0	63  63
       %  1	68  92
       %  2	60  90
-      coords_file=sprintf('%s/slice_roi_MPOR20190425_CM_%s_16.txt',rdir,ld8);
-      % TODO: find slice number might not be 16
+      if isempty(p.Results.subjcoords)
+         % TODO: find slice number might not be 16
+         coords_file=sprintf('%s/slice_roi_MPOR20190425_CM_%s_16.txt',rdir,ld8);
+      else
+         coords_file = p.Results.subjcoords,
+      end
+
       if ~exist(coords_file, 'file')
          error('cannot read coord file "%s"; run: ./000_setupdirs.bash %s', coords_file, ld8)
       end
@@ -77,13 +109,13 @@ function [f, coords] = coord_mover(varargin)
       %% we are moving in a fixed slice. z is not free
       data.z_free = 0;
       
-  elseif length(varargin) == 2
-      coords_file=varargin{1};
-      mprage_file = varargin{2};
+  elseif ~isempty(p.Results.coord)
+      coords_file = p.Results.coord;
+      mprage_file = p.Results.brain;
       nii = load_untouch_nii(mprage_file);
       data.z_free=1;
   else
-      error('input should be lunaid or (coordfile, image.nii)')
+      error('input should be lunaid or ('''',''coord'',''coordfile'',''brain'',''image.nii'')')
   end
   
   if isempty(mask_nii) 
@@ -116,7 +148,7 @@ function [f, coords] = coord_mover(varargin)
   % color rois
   % help from  https://www.mathworks.com/matlabcentral/answers/153064-change-color-of-each-individual-string-in-a-listbox
   data.roi_colors = jet(n_rois);
-  rgb2hex = @(rgb) sprintf('%s', dec2hex(rgb.*255, 2 )');
+  rgb2hex = @(rgb) sprintf('%s', dec2hex(round(rgb.*255), 2 )');
   html='<html><font id="%d" color="#%s">%s</font></html>';
   roibox_str = arrayfun(@(i) ...
                  sprintf(html, i, rgb2hex(data.roi_colors(i,:)), roi_label{i}), ...
@@ -269,14 +301,17 @@ function mni(varargin)
   master = data.mprage_file;
   [d n e] = fileparts(data.coords_file);
   dtime=datenum(datetime);
-  outname=fullfile(d,sprintf('%s_%f_%s_for_mni.txt',n,dtime,data.who));
+  txtfile=sprintf('%s_%f_%s_%s_for_mni.txt',n,dtime,data.ld8,data.who);
+  outname=fullfile(d,txtfile);
   nativeroi=fullfile(d,sprintf('native_roi_%s.txt',dtime));
   dlmwrite(outname, data.coords, 'delimiter','\t')
-  % see 050_ROIs.bash and subjcoord2mni.bash
-  cmd = sprintf('env -i bash -lc "./subjcoord2mni.bash %s %s/../../ppt1/ %s/../.. mni_examples"', ...
-        outname, d, d)
+  % see 050_ROIs.bash and subjcoord2mni.bash. same as coord_builder.bash mni-subjblob ...
+  cmd = sprintf('env -i bash -lc "./subjcoord2mni.bash %s %s/../../ppt1 %s/../.. mni_examples"', ...
+        outname, data.rdir, data.rdir)
   system(cmd)
-  fprintf('====\nif not already open, run: afni %s/mni_examples\n\n', pwd)
+  cmd = sprintf('env -i bash -lc "./coord_builder.bash mni-cm-sphere mni_examples/%s_mni-cm-sphere.nii.gz mni_examples/%s_mni-subjblob.nii.gz"', txtfile, txtfile)
+  system(cmd)
+  fprintf('====\nif not already open, run: afni %s/{mni_examples, mkcoords}\n\n', pwd)
 end
 
 function reset_coords(varargin)
@@ -291,7 +326,7 @@ function outname=save_coords()
   f=gcf;
   data = guidata(f);
   [d n e] = fileparts(data.coords_file);
-  outname=fullfile(d,sprintf('%s_%f_%s.txt',n,datenum(datetime),data.who))
+  outname=fullfile(d,sprintf('%s_%f_%s_%s.txt',n,datenum(datetime),data.ld8,data.who))
   dlmwrite(outname, data.coords, 'delimiter','\t')
   % todo use recommend (2019a): writematrix(data.coords, outname)
 end

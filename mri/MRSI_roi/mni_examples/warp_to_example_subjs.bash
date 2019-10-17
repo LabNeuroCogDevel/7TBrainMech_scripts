@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 set -euo pipefail
-cd $(dirname "$0")
 trap 'e=$?; [ $e -ne 0 ] && echo "$0 exited in error"' EXIT
 
 #
@@ -16,6 +15,8 @@ trap 'e=$?; [ $e -ne 0 ] && echo "$0 exited in error"' EXIT
 
 mni_atlas="$1"; shift
 [ ! -r $mni_atlas ] && echo "need an mni atlas to warp around" && exit 1
+mni_atlas=$(readlink -f "$mni_atlas")
+cd $(dirname "$0")
 
 warp_to_scout(){
    local ld8="$1"

@@ -14,7 +14,7 @@ subjcoord2mni(){
    mp2slice=$slicedir/mprage_to_slice.mat
    rorig=$slicedir/MRSI/parc_group/rorig.nii
 
-   mniout=$outdir/$(basename $coord)_mni.nii.gz
+   mniout=$outdir/$(basename $coord)_mni-subjblob.nii.gz
    [ -r $mniout ] && echo "# have $mniout" && return 0
 
    tmp=$outdir/tmp
