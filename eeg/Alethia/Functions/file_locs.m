@@ -32,17 +32,23 @@ loc.remarked        = mkname('remarked',          '_Rem');
 loc.filter          = mkname('filtered',          '_Rem_filtered');
 loc.filterbp        = mkname('bandpass_filtered', '_bandpass_filtered') ;
 loc.chanrj          = mkname('channels_rejected', '_Rem_badchannelrj');
+loc.rerefwhole_name = mkname('rerefwhole',        '_Rem_rerefwhole');
 loc.epoch           = mkname('epoched',           '_epochs');
 loc.epoch_rj_marked = mkname('marked_epochs',     '_Rem_epochs_marked');
 loc.epochrj         = mkname('rejected_epochs',   '_Rem_epochs_rj');
 loc.icaout          = mkname('ICA',               '_Rem_epochs_rj_ICA');
+loc.icawhole        = mkname('ICAwhole',          '_Rem_ICAwhole');
 loc.SASICA          = mkname('ICA',               '_Rem_epochs_rj_ICA_SAS');
+%TODO: add rerefwhole_name
 
 %% stats and logic on files in/completed
 loc.allfiles = fieldnames(loc);
-files_exist = cellfun(@(x) exist(loc.(x),'file'), loc.allfiles),
+files_exist = cellfun(@(x) exist(loc.(x),'file'), loc.allfiles);
 loc.missing = loc.allfiles(~files_exist);
 loc.ncomplete = sum(files_exist);
-loc.is_finished = exist(loc.icaout, 'file') ~= 0
+loc.is_finished = exist(loc.icaout, 'file') ~= 0;
+
+% not single subject 
+loc.epochClean      = mkname('AfterWhole/epochclean', '_Rem_rerefwhole_ICA_icapru_epochs_rj');
 
 end
