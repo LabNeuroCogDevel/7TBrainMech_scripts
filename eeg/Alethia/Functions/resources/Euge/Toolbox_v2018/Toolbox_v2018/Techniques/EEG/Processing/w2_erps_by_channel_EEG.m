@@ -119,7 +119,7 @@ c1_erps = []; %4D matrix where results will be stored (channels, freq, times, su
     freqs=[];
     g=[];
 
-for suj = 1 : file_nr
+for suj = 44 : file_nr
     file_name = filenames{suj};
     disp(path_to_files)
     disp(file_name);

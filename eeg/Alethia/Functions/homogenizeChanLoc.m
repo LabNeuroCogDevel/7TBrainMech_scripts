@@ -12,19 +12,20 @@ EEG_old  = EEG;
 CL_old.name = {EEG_old.chanlocs.labels}';
 CL_old.n = {EEG_old.chanlocs.urchan}';
 
+if length(CL.name) ~= length(CL_old.name)
+    error('subject %s does not have 64 channels', filename);
+    
+end
 
-differ = find(~ismember(CL.name,CL_old.name));
-for d = differ
-    missingIDX = find(strcmp(CL_old.name, CL.name(d)));
+% TODO: probably not going to run correctly!!
+dbstop
+differ = find(~strcmp(CL.name, CL_old.name)); 
+for d = differ'
+    missingIDX = find(strcmp(CL.name(d), CL_old.name(d));
     EEG.chanlocs(d) = EEG_old.chanlocs(missingIDX );        % update ChanLoc
     EEG.chanlocs(d).urchan  = missingIDX;                   % update number *maybe not mandatory
     EEG.data(d,:) = EEG_old.data(missingIDX,:);             % move data
+    
 end
-
-% if EEG.nbchan ~= 64 
-%     EEG.nbchan = 64; 
-%     EEG.chanlocs(65:70) = [];
-%     
-% end
 
 EEG = pop_saveset( EEG, 'filename',filename, 'filepath',outpath);

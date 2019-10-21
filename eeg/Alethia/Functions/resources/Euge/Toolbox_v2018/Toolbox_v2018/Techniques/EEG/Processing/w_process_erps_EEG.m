@@ -1,0 +1,1 @@
+function [EEG, data] = w_process_erps_EEG(cycles, frequencyRange, alpha, scale, basenorm, tlimits, tlimitsForBaseline, fdrCorrect, weightedSignificance, surroundingsWeight, erpsmax, marktimes, roi_struct_filename, roi_struct_name, title_name_prefix, EEG, data)

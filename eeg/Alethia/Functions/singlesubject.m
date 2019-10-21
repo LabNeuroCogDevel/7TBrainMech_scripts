@@ -1,7 +1,8 @@
-function [channels_removed, data_removed, epochs_removed] = singlesubject(inputfile, lowBP, topBP, outpath, FLAG, varargin)
+function [channels_removed, data_removed, epochs_removed] = singlesubject(inputfile, lowBP, topBP, outpath, FLAG, xEEG, varargin)
 
-% addpath(genpath('Functions'));
-% addpath(hera('Projects/7TBrainMech/scripts/eeg/toolbox/eeglab14_1_2b'));
+addpath(genpath('Functions'));
+addpath(genpath('Functions/resources'));
+addpath(hera('Projects/7TBrainMech/scripts/eeg/toolbox/eeglab14_1_2b'));
 
 %% to run singlesubject one at a time
 % -- run me as a function!
@@ -14,6 +15,12 @@ function [channels_removed, data_removed, epochs_removed] = singlesubject(inputf
 % outpath = hera('Projects/7TBrainMech/scripts/eeg/Alethia/Prep');
 % singlesubject(inputfile, lowBP, topBP, outpath, FLAG)
 %% 
+
+% allocate cells 
+%  Output argument "channels_removed" (and maybe others) not assigned during call to "singlesubject".
+channels_removed = cell(3,1,1);
+data_removed = cell(3,1,1);
+epochs_removed = cell(3,1,1);
 
 % what file are we using
 if ~exist(inputfile,'file'), error('inputfile "%s" does not exist!', inputfile), end
@@ -79,7 +86,13 @@ epochrj = fullfile(outpath, epochrj_folder, [epochrj_name '.set']);
 %     return
 % end
 % 
-icawholein = fullfile(outpath, icawholein_folder, [rerefwhole_name '.set']);
+if xEEG == 1
+    icawholein = fullfile(outpath, icawholein_folder, [rerefwhole_name '.set']);
+    
+else
+    icawholein = 'no';
+end
+
 if exist(icawholein, 'file')
      warning('%s already complete (have "%s")! todo load from file', currentName, rerefwhole_name)
      return
@@ -88,12 +101,11 @@ end
 %     runICAss(icawholein, icawholeout)
 %     return
 % end
-% allocate cells
-channels_removed = cell(3,1,1);
-data_removed = cell(3,1,1);
-epochs_removed = cell(3,1,1);
 
-xEEG = load_if_exists(subj_files.filter);
+if xEEG == 1
+    xEEG = load_if_exists(subj_files.filter);
+end
+
 if isstruct(xEEG)
     [ALLEEG EEG CURRENTSET] = pop_newset([], xEEG, 0,...
         'setname',currentName,...
@@ -167,7 +179,7 @@ end
 
 %% CHANELS
 % remove external channels
-EEG = pop_select( EEG,'nochannel',{'EX1' 'EX2' 'EX3' 'EX4' 'EX5' 'EX6' 'EX7' 'EX8' 'EXG1' 'EXG2' 'EXG3' 'EXG4' 'EXG5' 'EXG6' 'EXG7' 'EXG8' 'GSR1' 'GSR2' 'Erg1' 'Erg2' 'Resp' 'Plet' 'Temp'});
+EEG = pop_select( EEG,'nochannel',{'EX1' 'EX2' 'EX3' 'EX4' 'EX5' 'EX6' 'EX7' 'EX8' 'EXG1' 'EXG2' 'EXG3' 'EXG4' 'EXG5' 'EXG6' 'EXG7' 'EXG8' 'GSR1' 'GSR2' 'Erg1' 'Erg2' 'Resp' 'Plet' 'Temp' 'FT7' 'FT8' 'TP7' 'TP8' 'TP9' 'TP10'});
 
 [ALLEEG EEG] = eeg_store(ALLEEG, EEG, CURRENTSET);
 %import channel locations
@@ -204,7 +216,11 @@ end
 % EEG = pop_rejchan(EEG, 'elec',[1:8] ,'threshold',5,'norm','on','measure','kurt');
 
 %3.clean_rawdata
-xEEG = load_if_exists(subj_files.chanrj);
+if xEEG == 1
+    
+    xEEG = load_if_exists(subj_files.chanrj);
+end
+
 originalEEG = EEG;
 if isstruct(xEEG)
    [ALLEEG EEG] = eeg_store(ALLEEG, xEEG, CURRENTSET);
@@ -219,7 +235,10 @@ else
        'filepath',sprintf('%s/%s/',outpath,chanrj_folder));
 end
 
-xEEG = load_if_exists(subj_files.rerefwhole_name);
+if xEEG == 1
+    xEEG = load_if_exists(subj_files.rerefwhole_name);
+end
+
 if isstruct(xEEG)
     [ALLEEG EEG] = eeg_store(ALLEEG, xEEG, CURRENTSET);
 else
@@ -247,10 +266,12 @@ else
    EEG.data_rj_nr = data_removed{3};
 
    %% interpolate channels
-   
+   % POSSIBLE PROBLEMS
+   %  - injecting extra channels ontop of expected 64 (n>64)
+   %  - 128 missing expected labels, adding too few back (n<64)
    if Flag128 == 1
-       nchan = 64
-       ngood = length(EEG.chanlocs)
+       nchan = 64;
+       ngood = length(EEG.chanlocs);
        %  128 cap doesn't have exactly the same postions as 64
        % remove 4 that are in the wrong place and reinterpret
        % AND interp any bad channels
@@ -267,7 +288,7 @@ else
        % keep those that aren't the ones we matched
        % remove from chanlocs, data and update nbcan
        % WARNING -- who knows what else we should have changed to update the set info!
-       keep_idx = setdiff(1:ngood, n128here_idx)
+       keep_idx = setdiff(1:ngood, n128here_idx);
        EEG.chanlocs = EEG.chanlocs(keep_idx);
        EEG.data = EEG.data(keep_idx,:);
        EEG.nbchan = length(keep_idx);
@@ -277,12 +298,16 @@ else
           originalEEG.nbchan, nchan - ngood, length(need_128interp))
        EEG_i = pop_interp(EEG, originalEEG.chanlocs, 'spherical'); 
 
+       % could swap these channels (they're close, but not the same)
+       % BUT WE DONT
        % 128    'AF7' --> 64    'AF5' In this point channel 2
        % 128    'AF3' --> 64    'AF1' In this point channel 3
        % 128    'AF4' --> 64    'AF2' In this point channel 35   
        % 128    'AF8' --> 64    'AF6' In this point channel 36
        % lines above modify channel information and pocition in data to make 
        %  it the same for 64 and 128 cap
+       
+       % need to do destructive swapping. need a copy
        EEG = EEG_i;
        EEG.chanlocs(2) = EEG_i.chanlocs(3);%EEG.chanlocs(2) must by 'AF1' in 64 cap
        EEG.chanlocs(3) = EEG_i.chanlocs(2);%EEG.chanlocs(3) must by 'AF5' in 64 cap
@@ -317,6 +342,9 @@ else
 end
 
 % Whole data ICA run
+
+icawholein = fullfile(outpath, icawholein_folder, [rerefwhole_name '.set']);
+
 if ~exist(subj_files.icawhole, 'file')
    runICAss(icawholein, icawholeout)
 else
@@ -359,7 +387,10 @@ EEG = pop_saveset( EEG,'filename',[currentName '_epochs'], ...
 [ALLEEG EEG] = eeg_store(ALLEEG, EEG, CURRENTSET);
 
 %% epoch rejection
-xEEG = load_if_exists(subj_files.epochrj);
+if xEEG == 1
+    xEEG = load_if_exists(subj_files.epochrj);
+end
+
 if isstruct(xEEG)
     [ALLEEG EEG] = eeg_store(ALLEEG, xEEG, CURRENTSET);
 else
