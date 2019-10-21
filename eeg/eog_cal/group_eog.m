@@ -2,13 +2,17 @@
 addpath('/Volumes/Zeus/DB_SQL')
 agetbl = db_query('select id as lunaid, to_char(vtimestamp,''YYYYmmdd'') as scandate, age  from visit_study natural join visit natural join enroll where study like ''BrainMechR01'' and etype like ''LunaID'' and vtype like ''%can''');
 
+% remove duplicates
+agetbl = unique(agetbl);
+
 if ~exist('datatable', 'var')
-    load('eeg_data_20190226.mat');
+    load('eeg_data_20190904.mat');
 end
 
 %%
 ids = unique(datatable.LunaID);
 summary = [];
+subjIDs = [];
 
 for subji = 1:height(agetbl)
     id = str2double(agetbl(subji,:).lunaid{1});
@@ -48,14 +52,20 @@ for subji = 1:height(agetbl)
     n = size(perf,1);
     se = sd / sqrt(n);
     
-    summary(end+1,:) = [age n u(1) se(1) u(2) se(2) u(3) se(3) u(4) se(4) u(5) se(5)];
+    subjIDs(end+1) = id;
+    summary(end+1,:) = [age n u(1) sd(1) se(1) u(2) sd(2) se(2) u(3) sd(3) se(3) u(4) sd(4) se(4) u(5) sd(5) se(5)];
 end
+cols = {'Age','N','PosErr (deg)','PosErr SD','PosErr SE', 'DispErr (deg)', 'DispErr SD', 'DispErr SE', 'VGS Latency','VGS Latency SD','VGS Latency SE','MGS Latency','MGS Latency SD','MGS Latency SE','MGS-VGS Latency','MGS-VGS Latency SD','MGS-VGS Latency SE'};
+
+savetbl = array2table([subjIDs' summary]);
+savetbl.Properties.VariableNames{1} = 'LunaID';
+for i = 1:length(cols); savetbl.Properties.VariableNames{i+1} = strrep(strrep(strrep(strrep(cols{i}, '(', ''), ')', ''), ' ', '_'), '-', '_'); end
+writetable(savetbl, sprintf('eog_group_data_%s.csv',datestr(now, 'YYYYmmdd')), 'Delimiter', ',');
 
 %%
-cols = {'Age','N','PosErr (deg)','PosErr SE', 'DispErr (deg)', 'DispErr SE', 'VGS Latency','VGS Latency SE','MGS Latency','MGS Latency SE','MGS-VGS Latency','MGS-VGS Latency SE'};
 
 xi = 1;
-ys = [9 10 11 3 4 5];
+ys = [12 13 15 3 4 6];
 nx = 2; ny = 3;
 figure
 set(gcf, 'Position', [272         298        1667        1030]);
@@ -63,8 +73,8 @@ set(gcf, 'Position', [272         298        1667        1030]);
 for yi = ys
     yi
     subplot(nx, ny, find(yi==ys));
-    if any(yi == [3 5 7 9 11])
-        sei = yi+1;
+    if any(yi == [3 6 9 12 15])
+        sei = yi+2;
     else
         sei = NaN;
     end

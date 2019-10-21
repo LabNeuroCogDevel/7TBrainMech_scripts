@@ -21,7 +21,7 @@ getld8_dcmdir(){
 
    # match something like 
    # 20180426Luna_11633 or 20180514Luna2_11640
-   [[  $patname =~ (2[0-9]{7})_?(Luna[0-9]?[A-Ca-c]?)?_?(1[0-9]{4}) ]] && patname=${BASH_REMATCH[3]}_${BASH_REMATCH[1]}
+   [[  ${patname,,} =~ (2[0-9]{7})_?(luna[0-9]?[a-c]?)?_?(1[0-9]{4}) ]] && patname=${BASH_REMATCH[3]}_${BASH_REMATCH[1]}
    [[ ! $patname =~ [0-9]{5}_[0-9]{8} ]] &&
       warnifverb "$FUNCNAME: bad dcm lunadate patname ('$orig_pn' -> '$patname') from $exampledcm, correct in func.bash if db also off" >&2 &&
       return 1
@@ -76,7 +76,7 @@ getld8_hardcoded(){
    [ $patname == '20191119Luna2' ] && ld8="11711_20181119"  # came in twice 09-21 and 10-12
    [ $patname == '20181001Luna2' ] && ld8="11693_20181001"  # no luna1?
    [ $patname == '20190222Luna2' ] && ld8="11651_20190222"  # no luna1 was dropped -- did half protocol
-   [ $patname == '20190712Luna' ] && ld8="11776_20190712"  # luna1 cancelled last minute
+   [ $patname == '20190712Luna'  ] && ld8="11776_20190712"  # luna1 cancelled last minute
    # TODO:
    # 20190510Luna2 will come back 20190913
    # 20190715Luna (11788) tech issue not rescheduled yet (as of 20190823)

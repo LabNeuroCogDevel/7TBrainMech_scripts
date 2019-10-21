@@ -75,7 +75,11 @@ link_master_folder() {
 
 # require some input so we have an idea of whats going on
 [ $# -eq 0 ] && echo "
-inputs are either 'all' or any number of hoby organized TIEJUN_JREF directory
+inputs are either
+ 'all' 
+ or any number of Hoby organized TIEJUN_JREF directory, sometimes calld DCM/
+   the directory where there are folders for each sequence in a scan session.
+   those folders should each be full of *IMA dicom files
 USAGE:
  $0 all
  $0 /Volumes/Hera/Raw/MRprojects/7TBrainMech/20190422Luna1/20190422Luna1DCMALL/TIEJUN_JREF-LUNA_20190422_134510_234000

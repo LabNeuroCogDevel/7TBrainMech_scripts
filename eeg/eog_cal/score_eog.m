@@ -317,3 +317,5 @@ datatable = array2table(data);
 datatable.Properties.VariableNames = {'LunaID','ScanDate','Trial','PositionError','DisplacementError','vgsLatency','mgsLatency'};
 
 save(sprintf('eeg_data_%s.mat',datestr(now, 'YYYYmmdd')), 'datatable');
+
+rmpath(genpath('~/Documents/MATLAB/fieldtrip-20180926/'))

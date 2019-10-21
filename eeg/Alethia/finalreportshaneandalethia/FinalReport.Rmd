@@ -1,0 +1,625 @@
+---
+title: "LNCD Visit: Final report"
+author: "Shane McKeon and Alethia de la Fuente"
+font-family: NewCenturySchoolbook
+geometry: margin=1cm
+fig_width: 6 
+fig_height: 4
+output:
+  pdf_document:
+    latex_engine: xelatex
+  word_document: default
+latex_engine: xelatex
+documentclass: article
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(fig.width=6, fig.height=4)
+```
+<div class=text-justify> 
+
+#Topics 
+
+I will sumarize the work done, the things to improve and some thing that remain wo do **Text in bold** . For example, **If you want to run this code check the paths!** :)
+
+## Preprocesing EEG data
+
+We have setted an (almost) automated preprocessing pipeline for the task. Most of it is in singlesubject.m script. Modifications for resting had been added as comments between lines 278 and 299. 
+
+A full description of each preprocessing step can be found in Shane's documentation in Projects-7TBrainMech-scripts-eeg-Alethia-Prep, Preprocessing_Pipeline.docx. Preprocessing generates outputs in the same folderdetailed in INFRMATION.txt.  
+
+Something to remark is that under prerocessing and in the atempt ro re do this faster, sampling rate has been reduced to 100Hz, which is not a problem for ERPs analisys but reduced frequency range to 50 Hz (Nyquist theorem). Frequency analyses in this report are constricted before 45 Hz (for artefacts given by the filters). **Maybe you will be intrested in to change this (comment line 133 and de coment line 136).* 
+
+Nicole is currently visually inspecting epochs for ERP analisys, particularly in the marks with eye movments (3/-3, 5/-5 in the remarked datasets). 
+
+## ERPs Analysis
+
+Those analysis has two and half main objectives:
+
+* 1.a) Prove that the taslk/marks and everything is properly working 
+* 1.b) Evaluate the impact of eye movement in the visual ERPs
+* 2) Evaluate the hypotesis of improves signal to noise ratio under development.
+
+To stablish this point we had been working with 4 ROIs, Left and right parietal (extracted from [1]) and two frontal mostly arbitrary decided. **Maybe you would like to define them more carefully. For ERPs can be conducted cluster analyses with FieldTrip to find the best electrodes. But bibliography also works for this prupose**  
+
+
+### 1) Prove that the task/marks and everything is properly working and evaluate the eye movment impact
+
+**Figura 1** shows our wikipedia gold standar for visual evoked potentials [2]
+ 
+```{r , echo=FALSE,  out.width = '50%',fig.align="center"}
+knitr::include_graphics("H:/Projects/7TBrainMech/scripts/eeg/Alethia/Report/Figures/ComponentsofERP.svg.png")
+```
+_Figura 1_ Wiki-gold-standard visual evoked ERP
+
+To test the task we extract all the epochs for dot/image disctiminating in which side of the screen the stimulus has been presented (3/-3) and compare the evoqued response in lateralized frontal an parietal regions. Those results are saved in the ~Alethia-Tesults-ERPs. **Figura 2** shows this comparion for right-parietal ROI. Top panel shows right and left stimulus condition. Every line is the mean average of one subject. Bottom pannel shows mean +/- mean standar deviation for all the subjects. Asterisks mark statistical diferences between conditions over time (5000 permutations, alpha 0.05)
+
+We can see a homogenius response amongh subjects. No diferences in the baseline (voltages are relative to baseline), and a robust early visual potential between 100 and 200 ms (objctive 1.a acomplished) with no diferences in the stimulus position. We can see that left presentation evoques stronger responses in right regions in late part of the response, which can be explained by brin routes. I would probably not expect lateralized differences in eye movment artifacts. But to ensure that I would prpobably re check twice the marks and the ROIs pocition carfully. 
+
+```{r , echo=FALSE,  out.width = '80%',fig.align="center"}
+knitr::include_graphics("H:/Projects/7TBrainMech/scripts/eeg/Alethia/Report/Figures/Roi4_ROI1DotR_p3_GAvVsDotL_n3_GAv.png")
+```
+_Figura 2_ Our visual ERP (do not see the name Fp1, its Parietal right ROI composed by 3 electrodes from the paper)
+
+**Figura 3** the same ERP and also de memory guided ERP. The comparison is not fair because the baselines are different, but this alows to see an evoked response, slower in voltage, but in the memory guided sacades too. I can speculate like having a guitarr that the Eearly negativity should have sources in premotor cortex ( early component negativity in parietal regions ) and the really last one can be artefactual for movement. But not sure. **Maybe relations with task performance can inform somthing** 
+
+
+```{r , echo=FALSE,  out.width = '80%',fig.align="center"}
+knitr::include_graphics("H:/Projects/7TBrainMech/scripts/eeg/Alethia/Report/Figures/Roi4_ROIDotR_p3_GAvVsMVSR_p5_GAv.png")
+```
+_Figura 3_ Our visual an memory ERP (do not see the name Fp1, its Parietal right ROI composed by 3 electrodes from the paper)
+
+### 2) Evaluate the hypotesis of improves signal to noise ratio under development.
+
+To evaluate this effect, given that in ERPs the amplitur is related to the baseline, we decided to chech the variability in both conditions, visual and memori guided behaviors in four parts: 1. visual stimulus baseline (-200-0ms); 2. early visual evoked response(100-200ms); 2. Late visual evoqued response; 4.Late memory evoked response (600-700ms). The script for this analysis is in Alethia-Main_extract_ERP_characteristics.m. 
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# En la linea 81 se ponen o quitan los 2 outliers. Ahora los esta sacando
+#Se limpia la memoria y se cargan librer????as útiles
+rm(list=ls())
+library(psych)
+library(pastecs)
+library(glmmTMB)
+library(emmeans)
+library(lsmeans)
+library(multcomp)
+library(sjPlot)
+library(ggplot2)
+library(DHARMa)
+library(Hmisc)
+library(FSA)
+library(knitr)
+library(lsmeans)
+library(dplyr)
+library(data.table)
+library("car")
+library('Hmisc')
+library('corrplot')
+library('AICcmodavg')
+library('MASS')
+library('tree')
+library('boot')
+library('lme4')
+library('MuMIn')
+
+l <- htmltools::tagList()
+
+```
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# Funciones
+
+outliersZ <- function(data, zCutOff = 1.96, replace = NA, values = FALSE, digits = 6) {
+    #compute standard deviation (sample version n = n [not n-1])
+    stdev <- sqrt(sum((data - mean(data, na.rm = T))^2, na.rm = T) / sum(!is.na(data)))
+    #compute absolute z values for each value
+    absZ <- abs(data - mean(data, na.rm = T)) / stdev
+    #subset data that has absZ greater than the zCutOff and replace them with replace
+    #can also replace with other values (such as max/mean of data)
+    data[absZ > zCutOff] <- replace 
+    
+    if (values == TRUE) {
+        return(round(absZ, digits)) #if values == TRUE, return z score for each value
+    } else {
+        return(round(data, digits)) #otherwise, return values with outliers replaced
+    }
+}  
+EvalModel<-function(datos_a_eval,variable_respuesta,variable_conductual,variable_grupos)
+{
+  outputdeesto <- c()
+   outputLineal <- applySlopeComp(datos_a_eval,variable_respuesta,variable_conductual,variable_grupos)
+
+    # Anova del modelo
+      print(kable(round(outputLineal$Anova.modelo,4)))
+    # Pendientes
+    # print(kable(outputLineal$Slopes ))
+    print(kable(outputLineal$ICmeans,digits = 3))
+    # Comparacion de pendientes
+    print(kable(outputLineal$Slopes.comparison))
+    # print(kable(outputLineal$ICmeans,digits = 3))
+
+      plot1 <- plotly_interaction(datos_a_eval, variable_conductual,variable_respuesta, variable_grupos)
+    # print(plot1)
+      outputdeesto$outputLineal <- outputLineal
+      outputdeesto$plot1 <- plot1
+    return(outputdeesto)
+} 
+
+applySlopeComp<-function(datos_a_eval,variable_respuesta,variable_conductual,variable_grupos)
+{
+  outputdeesto <- c()
+
+  crea.modelo <-paste( variable_respuesta, "~ ",variable_conductual,"*",variable_grupos )
+  m.interaction <- lm( as.formula(crea.modelo), data = datos_a_eval)
+  # m.interaction <- rfit( as.formula(crea.modelo), data = datos_a_eval)
+  outputdeesto$modelo <- m.interaction
+  outputdeesto$Anova.modelo <- anova(m.interaction)
+
+  # kable(round(anova(m.interaction),4))
+
+  # Obtain slopes
+  m.lst <- lstrends(m.interaction, variable_grupos, var=variable_conductual)
+  # kable(CLD(means.int),digits = 3)
+
+  # kable(m.lst)
+  outputdeesto$Slopes <- m.lst
+  outputdeesto$ICmeans <-CLD(m.lst) 
+
+  # Compare slopes
+  # kable(pairs(m.lst))
+  outputdeesto$Slopes.comparison<- pairs(m.lst)
+  
+  datos_a_eval <- as.data.table(datos_a_eval)  
+
+  # Calculate Pearson's R
+  m.correlations <- datos_a_eval[, cor(eval(parse(text = variable_respuesta)), eval(parse(text = variable_conductual))), by = variable_grupos]
+
+  # Compare R values with Fisher's R to Z. Atento que esto solo anda con "Grupo" como variable de grupo
+  compara <- paired.r(m.correlations[eval(parse(text = variable_grupos))=="CTR", V1], m.correlations[eval(parse(text = variable_grupos))=="PBC", V1], 
+           n = datos_a_eval[Grupo %in% c("CTR", "PBC"), .N])
+  outputdeesto$RtoZ <- compara
+  outputdeesto$correlations <- m.correlations
+
+  return(outputdeesto)
+
+}
+
+applyBP<-function(DATA,XVAR,YVAR,title.BP)
+{
+fill <- "#4271AE"
+lines <- "#1F3552"
+plot.box <- ggplot(DATA, aes(x = XVAR, y = YVAR)) +
+        geom_boxplot(colour = lines, fill = fill,
+                     size = 1) +
+        scale_y_continuous(name = "VR",
+                              breaks = seq(0, 1, 25),
+                              limits=range(pretty(c(0, YVAR)))) +
+        scale_x_discrete(name = "VE") +
+        ggtitle(title.BP) +
+        theme_bw() +
+        theme(panel.grid.major = element_line(colour = "#d3d3d3"),
+              panel.grid.minor = element_blank(),
+              panel.border = element_blank(),
+              panel.background = element_blank(),
+              plot.title = element_text(size = 14, family = "sans", face = "bold"),
+              text=element_text(family = "sans"),
+              axis.title = element_text(face="bold"),
+              axis.text.x = element_text(colour="black", size = 11),
+              axis.text.y = element_text(colour="black", size = 9),
+              axis.line = element_line(size=0.5, colour = "black"))
+
+return(plot.box)
+}
+
+plotly_interaction <- function(data, x, y, category, colors = col2rgb(viridis(nlevels(as.factor(data[[category]])))), ...) {
+  # Create Plotly scatter plot of x vs y, with separate lines for each level of the categorical variable. 
+  # In other words, create an interaction scatter plot.
+  # The "colors" must be supplied in a RGB triplet, as produced by col2rgb().
+
+  require(plotly)
+  require(viridis)
+  require(broom)
+
+  groups <- unique(data[[category]])
+
+  p <- plot_ly(...)
+
+  for (i in 1:length(groups)) {
+    groupData = data[which(data[[category]]==groups[[i]]), ]
+    p <- add_lines(p, data = groupData,
+                   y = fitted(lm(data = groupData, groupData[[y]] ~ groupData[[x]])),
+                   x = groupData[[x]],
+                   line = list(color = paste('rgb', '(', paste(colors[, i], collapse = ", "), ')')),
+                   name = groups[[i]],
+                   showlegend = FALSE)
+    p <- add_ribbons(p, data = augment(lm(data = groupData, groupData[[y]] ~ groupData[[x]])),
+                     y = groupData[[y]],
+                     x = groupData[[x]],
+                     ymin = ~.fitted - 1.96 * .se.fit,
+                     ymax = ~.fitted + 1.96 * .se.fit,
+                     line = list(color = paste('rgba','(', paste(colors[, i], collapse = ", "), ', 0.05)')), 
+                     fillcolor = paste('rgba', '(', paste(colors[, i], collapse = ", "), ', 0.1)'),
+                     showlegend = FALSE)
+    p <- add_markers(p, data = groupData, 
+                     x = groupData[[x]], 
+                     y = groupData[[y]],
+                     symbol = groupData[[category]],
+                     marker = list(color=paste('rgb','(', paste(colors[, i], collapse = ", "))))
+  }
+  p <- layout(p, xaxis = list(title = x), yaxis = list(title = y))
+  return(p)
+}
+
+## Funcion que calcula parametros de la tabla de confusion 
+model_selection_params <- function(labeled,predicted)
+{
+  #labeled - vector de datos orginales
+  #predicted - vector con los datos predichos
+  t <- table(predicted,labeled)
+  TN <- t[1,1]
+  FN <- t[1,2]
+  TP <- t[2,2]
+  FP <- t[2,1]
+  total <- TN + FN + TP + FP
+  #calculate measures
+  #los correctamente clasificados del total
+  accuracy <- (TN + TP)/total 
+  #los correctamente clasificados como positivos del total de positivos
+  precision <- TP/(TP + FP) 
+  #los correctamente clasificados como positivos del total real de positivos
+  recall <- TP/(TP+FN) 
+  
+  #Fscore
+  fscore <- (2*TP)/(2*TP + FP + FN)
+  measures <- list("accuracy"=accuracy, "precision"=precision, "recall"=recall,"Fscore"=fscore,"confusion_table"=t)
+  return(measures)
+}
+
+## Kappa
+kappa<-function(pr,ob)
+{
+  y<- ((length(pr)-sum(abs(pr-ob))) - (( sum(pr)*sum(ob) +
+                                           (length(pr)-sum(pr))*( length(pr)- sum(ob)) )/ length(pr))) /
+    (length(pr)-( (sum(pr)*sum(ob) + (length(pr)-sum(pr))*(
+      length(pr)- sum(ob)) )/ length(pr)))
+  y
+}
+# ob: los valores observados (la columna original con unos y ceros de la base de datos)
+# pr: los valores predichos por el modelo, transformados a unos y ceros seg?n un punto
+# de corte establecido (la explicaci?n, a continuaci?n).
+
+# Funcion pasa sacar los Kappa y el grafico
+kapcortes<-function(data,model,ob) # el primer t?rmino es la base de datos, el segundo es
+  # el nombre del modelo a evaluar y el tercero son los datos observados
+{
+  cortes<-seq(0,1,by=0.01)
+  h<-vector("numeric",length=101)
+  for (i in 1:101)
+  {
+    pr<-ifelse(fitted(model)>cortes[i],1,0)
+    h[i]<-kappa(pr,ob)
+  }
+  kopt<- max(h)
+  coop<-cortes[which.max(h)]
+  out.graph<-plot(cortes, h, ylab="valor de Kappa", xlab="punto de
+                  corte")
+  out <- list(kopt,coop)
+  out
+}
+
+# Boorstrap
+bs <- function(formula, data, indices, familia) {
+  d <- data[indices,]
+  fit <- glm(formula, data=d, family=familia)
+  return(coef(fit))
+}
+
+```
+
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# Seteo de semilla
+set.seed(2)#para que cada vez que comienza el experimento el R haga lo mismo
+
+# Seteo de directorio
+# setwd("H:/Projects/7TBrainMech/scripts/eeg/Alethia/Results/ERPs/R")
+
+# Load tables and reorganize data
+
+meanAge = read.csv("EdaDI.csv",sep=',',header=TRUE)
+meanAge$X <- NULL
+eVIS <- read.csv("eVis_win_0_1_0_2_bl200msERP_Variables.csv",sep=';',header=TRUE)
+colnames(eVIS)[1] = "ID"
+
+lVIS <- read.csv("lVis_win_0_3_0_4_bl200msERP_Variables.csv",sep=';',header=TRUE)
+colnames(lVIS)[1] = "ID"
+
+lMEM <- read.csv("lMen_win_0_6_0_7_bl200msERP_Variables.csv",sep=';',header=TRUE)
+colnames(lMEM)[1] = "ID"
+
+eVIS <-  merge(eVIS, meanAge, by = "ID")
+lVIS <-  merge(lVIS, meanAge, by = "ID")
+lMEM <-  merge(lMEM, meanAge, by = "ID")
+
+```
+
+```{r fig.height=3, fig.width=3, message=FALSE, warning=FALSE, include=FALSE}
+# Explore parietal reported for Gamma cfg.rois{4}=[31 59 58]; %right-parietal BL in each condition
+# eVIS$sdBL4_eVis_win_0_1_0_2_bl200ms # Same BL for lVIS
+p<-ggplot(eVIS, aes(x =A , y = sdBL4_eVis_win_0_1_0_2_bl200ms)) +  geom_point(aes(), colour ="deepskyblue", size=2)
+p+ xlab("Age") +  ylab("sdBL") +  ggtitle("BL VIS") + geom_smooth(method = "lm", se = FALSE)
+
+
+# lMEM$sdBL4_lMen_win_0_6_0_7_bl200ms
+p<-ggplot(lMEM, aes(x =A , y = sdBL4_lMen_win_0_6_0_7_bl200ms)) +  geom_point(aes(), colour ="deepskyblue", size=2)
+p+ xlab("Age") +  ylab("sdBL") +  ggtitle("BL MEM") + geom_smooth(method = "lm", se = FALSE)
+
+
+# Explore parietal reported for Gamma cfg.rois{4}=[31 59 58]; %right-parietal BL in each condition
+eVIS$sd4_eVis_win_0_1_0_2_bl200ms # Same BL for lVIS
+p<-ggplot(eVIS, aes(x =A , y = sd4_eVis_win_0_1_0_2_bl200ms)) +  geom_point(aes(), colour ="deepskyblue", size=2)
+p+ xlab("Age") +  ylab("sdBL") +  ggtitle("VIS STIM") + geom_smooth(method = "lm", se = FALSE)
+
+
+# Explore parietal reported for Gamma cfg.rois{4}=[31 59 58]; %right-parietal BL in each condition
+eVIS$SNReVISBL <-  eVIS$sd4_eVis_win_0_1_0_2_bl200ms/eVIS$sdBL4_eVis_win_0_1_0_2_bl200ms# Same BL for lVIS
+p<-ggplot(eVIS, aes(x =A , y = SNReVISBL)) +  geom_point(aes(), colour ="deepskyblue", size=2)
+p+ xlab("Age") +  ylab("sdBL") +  ggtitle("SNR VIS STIM") + geom_smooth(method = "lm", se = FALSE)
+
+```
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.height=3, fig.width=3}
+# Explore parietal reported for Gamma cfg.rois{4}=[31 59 58]; %right-parietal BL in each condition
+clean.eVIS <- eVIS
+clean.eVIS$sdBL4_eVis_win_0_1_0_2_bl200ms <- outliersZ(clean.eVIS$sdBL4_eVis_win_0_1_0_2_bl200ms , zCutOff = 2.5)
+clean.eVIS$sd4_eVis_win_0_1_0_2_bl200ms <- outliersZ(clean.eVIS$sd4_eVis_win_0_1_0_2_bl200ms , zCutOff = 2.5)
+clean.eVIS <- clean.eVIS[complete.cases(clean.eVIS), ]
+
+# eVIS$sdBL4_eVis_win_0_1_0_2_bl200ms # Same BL for lVIS
+p<-ggplot(clean.eVIS, aes(x =A , y = sdBL4_eVis_win_0_1_0_2_bl200ms)) +  geom_point(aes(), colour ="deepskyblue", size=2)
+p+ xlab("Age") +  ylab("sdBL") +  ggtitle("BL VIS") + geom_smooth(method = "lm", se = FALSE)
+
+modeloBL<-lm(sdBL4_eVis_win_0_1_0_2_bl200ms ~ A , data=clean.eVIS)
+summary(modeloBL)
+confint(modeloBL)
+
+# Explore parietal reported for Gamma cfg.rois{4}=[31 59 58]; %right-parietal BL in each condition
+# clean.eVIS$sd4_eVis_win_0_1_0_2_bl200ms # Same BL for lVIS
+p<-ggplot(clean.eVIS, aes(x =A , y = sd4_eVis_win_0_1_0_2_bl200ms)) +  geom_point(aes(), colour ="deepskyblue", size=2)
+p+ xlab("Age") +  ylab("sdBL") +  ggtitle("VIS STIM") + geom_smooth(method = "lm", se = FALSE)
+
+modeloSTIM<-lm(sd4_eVis_win_0_1_0_2_bl200ms ~ A , data=clean.eVIS)
+summary(modeloSTIM)
+confint(modeloSTIM)
+
+# Explore parietal reported for Gamma cfg.rois{4}=[31 59 58]; %right-parietal BL in each condition
+clean.eVIS$SNReVISBL <-  clean.eVIS$sd4_eVis_win_0_1_0_2_bl200ms/clean.eVIS$sdBL4_eVis_win_0_1_0_2_bl200ms# Same BL for lVIS
+clean.SNR <- clean.eVIS
+clean.SNR$SNReVISBL <- outliersZ(clean.SNR$SNReVISBL , zCutOff = 2.5)
+clean.SNR <- clean.SNR[complete.cases(clean.eVIS), ]
+
+p<-ggplot(clean.SNR, aes(x =A , y = SNReVISBL)) +  geom_point(aes(), colour ="deepskyblue", size=2)
+p+ xlab("Age") +  ylab("sdBL") +  ggtitle("SNR VIS STIM") + geom_smooth(method = "lm", se = FALSE)
+
+modeloSNR<-lm(SNReVISBL ~ A , data=clean.SNR)
+summary(modeloSNR)
+confint(modeloSNR)
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.height=8, fig.width=8}
+# Absolutely iligal screanning to see which ROIs predict Age
+lVIS.nbl <- lVIS
+lVIS.nbl$sdBLR1_lVis_win_0_3_0_4_bl200ms <- NULL
+lVIS.nbl$sdBLR2_lVis_win_0_3_0_4_bl200ms <- NULL
+lVIS.nbl$sdBLR3_lVis_win_0_3_0_4_bl200ms <- NULL
+lVIS.nbl$sdBLR4_lVis_win_0_3_0_4_bl200ms <- NULL
+eVIS$A <- NULL
+lMEM$A <- NULL
+total_total <- Reduce(function(x,y) merge(x = x, y = y, by = "ID"), list(eVIS,lVIS.nbl,lMEM))
+
+#  colnames(total_total)
+# "ID"                              "sdR1_eVis_win_0_1_0_2_bl200ms"   "sdR2_eVis_win_0_1_0_2_bl200ms"   "sdR3_eVis_win_0_1_0_2_bl200ms"  
+#  "sd4_eVis_win_0_1_0_2_bl200ms"    "sd5_eVis_win_0_1_0_2_bl200ms"    "sdBLR1_eVis_win_0_1_0_2_bl200ms" "sdBLR2_eVis_win_0_1_0_2_bl200ms"
+# "sdBLR3_eVis_win_0_1_0_2_bl200ms" "sdBL4_eVis_win_0_1_0_2_bl200ms"  "sdBL5_eVis_win_0_1_0_2_bl200ms"  "SNReVISBL"                      
+# "sdR1_lVis_win_0_3_0_4_bl200ms"   "sdR2_lVis_win_0_3_0_4_bl200ms"   "sdR3_lVis_win_0_3_0_4_bl200ms"   "sd4_lVis_win_0_3_0_4_bl200ms"   
+# "sd5_lVis_win_0_3_0_4_bl200ms"    "sdBL4_lVis_win_0_3_0_4_bl200ms"  "sdBL5_lVis_win_0_3_0_4_bl200ms"  "A"                              
+# "sdR1_lMen_win_0_6_0_7_bl200ms"   "sdR2_lMen_win_0_6_0_7_bl200ms"   "sdR3_lMen_win_0_6_0_7_bl200ms"   "sd4_lMen_win_0_6_0_7_bl200ms"   
+# "sd5_lMen_win_0_6_0_7_bl200ms"    "sdBLR1_lMen_win_0_6_0_7_bl200ms" "sdBLR2_lMen_win_0_6_0_7_bl200ms" "sdBLR3_lMen_win_0_6_0_7_bl200ms"
+# "sdBL4_lMen_win_0_6_0_7_bl200ms"  "sdBL5_lMen_win_0_6_0_7_bl200ms" 
+cuant <-  total_total[,-which(names(total_total) %in% c("ID" ,"A" ))]
+concuad <-  total_total[,-which(names(total_total) %in% c("ID" ,"A" ))]^2
+
+
+# Continuas centradas
+total_total.estandars_centr <- cbind(total_total[,c("A")],scale(cuant, center=T, scale=F))
+colnames(total_total.estandars_centr)[1] <- "A"
+total_total.estandars_centr <- data.frame(total_total.estandars_centr)
+
+# Continuas Normalizadas
+total_total.estandars_norm <- cbind(total_total[,c("A")],scale(cuant, center=T, scale=T))
+colnames(total_total.estandars_norm)[1] <- "A"
+total_total.estandars_norm <- data.frame(total_total.estandars_norm)
+
+# Elevadas
+total_total.concuad <- cbind(total_total[,c("A")],concuad)
+colnames(total_total.concuad)[1] <- "A"
+total_total.concuad <- data.frame(total_total.concuad)
+
+
+# advice, primero centrar y luego elevar
+total_total.centr_cuad <- cbind(total_total[,c("A")],total_total.estandars_centr^2)
+colnames(total_total.centr_cuad)[1] <- "A"
+total_total.centr_cuad <- data.frame(total_total.centr_cuad)
+
+# Todas juntas
+total_total.TOT <-  cbind(total_total[,c("A")],total_total,scale(cuant, center=T, scale=F),scale(cuant, center=T, scale=T),concuad,scale(cuant, center=T, scale=F)^2)
+colnames(total_total.TOT)[1] <- "A"
+
+names(total_total.TOT)<-make.names(names(total_total.TOT),unique=TRUE)
+
+corrmatrix <- cor(total_total.TOT) # todas las variables estan bastante correlacionadas
+# corrplot(corrmatrix, method="circle",type = "upper")
+
+```
+
+
+```{r}
+# ??? Univariados
+colnames(total_total.TOT)
+total_total.TOT$ID <- NULL
+total_total.TOT$A.1 <- NULL
+univ0<-glm(A~1, data= total_total.TOT, family=gaussian)
+add1(univ0,A ~
+sdR1_eVis_win_0_1_0_2_bl200ms + sdR2_eVis_win_0_1_0_2_bl200ms + sdR3_eVis_win_0_1_0_2_bl200ms+sd4_eVis_win_0_1_0_2_bl200ms +     
+sd5_eVis_win_0_1_0_2_bl200ms + sdBLR1_eVis_win_0_1_0_2_bl200ms + sdBLR2_eVis_win_0_1_0_2_bl200ms +  
+sdBLR3_eVis_win_0_1_0_2_bl200ms + sdBL4_eVis_win_0_1_0_2_bl200ms + sdBL5_eVis_win_0_1_0_2_bl200ms +    
+SNReVISBL + sdR1_lVis_win_0_3_0_4_bl200ms + sdR2_lVis_win_0_3_0_4_bl200ms +    
+sdR3_lVis_win_0_3_0_4_bl200ms + sd4_lVis_win_0_3_0_4_bl200ms + sd5_lVis_win_0_3_0_4_bl200ms +    
+ sdBL4_lVis_win_0_3_0_4_bl200ms + sdBL5_lVis_win_0_3_0_4_bl200ms +                              
+sdR1_lMen_win_0_6_0_7_bl200ms + sdR2_lMen_win_0_6_0_7_bl200ms + sdR3_lMen_win_0_6_0_7_bl200ms +     
+sd4_lMen_win_0_6_0_7_bl200ms + sd5_lMen_win_0_6_0_7_bl200ms + sdBLR1_lMen_win_0_6_0_7_bl200ms +   
+sdBLR2_lMen_win_0_6_0_7_bl200ms + sdBLR3_lMen_win_0_6_0_7_bl200ms + sdBL4_lMen_win_0_6_0_7_bl200ms +    
+sdBL5_lMen_win_0_6_0_7_bl200ms + sdR1_eVis_win_0_1_0_2_bl200ms.1 + sdR2_eVis_win_0_1_0_2_bl200ms.1 +  
+sdR3_eVis_win_0_1_0_2_bl200ms.1 + sd4_eVis_win_0_1_0_2_bl200ms.1 + sd5_eVis_win_0_1_0_2_bl200ms.1 +   
+sdBLR1_eVis_win_0_1_0_2_bl200ms.1 + sdBLR2_eVis_win_0_1_0_2_bl200ms.1 + sdBLR3_eVis_win_0_1_0_2_bl200ms.1 + 
+sdBL4_eVis_win_0_1_0_2_bl200ms.1 + sdBL5_eVis_win_0_1_0_2_bl200ms.1 + SNReVISBL.1 +                     
+sdR1_lVis_win_0_3_0_4_bl200ms.1 + sdR2_lVis_win_0_3_0_4_bl200ms.1 + sdR3_lVis_win_0_3_0_4_bl200ms.1 +  
+sd4_lVis_win_0_3_0_4_bl200ms.1 + sd5_lVis_win_0_3_0_4_bl200ms.1 + sdBL4_lVis_win_0_3_0_4_bl200ms.1 + 
+sdBL5_lVis_win_0_3_0_4_bl200ms.1 + sdR1_lMen_win_0_6_0_7_bl200ms.1 + sdR2_lMen_win_0_6_0_7_bl200ms.1 +  
+sdR3_lMen_win_0_6_0_7_bl200ms.1 + sd4_lMen_win_0_6_0_7_bl200ms.1 + sd5_lMen_win_0_6_0_7_bl200ms.1 +   
+sdBLR1_lMen_win_0_6_0_7_bl200ms.1 + sdBLR2_lMen_win_0_6_0_7_bl200ms.1 + sdBLR3_lMen_win_0_6_0_7_bl200ms.1 + 
+sdBL4_lMen_win_0_6_0_7_bl200ms.1 + sdBL5_lMen_win_0_6_0_7_bl200ms.1 + sdR1_eVis_win_0_1_0_2_bl200ms.2 +   
+sdR2_eVis_win_0_1_0_2_bl200ms.2 + sdR3_eVis_win_0_1_0_2_bl200ms.2 + sd4_eVis_win_0_1_0_2_bl200ms.2 +   
+sd5_eVis_win_0_1_0_2_bl200ms.2 + sdBLR1_eVis_win_0_1_0_2_bl200ms.2 + sdBLR2_eVis_win_0_1_0_2_bl200ms.2 + 
+sdBLR3_eVis_win_0_1_0_2_bl200ms.2 + sdBL4_eVis_win_0_1_0_2_bl200ms.2 + sdBL5_eVis_win_0_1_0_2_bl200ms.2 + 
+SNReVISBL.2 + sdR1_lVis_win_0_3_0_4_bl200ms.2 + sdR2_lVis_win_0_3_0_4_bl200ms.2 +  
+sdR3_lVis_win_0_3_0_4_bl200ms.2 + sd4_lVis_win_0_3_0_4_bl200ms.2 + sd5_lVis_win_0_3_0_4_bl200ms.2 +   
+sdBL4_lVis_win_0_3_0_4_bl200ms.2 + sdBL5_lVis_win_0_3_0_4_bl200ms.2 + sdR1_lMen_win_0_6_0_7_bl200ms.2 +  
+sdR2_lMen_win_0_6_0_7_bl200ms.2 + sdR3_lMen_win_0_6_0_7_bl200ms.2 + sd4_lMen_win_0_6_0_7_bl200ms.2 +   
+sd5_lMen_win_0_6_0_7_bl200ms.2 + sdBLR1_lMen_win_0_6_0_7_bl200ms.2 + sdBLR2_lMen_win_0_6_0_7_bl200ms.2 + 
+sdBLR3_lMen_win_0_6_0_7_bl200ms.2 + sdBL4_lMen_win_0_6_0_7_bl200ms.2 + sdBL5_lMen_win_0_6_0_7_bl200ms.2 +  
+sdR1_eVis_win_0_1_0_2_bl200ms.3 + sdR2_eVis_win_0_1_0_2_bl200ms.3 + sdR3_eVis_win_0_1_0_2_bl200ms.3 +   
+sd4_eVis_win_0_1_0_2_bl200ms.3 + sd5_eVis_win_0_1_0_2_bl200ms.3 + sdBLR1_eVis_win_0_1_0_2_bl200ms.3 + 
+sdBLR2_eVis_win_0_1_0_2_bl200ms.3 + sdBLR3_eVis_win_0_1_0_2_bl200ms.3 + sdBL4_eVis_win_0_1_0_2_bl200ms.3 +  
+sdBL5_eVis_win_0_1_0_2_bl200ms.3 + SNReVISBL.3 + sdR1_lVis_win_0_3_0_4_bl200ms.3 + 
+sdR2_lVis_win_0_3_0_4_bl200ms.3 + sdR3_lVis_win_0_3_0_4_bl200ms.3 + sd4_lVis_win_0_3_0_4_bl200ms.3 +   
+sd5_lVis_win_0_3_0_4_bl200ms.3 + sdBL4_lVis_win_0_3_0_4_bl200ms.3 + sdBL5_lVis_win_0_3_0_4_bl200ms.3 + 
+sdR1_lMen_win_0_6_0_7_bl200ms.3 + sdR2_lMen_win_0_6_0_7_bl200ms.3 + sdR3_lMen_win_0_6_0_7_bl200ms.3 + 
+sd4_lMen_win_0_6_0_7_bl200ms.3 + sd5_lMen_win_0_6_0_7_bl200ms.3 + sdBLR1_lMen_win_0_6_0_7_bl200ms.3 + 
+sdBLR2_lMen_win_0_6_0_7_bl200ms.3 + sdBLR3_lMen_win_0_6_0_7_bl200ms.3 + sdBL4_lMen_win_0_6_0_7_bl200ms.3 + 
+sdBL5_lMen_win_0_6_0_7_bl200ms.3 + sdR1_eVis_win_0_1_0_2_bl200ms.4 + sdR2_eVis_win_0_1_0_2_bl200ms.4 +  
+sdR3_eVis_win_0_1_0_2_bl200ms.4 + sd4_eVis_win_0_1_0_2_bl200ms.4 + sd5_eVis_win_0_1_0_2_bl200ms.4 +  
+sdBLR1_eVis_win_0_1_0_2_bl200ms.4 + sdBLR2_eVis_win_0_1_0_2_bl200ms.4 + sdBLR3_eVis_win_0_1_0_2_bl200ms.4 + 
+sdBL4_eVis_win_0_1_0_2_bl200ms.4 + sdBL5_eVis_win_0_1_0_2_bl200ms.4 + SNReVISBL.4 +                     
+sdR1_lVis_win_0_3_0_4_bl200ms.4 + sdR2_lVis_win_0_3_0_4_bl200ms.4 + sdR3_lVis_win_0_3_0_4_bl200ms.4 + 
+sd4_lVis_win_0_3_0_4_bl200ms.4 + sd5_lVis_win_0_3_0_4_bl200ms.4 + sdBL4_lVis_win_0_3_0_4_bl200ms.4 + 
+sdBL5_lVis_win_0_3_0_4_bl200ms.4 + sdR1_lMen_win_0_6_0_7_bl200ms.4 + sdR2_lMen_win_0_6_0_7_bl200ms.4 + 
+sdR3_lMen_win_0_6_0_7_bl200ms.4 + sd4_lMen_win_0_6_0_7_bl200ms.4 + sd5_lMen_win_0_6_0_7_bl200ms.4 +  
+sdBLR1_lMen_win_0_6_0_7_bl200ms.4 + sdBLR2_lMen_win_0_6_0_7_bl200ms.4 + sdBLR3_lMen_win_0_6_0_7_bl200ms.4 + 
+sdBL4_lMen_win_0_6_0_7_bl200ms.4 + sdBL5_lMen_win_0_6_0_7_bl200ms.4
+       ,test="Chisq")
+
+# ??? Multivariado (selecci?n del mejor modelo posible)
+
+A_0<-tree(A~., total_total[,-which(names(total_total) %in% c("ID"))])
+summary(A_0)
+plot(A_0)
+text(A_0)
+print(A_0)
+
+A_tot<-tree(A~., total_total.TOT)
+summary(A_tot)
+plot(A_tot)
+text(A_tot)
+print(A_tot)
+prune.tree(A_tot)
+plot(prune.tree(A_tot)) #Me muestra c?mo disminuye la varianza a medida que aumenta el n?mero de nodos
+
+# number of nodes can be specified with best:
+arbol2<-prune.tree(A_tot, best=3) # ejemplo con 3 nodos
+plot(arbol2)
+text(arbol2)
+```
+
+```{r}
+# Seteo de directorio
+# setwd("H:/Projects/7TBrainMech/scripts/eeg/Alethia/Results/TF/R")
+
+# Load tables and reorganize data
+
+PowerData <- read.csv("H:/Projects/7TBrainMech/scripts/eeg/Alethia/Results/TF/R/R_Power_Variables.csv",sep=';',header=TRUE)
+colnames(PowerData)[1] = "ID"
+
+PD <-  merge(PowerData, meanAge, by = "ID")
+```
+
+```{r fig.height=3, fig.width=3, message=FALSE, warning=FALSE}
+# Explore parietal reported for Gamma cfg.rois{4}=[31 59 58]; %right-parietal in each condition
+# PD$Gamma4 
+p<-ggplot(PD, aes(x =A , y = Gamma4)) +  geom_point(aes(), colour ="deepskyblue", size=2)
+p+ xlab("Age") +  ylab("muV^2/Hz") +  ggtitle("Gamma in delay") + geom_smooth(method = "lm", se = FALSE)
+
+# Full Slope
+# PD$BFullR4
+p<-ggplot(PD, aes(x =A , y = BFullR4)) +  geom_point(aes(), colour ="deepskyblue", size=2)
+p+ xlab("Age") +  ylab("B tot") +  ggtitle("B full in delay") + geom_smooth(method = "lm", se = FALSE)
+
+# Hig Slope
+p<-ggplot(PD, aes(x =A , y = BHig4)) +  geom_point(aes(), colour ="deepskyblue", size=2)
+p+ xlab("Age") +  ylab("B Hig") +  ggtitle("B Hig in delay") + geom_smooth(method = "lm", se = FALSE)
+
+# Low Slope
+# PD$BLow4
+p<-ggplot(PD, aes(x =A , y = BLow4)) +  geom_point(aes(), colour ="deepskyblue", size=2)
+p+ xlab("Age") +  ylab("B Low") +  ggtitle("B Low in delay") + geom_smooth(method = "lm", se = FALSE)
+
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.height=3, fig.width=3}
+# Explore parietal reported for Gamma cfg.rois{4}=[31 59 58]; %right-parietal BL in each condition
+clean.PD<- PD
+for (i in 2:length(PD)) {    clean.PD[,i] <- outliersZ(PD[,i], zCutOff = 2.5)}
+    clean.PD <- clean.PD[complete.cases(clean.PD), ]
+
+# PD$Gamma4 
+p<-ggplot(clean.PD, aes(x =A , y = Gamma4)) +  geom_point(aes(), colour ="deepskyblue", size=2)
+p+ xlab("Age") +  ylab("muV^2/Hz") +  ggtitle("Gamma in delay") + geom_smooth(method = "lm", se = FALSE)
+
+modeloGamma<-lm(Gamma4 ~ A , data=clean.PD)
+summary(modeloGamma)
+confint(modeloGamma)
+
+# Full Slope
+p<-ggplot(clean.PD, aes(x =A , y = BFullR4)) +  geom_point(aes(), colour ="deepskyblue", size=2)
+p+ xlab("Age") +  ylab("B tot") +  ggtitle("B full in delay") + geom_smooth(method = "lm", se = FALSE)
+
+modeloBfull<-lm(BFullR4 ~ A , data=clean.PD)
+summary(modeloBfull)
+confint(modeloBfull)
+
+# Hig Slope
+p<-ggplot(clean.PD, aes(x =A , y = BHig4)) +  geom_point(aes(), colour ="deepskyblue", size=2)
+p+ xlab("Age") +  ylab("B Hig") +  ggtitle("B Hig in delay") + geom_smooth(method = "lm", se = FALSE)
+
+
+modeloBHig4<-lm(BHig4 ~ A , data=clean.PD)
+summary(modeloBHig4)
+confint(modeloBHig4)
+
+# Low Slope
+p<-ggplot(clean.PD, aes(x =A , y = BLow4)) +  geom_point(aes(), colour ="deepskyblue", size=2)
+p+ xlab("Age") +  ylab("B Low") +  ggtitle("B Low in delay") + geom_smooth(method = "lm", se = FALSE)
+
+
+modeloBLow<-lm(BLow4 ~ A , data=clean.PD)
+summary(modeloBLow)
+confint(modeloBLow)
+```
+# Bibliography
+1 - Uhlhaas, P.J., Roux, F., Singer, W., Haenschel, C., Sireteanu, R., Rodriguez, E., 2009. The development of neural synchrony reflects late maturation and restructuring of functional networks in humans. Proc. Natl. Acad. Sci. U. S. A. 106, 9866–9871. https://doi.org/10.1073/pnas.0900390106
+
+2 - https://en.wikipedia.org/wiki/Event-related_potential

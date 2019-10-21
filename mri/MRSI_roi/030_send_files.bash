@@ -6,6 +6,8 @@ trap 'e=$?; [ $e -ne 0 ] && echo "$0 exited in error"' EXIT
 # organize files to send to victor
 #
 
+[[ $# -eq 0 || "$1" =~ help|-h ]] && echo "change hardcoded subjects in $0; change output name maybe" && exit 1
+
 # 20190502 - init
 # 20190507 - 10 more subjects, saved in a different directory for easy zipping (and then sending to MRRC)
 

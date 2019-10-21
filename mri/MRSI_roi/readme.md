@@ -33,8 +33,9 @@ mni roi -> slice row+col center -> sepectrum -> concentration
  0. `./051_GM_Count.bash`   - get fraction gm from anat roi mask
 
 #### Button click order
- 0. WritePositions
+ 0. load, load, load
  0. Reorient slice
+ 0. WritePositions (second write)
  0. IFFT
  0. Recon Coords
  0. enter, enter

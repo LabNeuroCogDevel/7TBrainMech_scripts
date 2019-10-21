@@ -102,6 +102,7 @@ for sraw in ${list[@]}; do
    "11731_20190201/0023_B0Scout33Slice_66" # early 66 to be ignored
    "11760_20190311/0023_B0Scout33Slice_66" # mixed date data, this is from separate scout dir
    "11728_20190114/0028_B0Map33Slice_66"   # 3 in a row, use the last before rest
+   "11799_20190816/0025_B0Scout33Slice_66" # weird 0025_B0Scout33Slice_66  0026_B0Scout33Slice_33  0027_B0Map33Slice_165  0028_B0Map33Slice_33  0029_B0Map33Slice_16
    # FF scans
    "20180824FF2/0023_B0Scout33Slice_66"
    )
@@ -183,6 +184,7 @@ for sraw in ${list[@]}; do
    if [ ! -r roi_slice.nii.gz ]; then
       applywarp -i $mni_atlas -o roi_mprage.nii.gz -r ppt1/mprage.nii.gz     -w ppt1/template_to_subject_warpcoef.nii.gz --interp=nn
       applywarp -i $mni_atlas -o roi_slice.nii.gz  -r slice_pfc.nii.gz  -w ppt1/template_to_subject_warpcoef.nii.gz --postmat=mprage_to_slice.mat --interp=nn
+      echo "# made $(pwd)/roi_slice.nii.gz"
    fi
 
    # make a nifti that is just slice 17 at 24x24 voxels (9x9mm)

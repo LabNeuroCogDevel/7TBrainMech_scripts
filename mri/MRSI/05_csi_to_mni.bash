@@ -17,7 +17,7 @@ for mdir in /Volumes/Hera/Projects/7TBrainMech/subjs/*/slice_PFC/; do
    labels="$(3dinfo -label $csi | sed 's/\[0\]//g;s/\.\?n\?i*|/ /g')"
    cmd="
       3dresample -inset $csi -master $pfc -prefix allcsi_tmp_large.nii.gz;
-      applywarp -i allcsi_tmp_large.nii.gz -o $final_csi_mni -r ppt1/template_brain.nii -w ppt1/mprage_warpcoef.nii.gz  --premat=$warpmat;
+      applywarp -i allcsi_tmp_large.nii.gz -o $final_csi_mni -r ppt1/template_brain.nii -w ppt1/mprage_warpcoef.nii.gz  --premat=$warpmat --interp=nn;
       3drefit -relabel_all_str '$labels' $final_csi_mni;"
    echo -e "$(pwd)\n$cmd"
    eval $cmd

@@ -20,8 +20,9 @@ if [ $# -eq 0 ]; then
    cat <<HEREDOC 
    USAGE:
      $0 subj_date
-     $0 all 
-     $0 STUDY=FF all 
+     $0 all  # all spreadsheets.csv
+     $0 ALL  # all subject folders (id_list.bash)
+     $0 STUDY=FF all  # all for other study
      # see /Volumes/Hera/Projects/7TBrainMech/pipelines/MHT1_2mm/ for subj list
 HEREDOC
   exit 1
@@ -43,9 +44,12 @@ esac
 echo $STUDY $STUDYDIR
 
 if [ $1 == "all" ]; then
-   find $BOXMRSI -iname spreadsheet.csv -and -not -ipath '*Thal*' -and -not -ipath '*20190507processed*'  |
+   find $BOXMRSI -iname spreadsheet.csv -and -not -path '*/Hc/*' -and -not -ipath '*Thal*' -and -not -ipath '*20190507processed*'  |
     #perl -MFile::Basename -ple '$_=lc(basename(dirname(dirname($_))))'|
-    perl -lne 'print $1 if m:/(20\d{6}[^/]+)/:' |
+       # getting mostly 8 digiti date, but 
+       #   Processed100319:  4 digit date and then 1-2 for a or b
+       perl -lne 'next unless m:/(20\d{6}[^/]+)|100319/Luna(0\d{3})([1-2])/:;
+                  if(! $2){print $1} else {print "2019$2Luna$3"}' |
     while read mrid; do
        if [ $STUDY == "7TBrainMech" ]; then
           subj_date=$( (grep -i "$mrid" txt/ids.txt||echo " ") |cut -d' ' -f 1)

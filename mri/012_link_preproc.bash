@@ -22,7 +22,7 @@ for d in /Volumes/Zeus/preproc/7TBrainMech_*/*/*/; do
       *MHT1_2mm) preproc_name=t1;;
       mgsencmem+*Task*) preproc_name=task;;
       rest+*Rest*) preproc_name=rest;;
-      *) echo "dont know what to do with $task+$preproc";;
+      *) echo "dont know what to do with $task+$preproc ($d)";;
    esac
 
    out_name=$subj_dir/$preproc_name

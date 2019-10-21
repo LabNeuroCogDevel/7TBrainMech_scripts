@@ -3,8 +3,9 @@ library(ggplot2)
 library(cowplot)
 setwd('/Volumes/Hera/Projects/7TBrainMech/scripts/mri/snr/')
 
-fd   <- read.csv("/Volumes/Hera/Projects/7TBrainMech/scripts/mri/txt/rest_fd.csv")
-
+# made by ../030_getfd.R
+fd   <- read.table("/Volumes/Hera/Projects/7TBrainMech/scripts/mri/txt/rest_fd.csv")
+# made by t2_tsnr.bash which also calls this script
 tsnr <- read.table("date_tsnr.txt")
 names(tsnr) <- c("id", "d8", "tsnr")
 tsnr$id <- as.character(tsnr$id)

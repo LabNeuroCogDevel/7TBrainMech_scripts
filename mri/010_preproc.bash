@@ -14,5 +14,6 @@ source $HOME/.bashrc
 
 # ln -s /Volumes/Zeus/preproc/7TBrainMech_rest/MHT1_2mm/ /Volumes/Zeus/preproc/7TBrainMech_mgsencmem/MHT1_2mm
 
-pp 7TBrainMech_rest  MHRest_nost_ica
-pp 7TBrainMech_mgsencmem  MHTask_nost
+#pp 7TBrainMech_rest  MHRest_nost_ica
+pp 7TBrainMech_rest  MHRest_nost all
+pp 7TBrainMech_mgsencmem  MHTask_nost all

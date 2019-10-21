@@ -8,9 +8,10 @@ cd $(dirname $0)
 #
 
 # run freesurfer
+echo "NOT RUNNING update functions (run by hand)"
 echo ../FS/001_toPSC.bash
 echo ../FS/002_fromPSC.bash
-./001_rsync_MRSI_from_box.bash  # not really rsync, but rclone
+echo ../001_rsync_MRSI_from_box.bash  # not really rsync, but rclone
 ./01_get_slices.bash all
 ./02_label_csivox.bash all
 ./03_func_atlas.bash
