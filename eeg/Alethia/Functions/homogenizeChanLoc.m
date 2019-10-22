@@ -18,13 +18,13 @@ if length(CL.name) ~= length(CL_old.name)
 end
 
 % TODO: probably not going to run correctly!!
-dbstop
+
 differ = find(~strcmp(CL.name, CL_old.name)); 
 for d = differ'
-    missingIDX = find(strcmp(CL.name(d), CL_old.name(d));
-    EEG.chanlocs(d) = EEG_old.chanlocs(missingIDX );        % update ChanLoc
-    EEG.chanlocs(d).urchan  = missingIDX;                   % update number *maybe not mandatory
-    EEG.data(d,:) = EEG_old.data(missingIDX,:);             % move data
+    missingIDX = find(strcmp(CL.name(d), CL_old.name(d)));
+    EEG.chanlocs(d) = EEG_old.chanlocs(missingIDX);        % update ChanLoc
+    EEG.chanlocs(d).urchan  = missingIDX;                  % update number *maybe not mandatory
+    EEG.data(d,:) = EEG_old.data(missingIDX,:);            % move data
     
 end
 
