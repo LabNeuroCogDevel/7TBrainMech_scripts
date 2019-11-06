@@ -17,10 +17,13 @@ function [f, coords] = coord_mover(ld8, varargin)
 % [f, orig_coord] = coord_mover('11323_20180316')
 %  loads slice_roi_CM_%s_16.txt, rorig.nii, and gm_sum.nii from subj dir
 %
+% EXAMPLE FF:
+% [f, orig_coord] = coord_mover('FF') % loads default labels and coords; propts to pick rorig.nii.gz
+%
 % EXAMPLE CORD BUILDER
 %   # seq 1 24|sed s/$/:/ > tmp/roilist_labels.txt
 %   # sed 's/:/\t50\t50/g' tmp/roilist_labels.txt > tmp/empty_coords.txt
-%   [f, orig_coord] = coord_mover('11323_20180316', 'roilist','tmp/roilist_labels.txt','subjcoords', 'tmp/empty_coords.txt')
+%   [f, orig_coord] = coord_mover('11323_20180316', 'labels_MP20191015.txt','tmp/roilist_labels.txt','subjcoords', 'tmp/empty_coords.txt')
 %
 % EXAMPLE view warped
 % 
@@ -32,16 +35,50 @@ function [f, coords] = coord_mover(ld8, varargin)
 %  [f, orig_coord] = coord_mover('','subjcoords','mkcoords/mni_ijk.txt','brain','mkcoords/slice_mni.nii');
 
   mni_label_file='./mni_coords_MPOR_20190425_labeled.txt';
+
+  NIFTIDIR='/Volumes/Hera/Projects/7TBrainMech/scripts/mri/MRSI/Codes_yj/NIfTI';
+  RAWDIRROOT='/Volumes/Hera/Projects/7TBrainMech/subjs/%s/slice_PFC/MRSI_roi/raw/';
+
+
   disp(varargin)
   p = inputParser;
   p.addRequired('ld8');
   p.addOptional('roilist', mni_label_file, @isfile);
   p.addOptional('subjcoords', '', @isfile);
   p.addOptional('brain', '', @isfile); 
+  p.addOptional('gm', '', @isfile); 
   parse(p,ld8,varargin{:});
+
+  % pop up file selector on subject id 'FF' or 'pick'
+  % FF has default label and coords (empty)
+  if strcmp(p.Results.ld8, 'FF')
+     roilist = p.Results.roilist;
+     if strcmp(roilist, mni_label_file), roilist = fullfile(pwd,'FF/FF_labels.txt'); end
+     subjcoords = p.Results.subjcoords;
+     if isempty(subjcoords), subjcoords = fullfile(pwd,'FF/FF_coord.txt'); end
+     [f, pth]= uigetfile({'*.nii','*.nii.gz'},'rorig brain in scout nifti');
+     brain=fullfile(pth, f);
+     if ~exist(brain, 'file'); error('need brain to continue'); end
+     newargs={'FF', 'brain',brain,'subjcoords', subjcoords, 'roilist',roilist};
+     
+%      [f, pth]= uigetfile({'*.nii','*.nii.gz'},'gm sum mask');
+%      if ~isempty(f) 
+%          newargs={newargs{:},'gm',fullfile(pth,f)};
+%      end
+     data.z_free = 0;
+     parse(p,newargs{:});
+
+  elseif strcmp(p.Results.ld8, 'pick')
+     error('still working on this!')
+  end
+
   disp(p.Results)
   mni_label_file = p.Results.roilist;
 
+  if ~isempty(p.Results.gm)
+     mask_nii = load_untouch_nii(p.Results.gm);
+     mask_nii = mask_nii.img;
+  end
   
   
   %% set mni coords (use for labels
@@ -53,14 +90,18 @@ function [f, coords] = coord_mover(ld8, varargin)
   roi_label = roi_label(~cellfun(@isempty, roi_label));
   mask_nii = [];
   
-
+      
+  % need nii reader in path
+  if isempty(which('load_untouch_nii'))
+      addpath(NIFTIDIR);
+  end
   
   data.ld8=ld8;
   %% if we are only given a lunaid, we can find nii and coord
   if isempty(p.Results.brain)
        %% find raw dir
       % raw dir collects everything we need. depends on ./000_setupdirs.bash
-      rdir = sprintf('/Volumes/Hera/Projects/7TBrainMech/subjs/%s/slice_PFC/MRSI_roi/raw/', ld8);
+      rdir = sprintf(RAWDIRROOT, ld8);
       if ~exist(rdir,'dir')
          error('cannot read subject raw dir "%s"; run: ./000_setupdirs.bash %s', rdir, ld8)
       end
@@ -71,11 +112,7 @@ function [f, coords] = coord_mover(ld8, varargin)
       if ~exist(mprage_file,'file')
          error('cannot read subject mprage (FS) in slice space "%s"; run: ./000_setupdirs.bash %s', mprage_file, ld8)
       end
-      
-      % need nii reader in path
-      if isempty(which('load_untouch_nii'))
-          addpath('/Volumes/Hera/Projects/7TBrainMech/scripts/mri/MRSI/Codes_yj/NIfTI');
-      end
+
       % grab it
       nii = load_untouch_nii(mprage_file);
 
@@ -109,11 +146,14 @@ function [f, coords] = coord_mover(ld8, varargin)
       %% we are moving in a fixed slice. z is not free
       data.z_free = 0;
       
-  elseif ~isempty(p.Results.coord)
-      coords_file = p.Results.coord;
+  elseif ~isempty(p.Results.subjcoords)
+      coords_file = p.Results.subjcoords;
       mprage_file = p.Results.brain;
       nii = load_untouch_nii(mprage_file);
-      data.z_free=1;
+      % only if we haven't already set it
+      if ~ismember('z_free', fieldnames(data))
+        data.z_free=1;
+      end
   else
       error('input should be lunaid or ('''',''coord'',''coordfile'',''brain'',''image.nii'')')
   end
@@ -139,7 +179,9 @@ function [f, coords] = coord_mover(ld8, varargin)
   data.coords_file = coords_file;
   
   % check roi labels match number of coordinates
-  if length(roi_label) ~= length(coords)
+  if length(roi_label) ~= size(coords,1)
+      roi_label,
+      coords,
       error('wrong number of rois in %s vs %s', coords_file, mni_label_file)
   end
   
@@ -311,7 +353,9 @@ function mni(varargin)
   system(cmd)
   cmd = sprintf('env -i bash -lc "./coord_builder.bash mni-cm-sphere mni_examples/%s_mni-cm-sphere.nii.gz mni_examples/%s_mni-subjblob.nii.gz"', txtfile, txtfile)
   system(cmd)
-  fprintf('====\nif not already open, run: afni %s/{mni_examples, mkcoords}\n\n', pwd)
+  fprintf('====\nif not already open, run: afni %s/{mni_examples,mkcoords} /Volumes/Hera/Projects/7TBrainMech/subjs/%s/preproc/t1/mprage_warp_linear.nii.gz\n\n', ...
+  fprintf('====\nconsider: ln -s /Volumes/Hera/Projects/7TBrainMech/subjs/%s/preproc/t1/mprage_warp_linear.nii.gz %s/mkcoords/%s_lin_warp.nii.gz\n\n', ...
+     data.ld8, pwd, data.ld8))
 end
 
 function reset_coords(varargin)
