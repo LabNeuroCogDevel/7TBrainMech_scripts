@@ -18,7 +18,7 @@ function [f, coords] = coord_mover(ld8, varargin)
 %  loads slice_roi_CM_%s_16.txt, rorig.nii, and gm_sum.nii from subj dir
 %
 % EXAMPLE FF:
-% [f, orig_coord] = coord_mover('FF') % loads default labels and coords; propts to pick rorig.nii.gz
+% [f, orig_coord] = coord_mover('FF') % loads default labels and coords; prompts to pick rorig.nii.gz
 %
 % EXAMPLE CORD BUILDER
 %   # seq 1 24|sed s/$/:/ > tmp/roilist_labels.txt
@@ -37,6 +37,11 @@ function [f, coords] = coord_mover(ld8, varargin)
   mni_label_file='./mni_coords_MPOR_20190425_labeled.txt';
 
   NIFTIDIR='/Volumes/Hera/Projects/7TBrainMech/scripts/mri/MRSI/Codes_yj/NIfTI';
+  % need nii reader in path
+  if isempty(which('load_untouch_nii'))
+      addpath(NIFTIDIR);
+  end
+  
   RAWDIRROOT='/Volumes/Hera/Projects/7TBrainMech/subjs/%s/slice_PFC/MRSI_roi/raw/';
 
 
@@ -61,10 +66,10 @@ function [f, coords] = coord_mover(ld8, varargin)
      if ~exist(brain, 'file'); error('need brain to continue'); end
      newargs={'FF', 'brain',brain,'subjcoords', subjcoords, 'roilist',roilist};
      
-%      [f, pth]= uigetfile({'*.nii','*.nii.gz'},'gm sum mask');
-%      if ~isempty(f) 
-%          newargs={newargs{:},'gm',fullfile(pth,f)};
-%      end
+     [f, pth]= uigetfile({'*.nii','*.nii.gz'},'gm sum mask');
+     if ~isempty(f) 
+         newargs={newargs{:},'gm',fullfile(pth,f)};
+     end
      data.z_free = 0;
      parse(p,newargs{:});
 
@@ -72,13 +77,9 @@ function [f, coords] = coord_mover(ld8, varargin)
      error('still working on this!')
   end
 
+
   disp(p.Results)
   mni_label_file = p.Results.roilist;
-
-  if ~isempty(p.Results.gm)
-     mask_nii = load_untouch_nii(p.Results.gm);
-     mask_nii = mask_nii.img;
-  end
   
   
   %% set mni coords (use for labels
@@ -88,17 +89,21 @@ function [f, coords] = coord_mover(ld8, varargin)
   fclose(fid);
   roi_label = cellfun(@(x) regexprep(x,':.*',''), roi_mnicoord,'Un',0);
   roi_label = roi_label(~cellfun(@isempty, roi_label));
-  mask_nii = [];
-  
-      
-  % need nii reader in path
-  if isempty(which('load_untouch_nii'))
-      addpath(NIFTIDIR);
+
+  if ~isempty(p.Results.gm)
+     fprintf('[INFO] loading greymatter mask %s\n', p.Results.gm)
+     mask_nii = load_untouch_nii(p.Results.gm);
+     mask_nii = mask_nii.img;
+  else
+     % potentially loaded if lunaid is only specfied argument
+     mask_nii = [];
   end
   
+      
   data.ld8=ld8;
   %% if we are only given a lunaid, we can find nii and coord
   if isempty(p.Results.brain)
+      fprintf('[INFO] no brain specified, looking up by id: %s\n', ld8)
        %% find raw dir
       % raw dir collects everything we need. depends on ./000_setupdirs.bash
       rdir = sprintf(RAWDIRROOT, ld8);
@@ -147,6 +152,7 @@ function [f, coords] = coord_mover(ld8, varargin)
       data.z_free = 0;
       
   elseif ~isempty(p.Results.subjcoords)
+      fprintf('[INFO] loading specified brain and coords %s %s\n', p.Results.brain, p.Results.subjcoords)
       coords_file = p.Results.subjcoords;
       mprage_file = p.Results.brain;
       nii = load_untouch_nii(mprage_file);
@@ -159,6 +165,7 @@ function [f, coords] = coord_mover(ld8, varargin)
   end
   
   if isempty(mask_nii) 
+      fprintf('[INFO] no greymatter mask\n')
       mask_nii = nan(size(nii.img));
   end
 
@@ -397,8 +404,9 @@ function coords = read_coords(coords_file, n_rois, z_mid)
       coords(:,4) = z_mid;
   end
 
-  if length(coords) ~= n_rois
-     warning('expected %d rois, have %d in %s', n_rois, length(coords), coords_file)
+  n_coords = size(coords, 1)
+  if n_coords ~= n_rois
+     warning('expected %d rois, have %d in %s', n_rois, n_coords, coords_file)
      % replace missing rois with 0s
      coords_new = zeros(n_rois,size(coords,2)); % TODO: dont hardcode?
      coords_new(:,4) = 50; % set z to 50
@@ -569,4 +577,9 @@ function update_callback(ax, isfree, coord_idxs, roibox)
    else
       ax.ButtonDownFcn = @(src, event) set_coord(src, roibox, 1, coord_idxs(1));
    end
+end
+
+% not in older matlabs
+function r=isfile(f)
+   r=exist(f,'file');
 end
