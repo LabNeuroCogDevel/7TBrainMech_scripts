@@ -41,12 +41,19 @@ idxs <- list(
   MGS= grepl("bold.*(TASK|MGS|tacq2s-180).*", info$protocol) &
              info$ndcm == 9216,
   rest= grepl("bold.*(REST|tacq2s-180).*", info$protocol) &
-             info$ndcm == 10560
+             info$ndcm == 10560,
+  # e.g. ../../BIDS/rawlinks/11667_20180629/0035_mtgre-yesMT_44
+  #       ../../BIDS/rawlinks/11667_20180629/0036_mtgre-noMT_44
+  MT= grepl("mtgre-(yes|no)MT", info$protocol) & info$ndcm == 44
 )
 
-if(!any(lapply(idxs,any))) stop("no matching protocols in input!\n",
-                                info %>% filter(grepl('MP2RAGE|bold',protocol)) %>% print.data.frame(max=99) %>%
-                                     capture.output %>% paste(collapse="\n\t"))
+if (!any(lapply(idxs, any)))
+   stop("no matching protocols in input!\n",
+        info %>%
+         filter(grepl("MP2RAGE|bold", protocol)) %>%
+         print.data.frame(max=99) %>%
+         capture.output %>%
+         paste(collapse="\n\t"))
 
 # -- apply assignments
 info$process <- NA
@@ -64,13 +71,21 @@ proc <- info %>%
    filter(!is.na(process)) %>%
    group_by(luna, vdate, process) %>%
    mutate(item=rank(as.numeric(seqno)),
+          # t1-> anat, MGS|REST->func, MT->mt
           type=ifelse(process=="t1", "anat", "func"),
+          type=ifelse(process=="MT", "mt", type),
+          # name actually only for bold. anat and mt will be changed later
           name=sprintf("sub-%s_task-%s_run-%02d_bold", luna, process, item),
           outdir=sprintf("sub-%s/%s/%s/", luna, vdate, type) )
 
 # rename file for anat
 t1idx <- proc$type=="anat"
 proc$name[t1idx] <- gsub("_task.*", "_T1w", proc$name[t1idx])
+
+# rename mt
+mtidx <- proc$type=="mt"
+proc$name[mtidx] <- gsub("_task.*", "_MT_acq-%s", proc$name[mtidx]) %>%
+   sprintf(stringr::str_match(proc$protocol[mtidx], "yes|no"))
 
 # described expected final outputfile
 proc$file <- sprintf("%s/%s.nii.gz", proc$outdir, proc$name)
