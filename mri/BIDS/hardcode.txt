@@ -1,0 +1,4 @@
+# 11786_20190830 missing run 1
+item folder
+2 /Volumes/Hera/Raw/BIDS/7TBrainMech/rawlinks/11786_20190830/0019_ep3d-bold-1dgrappa-tacq2s-MGS-2_9216/
+3 /Volumes/Hera/Raw/BIDS/7TBrainMech/rawlinks/11786_20190830/0020_ep3d-bold-1dgrappa-tacq2s-MGS-3_9216/

@@ -1,6 +1,15 @@
 #!/usr/bin/env Rscript
 suppressPackageStartupMessages({library(dplyr)})
 
+# ranking sequence number doesn't always work
+# sometimes we redo!
+# use 0 to drop
+hfixfile <- '/Volumes/Hera/Projects/7TBrainMech/scripts/mri/BIDS/hardcode.txt'
+hardcode_fix <- read.table(hfixfile,comment.char='#', header=T) %>%
+   mutate(folder=gsub('/Volumes/Hera/Raw/BIDS/7TBrainMech/rawlinks/','', folder) %>%
+                 gsub('_','/',.)) %>%
+   tidyr::separate(folder, c('luna','vdate','seqno','protocol'), sep='/',drop=T) 
+
 # make niftis in BIDS dir format
 # expect raw dicoms like rawlinks/subj_date/seqno_protcol_ndcm
 # output nii.gz into sub-$lunaid/$vdate/{anat,func}/*.nii.gz
@@ -39,9 +48,9 @@ idxs <- list(
   t1 = grepl("^MP2RAGEPTX.TR6000.*.UNI.DEN$", info$protocol, perl=T) &
            info$ndcm %in% c(256, 192),
   MGS= grepl("bold.*(TASK|MGS|tacq2s-180).*", info$protocol) &
-             info$ndcm == 9216,
+             info$ndcm %in% c(9216,192), # 20191220 -  allow new mosaic 192
   rest= grepl("bold.*(REST|tacq2s-180).*", info$protocol) &
-             info$ndcm == 10560,
+             info$ndcm %in% c(10560,220), # 20191220 -  allow mosaic 220
   # e.g. ../../BIDS/rawlinks/11667_20180629/0035_mtgre-yesMT_44
   #       ../../BIDS/rawlinks/11667_20180629/0036_mtgre-noMT_44
   MT= grepl("mtgre-(yes|no)MT", info$protocol) & info$ndcm == 44
@@ -70,13 +79,31 @@ discard <-
 proc <- info %>%
    filter(!is.na(process)) %>%
    group_by(luna, vdate, process) %>%
-   mutate(item=rank(as.numeric(seqno)),
+   mutate(item=rank(as.numeric(seqno))) %>%
+   # hard code a fix for some weirdos
+   left_join(hardcode_fix, by=c("luna","vdate","protocol","seqno"),
+             suffix=c("", ".fix")) %>%
+   # drop any where the fix item number is 0
+   filter(is.na(item.fix) | item.fix != 0) %>%
+   # and update any where if is not NA
+   mutate(item=ifelse(is.na(item.fix),item,item.fix),
           # t1-> anat, MGS|REST->func, MT->mt
           type=ifelse(process=="t1", "anat", "func"),
           type=ifelse(process=="MT", "mt", type),
           # name actually only for bold. anat and mt will be changed later
           name=sprintf("sub-%s_task-%s_run-%02d_bold", luna, process, item),
           outdir=sprintf("sub-%s/%s/%s/", luna, vdate, type) )
+
+
+
+# ranking by seqno might be bad. espcially if we failed to copy in run1
+mgsidx<-!is.na(proc$process) & proc$process=='MGS'  
+mgsrunno <- proc$protocol[mgsidx] %>% stringr::str_extract('(?<=MGS-)\\d+') %>% as.numeric %>% ifelse(is.na(.), 0, .)
+suspectidx <- which(mgsidx)[proc$item[mgsidx] != mgsrunno & mgsrunno != 0]
+suspect <- proc[suspectidx,c('luna','vdate','item','seqno', 'protocol')] %>% arrange(luna,seqno,item)
+suspect %>% select(luna,vdate) %>% mutate(process='MGS') %>% unique %>% inner_join(proc) %>%
+   select(luna,vdate,item,seqno,protocol) %>%
+   print.data.frame(row.names=F)
 
 # rename file for anat
 t1idx <- proc$type=="anat"
