@@ -23,12 +23,14 @@ EXAMPLE:
  $0 place 11734_20190128
 
  # 2. click "mni" warps subject square rois into mni, runs
+ #  mni_examples/warps/ 
  # $0 mni-subjblob <generated_coord> <t1_dir> <slice_dir> mni_examples/ 
 
  # 3. new mni sphers from cm of subj-in-mni rois. explictly named
  $0 mni-cm-sphere ROI_mni_MP_20191004.nii.gz mni_examples/empty_coords_737713.587918_MP_for_mni.txt_mni.nii.gz
 
  # 4. view mni coords as placed in a subjects slice space using matlab gui coord_viewer
+ #  mni_examples/scout_space/
  $0 view 10129_20180917 ROI_mni_MP_20191004.nii.gz
 
  # x. open coord_mover on an mni brain with z-coord unlocked. not currently useful
@@ -49,17 +51,26 @@ case "$action" in
    place)
       [ $# -lt 1 ] && usage "bad place args"
       subj="$1"; shift
-      [ $# -gt 0 ] && n="$1" || n=24
-      if [ $n -eq 24 ]; then
-         roi_list="tmp/labels_MP20191015.txt"
-         coord_list=tmp/MProi20191015.txt
-         [ ! -r coord_list ] && seq 1 $n|sed 's/$/\t50\t50/' > $coord_list
-      else
-         roi_list=tmp/roilist_labels_$n.txt
-         coord_list=tmp/empty_coords_$n.txt
-         seq 1 $n|sed s/$/:/ > $roi_list
-         sed 's/:/\t50\t50/g' $roi_list > $coord_list
-      fi
+      [ $# -gt 0 ] && n="$1" || n=18
+      echo $n roi_num
+      case $n in 
+         24)
+            roi_list="tmp/labels_MP20191015.txt"
+            coord_list=tmp/MProi20191015.txt
+            [ ! -r coord_list ] && seq 1 $n|sed 's/$/\t50\t50/' > $coord_list
+            ;;
+         18)
+            roi_list="tmp/labels_18MP20200117.txt"
+            coord_list="tmp/MProi20200117.txt"
+            [ ! -r coord_list ] && seq 1 $n|sed 's/$/\t50\t50/' > $coord_list
+            ;;
+         *)
+            roi_list=tmp/roilist_labels_$n.txt
+            coord_list=tmp/empty_coords_$n.txt
+            seq 1 $n|sed s/$/:/ > $roi_list
+            sed 's/:/\t50\t50/g' $roi_list > $coord_list
+            ;;
+      esac
       mlrun "coord_mover('$subj', 'roilist','$roi_list','subjcoords', '$coord_list')"
       ;;
    mni-subjblob)
@@ -90,7 +101,13 @@ case "$action" in
       subj_coord=mni_examples/scout_space/$(basename $MASK .nii.gz)/${subj}_scout_cm.txt
       [ ! -r "$subj_coord" ] && echo "failed to make $subj_coord! see mni_examples/warp_to_example_subjs.bash" && exit 1
 
-      mlrun "coord_mover('$subj', 'roilist','tmp/roilist_labels.txt','subjcoords', '$subj_coord')"
+      nroi=$(awk 'END{print $1}' $subj_coord)
+      case $nroi in
+         18) roi_list="tmp/labels_18MP20200117.txt";;
+         24) roi_list="tmp/labels_MP20191015.txt";;
+         *) echo "dont know what tmp/labels_* roilist to pick when nroi=$nroi (cnt from last line in $subj_coord)"; exit 1;;
+      esac
+      mlrun "coord_mover('$subj', 'roilist','$roi_list','subjcoords', '$subj_coord')"
       ;;
    mni)
       echo "why?"
