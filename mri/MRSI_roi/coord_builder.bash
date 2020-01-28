@@ -85,7 +85,7 @@ case "$action" in
       subj_mni_roi="$1"; shift
       [ ! -r "$subj_mni_roi" ] && echo "cannot find subject roi mni nii.gz '$subj_mni_roi'!" && exit 1
       # e.g. subj_mni_roi=mni_examples/empty_coords_737713.587918_MP_for_mni.txt_mni.nii.gz
-      mkcoords/subjroimni2mniroi.bash $(basename $name .nii.gz).nii.gz $subj_mni_roi
+      ./subjroimni2mniroi.bash $(basename $name .nii.gz).nii.gz $subj_mni_roi
       ;;
    view)
       [ $# -ne 2 ] && usage "view needs 2 args! subj and mask, not '$*' "
