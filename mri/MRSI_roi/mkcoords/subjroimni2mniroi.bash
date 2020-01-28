@@ -8,6 +8,9 @@ trap 'e=$?; [ $e -ne 0 ] && echo "$0 exited in error"' EXIT
 #  2. make new uniform rois with that center
 #
 
+# log
+# 20200128 - push files into out/$ld8/*
+
 ## do we have what we need? should we show help?
 [ $# -ne 2 ] && echo "USAGE:
   $0 mni_roi_name.nii.gz subj_roi_warped_to_mni.nii.gz 
@@ -35,9 +38,12 @@ cd $(dirname $0)
 bn=$(basename "$name" .nii.gz)
 cm_mni_out=/tmp/mni_coords_${bn}_RAI.txt
 cm_nolab=/tmp/mni_coords_${bn}_nolabels.txt
+ld8=$(ld8 $bn)
+outdir=out/$ld8 
+test ! -d "$outdir" && mkdir -p $_
 # outputs we care about
-final_mniSpheres=$name
-final_coordstxt=${bn}_labeled.txt
+final_mniSpheres=$outdir/$name
+final_coordstxt=$outdir/${bn}_labeled.txt
 
 [ -r "$final_mniSpheres" ] && echo "have '$final_mniSpheres'; rm to reurn" && exit 0
 
