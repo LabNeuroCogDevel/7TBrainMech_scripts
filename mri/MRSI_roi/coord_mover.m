@@ -52,6 +52,7 @@ function [f, coords] = coord_mover(ld8, varargin)
   p.addOptional('subjcoords', '', @isfile);
   p.addOptional('brain', '', @isfile); 
   p.addOptional('gm', '', @isfile); 
+  p.addOptional('show_grid', 1, @islogical); 
   parse(p,ld8,varargin{:});
 
   % pop up file selector on subject id 'FF' or 'pick'
@@ -80,6 +81,7 @@ function [f, coords] = coord_mover(ld8, varargin)
 
   disp(p.Results)
   mni_label_file = p.Results.roilist;
+
   
   
   %% set mni coords (use for labels
@@ -99,7 +101,10 @@ function [f, coords] = coord_mover(ld8, varargin)
      mask_nii = [];
   end
   
-      
+  %% pull from parsed data
+  % store grid spacing
+  data.show_grid = p.Results.show_grid;
+  % and id info
   data.ld8=ld8;
   %% if we are only given a lunaid, we can find nii and coord
   if isempty(p.Results.brain)
@@ -178,6 +183,7 @@ function [f, coords] = coord_mover(ld8, varargin)
   z_mid = ceil(size(nii.img,3)/2);
   
   coords = read_coords(coords_file, n_rois, z_mid);
+
   
   %% keep track of old coords
   data.orig_coords = coords;
@@ -289,7 +295,13 @@ function [f, coords] = coord_mover(ld8, varargin)
                      'String','mni',...
                      'Tag', 'mni_button', ...
                      'Callback', @mni ...
-                     );                 
+                     );    
+  % toggle grid
+  uicontrol('Position',[520, a_h+20, 100, 20], ...
+                     'String','grid',...
+                     'Tag', 'grid_button', ...
+                     'Callback', @toggle_grid ...
+                     );      
   % roi positions original and new
   % TODO: combine into one, add html color
   uicontrol('Position',[20+a_w/3, a_h+40, a_w/3, a_h-80], ...
@@ -327,7 +339,7 @@ function set_coord(src, roibox, fromidx, toidx)
   %fprintf('from: '); disp(data.coords(cur_roi,:));
   %fprintf('changing idx: '); disp(toidx);
   %fprintf('to: ');disp(xyz(1,fromidx));
-  data.coords(cur_roi,toidx+1) = round(xyz(1,fromidx));  
+  data.coords(cur_roi,toidx+1) = round(xyz(1,fromidx));
   guidata(src, data)
   
   root=groot;
@@ -340,6 +352,13 @@ function reset_coords1(varargin)
   cur_roi = get(findobj(f,'Tag','roibox'), 'Value');
   data = guidata(f);
   data.coords(cur_roi,:) = data.orig_coords(cur_roi,:);
+  guidata(f,data);
+  update_display(f);
+end
+function toggle_grid(varargin)
+  f=gcf;
+  data = guidata(f);
+  data.show_grid = ~data.show_grid;
   guidata(f,data);
   update_display(f);
 end
@@ -463,9 +482,11 @@ function update_display(f,all_ax)
                         rng(crd(2),vsz(2)),...
                         rng(crd(3),vsz(3)) );
       data.mask_sum = sum(mcnt(:));
+      nvox = numel(mcnt);
    %fprintf('msk cnt: %d\n', data.mask_sum)
    else
        data.mask_sum = 0;
+       nvox = 0;
    end
    
    
@@ -489,12 +510,24 @@ function update_display(f,all_ax)
        im_at_coords = flipud(rot90(data.nii.img(:,:,zpos)));
        update_brain(a, im_at_coords);
        update_callback(a, 1, [1 2], roibox);
-       text(a,10,10,sprintf('Right; z=%d; %dGM',zpos, data.mask_sum) ,'Color','White')
+       
+       % when we want the grid show it on the middle axial
+       pixdims = data.vox_size(1:2); % [9,9]
+       if data.show_grid && ax_i == 2
+           draw_grid(size(im_at_coords), pixdims);
+       end         
+       
+       % GM count and row/col label
+       xy = get(f, 'CurrentPoint');
+              
+       info_label = sprintf('Right; z=%d; %dGM (%dvox) @ row=%d, col=%d', ...
+                    zpos, data.mask_sum, nvox, xy(2), xy(1));
+       text(a,10,10, info_label ,'Color','White')
+       
+       % draw rois
        data.first_ax=1; % only need to draw once if z isn't free
-       
-       
        data.rects{ax_i} = arrayfun(@(i) ...
-          draw_rect(data.coords(i,2), data.coords(i,3), colors(i,:), [9,9]),...
+          draw_rect(data.coords(i,2), data.coords(i,3), colors(i,:), pixdims),...
           show_rois,'Un',0);
    end
    
@@ -524,10 +557,13 @@ function update_display(f,all_ax)
    if(~isempty(c) && ~isempty(cur_roi))
        roi_y = data.coords(cur_roi,3);
        if(roi_y <= 0), roi_y = floor(size(data.nii.img,2)/2); end
+       
        % update sag view
        im_at_coords = fliplr(rot90(squeeze(data.nii.img(:,roi_y,:)),3));
        update_brain(c, im_at_coords);
        update_callback(c, data.z_free, [1 3], roibox);
+       
+       % say where we are
        text(c,10,10,sprintf('y=%d',roi_y) ,'Color','White');
 
        % draw boxes for rois in range
@@ -560,6 +596,15 @@ function r = draw_rect(x, y, color, d)
       'EdgeColor', color, ...
       'LineWidth', 1,...
       'HitTest', 'off');
+end
+
+function g = draw_grid(xymax, vxsize)
+  x = 0:vxsize(1):xymax(1);
+  y = 0:vxsize(2):xymax(2);
+  [X, Y] = meshgrid(x,y);
+  hold on
+  g = { plot(X, Y, 'g'); ...
+        plot(X',Y','g')};
 end
 
 function p = update_brain(ax, imdata)
