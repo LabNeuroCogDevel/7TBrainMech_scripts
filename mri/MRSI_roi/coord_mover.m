@@ -234,7 +234,7 @@ function [f, coords] = coord_mover(ld8, varargin)
   data.mprage_file = mprage_file;
   
   % as well as user label for output file
-  data.who = inputdlg('Your Initials');
+  data.who = inputdlg('Your Initials (then TAB, then ENTER)');
   if isempty(data.who)
      data.who = 'UNKOWN';
   else
@@ -332,18 +332,30 @@ function set_coord(src, roibox, fromidx, toidx)
       fromidx=1:2;
       toidx=1:2;
   end
-  data = guidata(src);
-  xyz = get(src, 'CurrentPoint');
-  cur_roi = get(roibox, 'Value');
   
+  %% get info
+  xyz = get(src, 'CurrentPoint');
+  data = guidata(src);
+  root=groot;
+
+  if strncmp(get(root.CurrentFigure,'SelectionType'), 'alt', 3)
+  %% right click: update current roi using closest location
+    xys=data.coords(:,toidx+1),
+    click=xyz(1,fromidx),
+    click_dist = squareform(pdist([click; xys])),
+    [~, closest_roi] = min(click_dist(2:end,1)),
+    set(roibox, 'Value', closest_roi);
+  else
+  %% left click: update position of cur roi to clicked location
+    cur_roi = get(roibox, 'Value');
+    data.coords(cur_roi,toidx+1) = round(xyz(1,fromidx));
+    guidata(src, data)
+  end
+
+  update_display(root.CurrentFigure)
   %fprintf('from: '); disp(data.coords(cur_roi,:));
   %fprintf('changing idx: '); disp(toidx);
   %fprintf('to: ');disp(xyz(1,fromidx));
-  data.coords(cur_roi,toidx+1) = round(xyz(1,fromidx));
-  guidata(src, data)
-  
-  root=groot;
-  update_display(root.CurrentFigure)
   %fprintf('roi %d: %d %d %d\n',cur_roi, data.coords(cur_roi,2:4))
 end
 
@@ -377,11 +389,12 @@ function mni(varargin)
   cmd = sprintf('env -i bash -lc "./subjcoord2mni.bash %s %s/../../ppt1 %s/../.. mni_examples"', ...
         outname, data.rdir, data.rdir)
   system(cmd)
-  cmd = sprintf('env -i bash -lc "./coord_builder.bash mni-cm-sphere mni_examples/%s_mni-cm-sphere.nii.gz mni_examples/%s_mni-subjblob.nii.gz"', txtfile, txtfile)
+  cmd = sprintf('env -i bash -lc "./coord_builder.bash mni-cm-sphere mni_examples/%s_mni-cm-sphere.nii.gz mni_examples/blobs/%s_mni-subjblob.nii.gz"', txtfile, txtfile)
   system(cmd)
-  fprintf('====\nif not already open, run: afni %s/{mni_examples,mkcoords} /Volumes/Hera/Projects/7TBrainMech/subjs/%s/preproc/t1/mprage_warp_linear.nii.gz\n\n', ...
+  fprintf('====\nif not already open, run: afni %s/{mni_examples,mkcoords/out/%s} /Volumes/Hera/Projects/7TBrainMech/subjs/%s/preproc/t1/mprage_warp_linear.nii.gz\n\n', ...
+      data.ld8, data.ld8)
   fprintf('====\nconsider: ln -s /Volumes/Hera/Projects/7TBrainMech/subjs/%s/preproc/t1/mprage_warp_linear.nii.gz %s/mkcoords/%s_lin_warp.nii.gz\n\n', ...
-     data.ld8, pwd, data.ld8))
+     data.ld8, pwd, data.ld8)
 end
 
 function reset_coords(varargin)
@@ -516,6 +529,7 @@ function update_display(f,all_ax)
        if data.show_grid && ax_i == 2
            draw_grid(size(im_at_coords), pixdims);
        end         
+
        
        % GM count and row/col label
        xy = get(f, 'CurrentPoint');
@@ -529,6 +543,11 @@ function update_display(f,all_ax)
        data.rects{ax_i} = arrayfun(@(i) ...
           draw_rect(data.coords(i,2), data.coords(i,3), colors(i,:), pixdims),...
           show_rois,'Un',0);
+       
+       % point spread with red fill if overlap
+       % TODO: fix psf thres
+       psfthres=mean(pixdims)*2;
+       data.circles{ax_i} = draw_psf(data.coords(show_rois,2:3), colors(show_rois,:), pixdims.*2, psfthres);
    end
    
    %% update sag
@@ -586,16 +605,41 @@ function update_display(f,all_ax)
    guidata(f,data)
 end
 
+function o = draw_psf(coords, colors, pxd, thres)
+% DRAW_PSF - draw cirlces of radius r. fill if any coord overlaps
+  n = length(coords);
+  d = pdist(coords);
+  tooclose = any(squareform(d < thres));
+  o = arrayfun(@(i) ...
+     draw_rect(coords(i,1), coords(i,2), colors(i,:), pxd, 1, tooclose(i)),...
+     1:n,'Un',0);
+end
 
-function r = draw_rect(x, y, color, d)
-  % x, y is center
-  % d is width, and height
+function r = draw_rect(x, y, color, d, iscircle, dofill)
+   % x, y is center
+   % d is width, and height
+   %% default options: no cirlce, no fill
+   if nargin == 4
+       iscircle=0;
+       dofill=0;
+   end
+
+   %% define options
+   % rectange: lower left corner, size
    pos = [x-d(1)/2, y-d(2)/2, d(1), d(2)];
-   r= rectangle(...
+   opts={...
       'Position', pos, ...
       'EdgeColor', color, ...
       'LineWidth', 1,...
-      'HitTest', 'off');
+      'HitTest', 'off', ...
+   };
+   % circles change linestyle and have curvature
+   if iscircle, opts={opts{:},'Curvature', 1, 'LineStyle', ':'}; end
+   % always red, alpha of .3 if fill
+   if dofill,   opts={opts{:},'FaceColor', [1 0 0 .3]}; end
+
+   %% plot
+   r = rectangle(opts{:});
 end
 
 function g = draw_grid(xymax, vxsize)
