@@ -51,7 +51,7 @@ case "$action" in
    place)
       [ $# -lt 1 ] && usage "bad place args"
       subj="$1"; shift
-      [ $# -gt 0 ] && n="$1" || n=18
+      [ $# -gt 0 ] && n="$1" || n=13
       echo $n roi_num
       case $n in 
          24)
@@ -59,10 +59,15 @@ case "$action" in
             coord_list=tmp/MProi20191015.txt
             [ ! -r coord_list ] && seq 1 $n|sed 's/$/\t50\t50/' > $coord_list
             ;;
+         13)
+            roi_list="roi_locations/labels_13MP20200207.txt"
+            coord_list="tmp/MProi20200207.txt"
+            [ ! -r $coord_list ] && seq 1 $n|sed 's/$/\t50\t50/' > $coord_list
+            ;;
          18)
             roi_list="tmp/labels_18MP20200117.txt"
             coord_list="tmp/MProi20200117.txt"
-            [ ! -r coord_list ] && seq 1 $n|sed 's/$/\t50\t50/' > $coord_list
+            [ ! -r $coord_list ] && seq 1 $n|sed 's/$/\t50\t50/' > $coord_list
             ;;
          *)
             roi_list=tmp/roilist_labels_$n.txt
@@ -103,6 +108,7 @@ case "$action" in
 
       nroi=$(awk 'END{print $1}' $subj_coord)
       case $nroi in
+         13) roi_list="roi_locations/labels_13MP20200207.txt";;
          18) roi_list="tmp/labels_18MP20200117.txt";;
          24) roi_list="tmp/labels_MP20191015.txt";;
          *) echo "dont know what tmp/labels_* roilist to pick when nroi=$nroi (cnt from last line in $subj_coord)"; exit 1;;

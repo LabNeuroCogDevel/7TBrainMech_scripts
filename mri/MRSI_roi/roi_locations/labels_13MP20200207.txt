@@ -1,0 +1,13 @@
+R Anterior Insula:	-37.9948 -2.04134 14.0155
+L Anterior Insula:	38 -6 14
+R Posterior Insula:	-40 14 8
+L Posterior Insula:	44 14 8
+R Caudate:	-10 -12 16
+L Caudate:	16 -12 16
+ACC:	2 -34 22
+MPFC:	0 -54 28
+R DLPFC:	-46 -38 24
+L DLPFC:	42 -42 28
+R STS:	-64 32 4
+L STS:	64 24 4
+R (dm ?)Thalamus:	-6.16798 14 5.979
