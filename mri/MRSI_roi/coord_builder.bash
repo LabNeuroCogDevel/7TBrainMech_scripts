@@ -76,7 +76,7 @@ case "$action" in
             sed 's/:/\t50\t50/g' $roi_list > $coord_list
             ;;
       esac
-      mlrun "coord_mover('$subj', 'roilist','$roi_list','subjcoords', '$coord_list')"
+      mlrun "sf=autosid3('$subj'); [f, crd]=coord_mover('$subj', 'roilist','$roi_list','subjcoords', '$coord_list')"
       ;;
    mni-subjblob)
       # run from matlab. generate squares from coords positioned interatively in matlab on subject scout. warp to mni
