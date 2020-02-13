@@ -17,17 +17,19 @@ for d in /Volumes/Hera/Projects/7TBrainMech/subjs/*/slice_PFC/MRSI_roi/spectrum;
 
    cd $d
    [ ! -r coords_mprage.nii.gz ] && echo "missing $d/coords_mprage.nii.gz; rerun ./050_ROIs.bash" && continue
-   [ -r finish_percentGM.flag ] && echo "finished $(pwd) $(cat finish_percentGM.flag)" &&  continue
-   # generate gm mask, put in dim's of mprage
-   cmd="
-    mri_binarize --i $aparcaseg --gm --o gmmask.mgz;
-    mri_convert gmmask.mgz fs_gmmask.nii.gz;
-    rm gmmask.mgz"
-   eval "$cmd"
-   3dNotes -h "$cmd" fs_gmmask.nii.gz
+   [ -r finish_percentGM.flag ] && echo "finished $(pwd) $(cat finish_percentGM.flag); redo: rm $(pwd)/finish_percentGM.flag" &&  continue
+   if [ ! -r fs_gmmask_mprage.nii.gz ]; then
+      # generate gm mask, put in dim's of mprage
+      cmd="
+       mri_binarize --i $aparcaseg --gm --o gmmask.mgz;
+       mri_convert gmmask.mgz fs_gmmask.nii.gz;
+       rm gmmask.mgz"
+      eval "$cmd"
+      3dNotes -h "$cmd" fs_gmmask.nii.gz
 
-   AFNI_NIFTI_TYPE_WARN=NO \
-      3dresample -inset fs_gmmask.nii.gz  -master coords_mprage.nii.gz -prefix fs_gmmask_mprage.nii.gz -overwrite
+      AFNI_NIFTI_TYPE_WARN=NO \
+         3dresample -inset fs_gmmask.nii.gz  -master coords_mprage.nii.gz -prefix fs_gmmask_mprage.nii.gz -overwrite
+   fi
    # get roi stats: mean (percent) and voxel count. merge into single row, add id and spectrum type
    3dROIstats -quiet -nzvoxels -numROI 12 -mask coords_mprage.nii.gz  fs_gmmask_mprage.nii.gz|
      tr $'\t' '\n'|

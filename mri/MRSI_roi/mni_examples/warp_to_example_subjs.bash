@@ -6,6 +6,7 @@ trap 'e=$?; [ $e -ne 0 ] && echo "$0 exited in error"' EXIT
 # warp some mni coordinates to example subjects
 # code taken from 000_setupdirs.bash
 #  20191009WF  init
+#  20191122WF  orma error on reading t1_to_pfc. but other lncd accounts are fine?
 
 [ $# -le 1 ] && echo "USAGE:
   $0 mni_rois.nii.gz ld8_1 ld8_2
@@ -29,8 +30,16 @@ warp_to_scout(){
    local parc_res="/Volumes/Hera/Projects/7TBrainMech/subjs/$ld8/slice_PFC/MRSI/parc_group/rorig.nii"
 
    for v in t1_to_pfc pfc_ref mni_to_t1 scout_t1 parc_res; do
-      [ ! -r "${!v}" ] && echo "cannot find $v: '${!v}'; try: ../../MRSI/01_get_slices.bash $ld8" && return 1
+      [ -n "${!v}" -a -r "${!v}" ] && continue
+      echo "$0: cannot find file variable '$v': '${!v}'; try: ../../MRSI/01_get_slices.bash $ld8" >&2
+      vdname=$(dirname "${!v}") 
+      [ ! -r $vdname ] && echo "  also missing directory $vdname" >&2 && ls -l "$vdname" >&2
+      return 1
    done
+
+   # goes slice->mni. we want slice->mni. so don't use
+   #pfc_to_t1=$(diranme $t1_to_pfc)/slice_to_mprage.mat
+   #[ ! -r $pfc_to_t1 ] && convert_xfm -omat $pfc_to_t1 -inverse $t1_to_pfc
 
    local outimg="scout_space/$(basename "$mni_atlas" .nii.gz)/${ld8}_scout.nii.gz"
    local outimg_res="scout_space/$(basename "$mni_atlas" .nii.gz)/${ld8}_scoutres.nii.gz"
@@ -38,6 +47,9 @@ warp_to_scout(){
 
    local cm_out="${outimg/.nii.gz/}_cm.txt"
    [ -r "$cm_out" ] && echo "# have $ld8; rm $cm_out # to redo" && return 0
+
+   # affine transform generated with ../MRSI/01_get_slices.bash
+   # flirt -ref slice_pfc.nii.gz -in ppt1/mprage.nii.gz -o mprage_in_slice.nii.gz -omat mprage_to_slice.mat ||
 
    echo "$(pwd)/$outimg"
    local cmd="applywarp -o $outimg -i $mni_atlas -r $pfc_ref -w $mni_to_t1 --postmat=$t1_to_pfc --interp=nn"

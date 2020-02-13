@@ -1,6 +1,8 @@
 function  [f, coords, coord_file]=mkspectrum_roi(f, offset, coord_file)
 % MKSPECTRUM_ROI - populate SVR1H gui with 12 coordinates 
 % run mkspectrum first to get the "f" variable (and setup for a lunaid)
+% coord_rearrange.txt from
+%  mni_examples/warps/1*_2*/*_scout_cm_*_MP_for_mni.txt/coords_rearranged.txt
 if nargin < 1
    error('need figure handle. "ans" from mkspectrum')
 end
@@ -29,24 +31,36 @@ setobj = @(x,y) set(findobj(f,'Tag',x),'String',y);
 
 d.L = 1;  d.R = 1; % intialize left and right count
 lr = 'L';
+% what coluns are x and y values
+xi=1; yi=2;
+if max(coords(:,1)) <= 24
+   warnings('not using warp/*/*/coords_rearranged.txt')
+   xi=2; yi=3;
+end
+
 for i = (offset+1):(offset+12)
+      % gui requires left and right
+      % but we dont care. make the first 6 L, next 6 R
       if i - offset > 6
          lr='R';
       end
+      % zero out if we've gone past what we have
       if i > size(coords,1)
          x=0; y=0;
       else
-         x = coords(i,1);
-         y = coords(i,2);
+         x = coords(i,xi);
+         y = coords(i,yi);
       end
 
+      %% find label based on roi, L/R, and Col/Row
+      %  and set to aprop. coord value
       lbl = sprintf('%s%d%s', lr, d.(lr),'Col');
       setobj(lbl, x);
       % and col      
       lbl = sprintf('%s%d%s', lr, d.(lr),'Row');
       setobj(lbl, y);
       
-      % enable radio
+      %% enable radio
       rdo = sprintf('%s%dOn', lr, d.(lr));
       if x == 0 && y == 0
           radval=0;
@@ -55,6 +69,7 @@ for i = (offset+1):(offset+12)
       end
       set(findobj(f,'Tag',rdo), 'Value',radval)
       
+      % inc l/r count (should switch when > 6)
       d.(lr) = d.(lr) +1;
 end
 

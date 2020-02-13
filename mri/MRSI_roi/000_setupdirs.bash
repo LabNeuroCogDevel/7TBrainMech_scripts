@@ -6,6 +6,9 @@ cd $(dirname $0)
 mni_atlas=$(pwd)/csi_rois_mni_MPRO_20190425.nii.gz
 statusfile="$(dirname $0)/../txt/status.csv"
 
+# default to show finish. if empty, does not print about completed subjects
+env | grep '^SHOWFINISH=' -q || SHOWFINISH="yes"
+
 #
 # creates directory with raw files need to run SVR1HFinal
 # 1. copy of an mprage in slice space (as mprage_middle.mat and seg.7)
@@ -19,6 +22,9 @@ if [ $# -le 0 ]; then
     $0 lunaid_date   # specify single subject
     $0 all           # all subjects (print errors for missing)
     $0 have          # only what spreadsheet says we have
+    SHOWFINISH="" $0 all # disable some messages, show only missing/failing
+    # run the suggestsions 
+    ./000_setupdirs.bash all 2>&1 |sed -n 's/.*try: //p'|xargs -I{} -n1 bash -c "{}"
    EXAMPLE:
     $0 11323_20180316
 	EOF
@@ -58,10 +64,13 @@ MRID="$(grep "$ld8" ../MRSI/txt/ids.txt|cut -d' ' -f2)"
    echo "cannot find $ld8/slice_PFC dir; run ../MRSI/01_get_slices.bash $ld8" && exit 1
 
 ## find mprage (output of 02_label_csivox.bash)
-MPRAGE="$(find /Volumes/Hera/Projects/7TBrainMech/subjs/$ld8/slice_PFC/MRSI/struct_ROI/ -maxdepth 1 -type f,l -iname '*_7_FlipLR.MPRAGE')"
-[ -z "$MPRAGE" ] && echo "cannot find '*_7_FlipLR.MPRAGE'; try: ../MRSI/02_label_csivox.bash $ld8" && exit 1
+roi_struct=/Volumes/Hera/Projects/7TBrainMech/subjs/$ld8/slice_PFC/MRSI/struct_ROI/
+[ ! -d $roi_struct ] && echo "cannot find $roi_struct; try: NOCSV=1 ../MRSI/02_label_csivox.bash $ld8" && exit 1
+
+MPRAGE="$(find $roi_struct -maxdepth 1 -type f,l -iname '*_7_FlipLR.MPRAGE')"
+[ -z "$MPRAGE" ] && echo "cannot find '*_7_FlipLR.MPRAGE'; try: NOCSV=1 ../MRSI/02_label_csivox.bash $ld8" && exit 1
 parc_res="/Volumes/Hera/Projects/7TBrainMech/subjs/$ld8/slice_PFC/MRSI/parc_group/rorig.nii"
-[ ! -r "$parc_res" ] && echo "cannot find '$parc_res'; try: ../MRSI/02_label_csivox.bash $ld8" && exit 1
+[ ! -r "$parc_res" ] && echo "cannot find '$parc_res'; try: NOCSV=1 ../MRSI/02_label_csivox.bash $ld8" && exit 1
 
 ## use mprage to determine slice num (probably 17 or 21)
 slice_num=$(basename $MPRAGE | cut -f1 -d_)
@@ -73,14 +82,20 @@ slice_num_0=$((($slice_num - 1)))
 ## check final output -- no need to run if we already have it
 sdir=/Volumes/Hera/Projects/7TBrainMech/subjs/$ld8/slice_PFC/MRSI_roi/raw
 finalout=$sdir/slice_roi_MPOR20190425_CM_${ld8}_${slice_num_0}.txt
-[ -r "$finalout" ] && echo "# have $finalout; rm -r '$sdir' # to redo" && exit 0
+if [ -r "$finalout" ]; then
+   [ -n "$SHOWFINISH" ] && echo "# have $finalout; rm -r '$sdir' # to redo" 
+   exit 0
+fi
 
 ## warp files (from preprocessing and 01_get_slices.bash)
 t1_to_pfc="/Volumes/Hera/Projects/7TBrainMech/subjs/$ld8/slice_PFC/mprage_to_slice.mat"
 pfc_ref="/Volumes/Hera/Projects/7TBrainMech/subjs/$ld8/slice_PFC/slice_pfc.nii.gz"
 mni_to_t1="/Volumes/Hera/Projects/7TBrainMech/subjs/$ld8/slice_PFC/ppt1/template_to_subject_warpcoef.nii.gz"
 for v in t1_to_pfc pfc_ref mni_to_t1; do
-   [ ! -r "${!v}" ] && echo "cannot find $v: '${!v}'; try: ../MRSI/01_get_slices.bash $ld8" && exit 1
+   [ -n "${!v}" -a -r "${!v}" ] && continue
+   echo "$0: cannot find variable $v: '${!v}'; try: ../MRSI/01_get_slices.bash $ld8" 
+   ls -l "${!v}"
+   exit 1
 done
 
 ## raw PFCCSI data

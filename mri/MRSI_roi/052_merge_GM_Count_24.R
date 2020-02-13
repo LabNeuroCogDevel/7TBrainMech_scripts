@@ -27,7 +27,7 @@ roi_subj_val <-
    separate(coord, c("row", "col"), extra="drop") %>%
    mutate(row=as.numeric(row),col=as.numeric(col))
 
-# 1	65	73	50  
+# 65	73	50  1 xxxx_yyyyyy fffffffffffff
 roi_subj_pos <-
    read.table(sprintf("txt/pos_%s.txt", dversion)) %>%
    `names<-`(c("x", "y", "z", "roi_num", "ld8", "specfile"))

@@ -18,7 +18,16 @@ mni roi -> slice row+col center -> sepectrum -> concentration
   * co-registration (mprage -> slice) from `../MRSI/02_label_csivox.bash` has output like `17_7_MPRAGE` useful for gui
   * Freesurfer parcilation (also needed for `label_csivox`) for registred gray matter (`r*GM*`) also from  `../MRSI/` (used to give percent GM in coord mover)
 
-## process
+## process (20200114, 24 rois)
+ 0. `./000_setupdirs.bash 11323_20180316`
+ 1. `./coord_builder.bash view 11323_20180316 ROI_mni_MP_20191004.nii.gz`
+ 2. `f = mkspectrum('11323_20180316'); mkspectrum_roi(f); mkspectrum_roi(f, 12);` using ` ./mni_examples/warps/*/*/coords_rearranged.txt`
+ 3. `./040_fetchFiles.bash` -- edit to use newest zip and rename prefix
+ 4. `./050_ROIs.bash` - see blow for explination
+ 5. `./051_GM_Count_24.bash` 
+ 6. `./052_merge_GM_Count_24.R`
+ 
+## process (12 rois)
  0. `./000_setupdirs.bash 11323_20180316` creates `Projects/7TBrainMech/subjs/11323_20180316/slice_PFC/MRSI_roi/raw` with links to files needed by the spectrum GUI and `slice_roi_MPOR20190425_CM_11323_20180316_16.txt`, the  center of mass of rois after `mni->t1->slice` warp
  0. `./001_inspect_setup.bash 11323_20180316` opens afni with warp rois loaded
  0. `./010_move_roi.bash 11323_20180316` interactively move rois. input is center of mass from `000_setupdirs.bash`
@@ -58,3 +67,8 @@ mni roi -> slice row+col center -> sepectrum -> concentration
   * see `feh how_warped.png` (down arrow to zoom out)
  ![mover screenshot](./img/how_warped.png?raw=True)
 
+### bad warps!?
+20191126: somewhere along the way some of flirt's `mprage_to_slice.mat` do not match what they should!
+see `mni_examples/fsl6_mprage_to_slice/` and `../MRSI/txt/warp_diffs.txt`
+ `/Volumes/Hera/Projects/7TBrainMech/scripts/mri/MRSI/20191118_badwarps.bash`
+ `/Volumes/Hera/Projects/7TBrainMech/subjs/11656_20180607/slice_PFC/example_ants.bash`

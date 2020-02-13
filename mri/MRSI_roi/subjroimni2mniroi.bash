@@ -39,7 +39,7 @@ bn=$(basename "$name" .nii.gz)
 cm_mni_out=/tmp/mni_coords_${bn}_RAI.txt
 cm_nolab=/tmp/mni_coords_${bn}_nolabels.txt
 ld8=$(ld8 $bn)
-outdir=out/$ld8 
+outdir="mkcoords/out/$ld8"
 test ! -d "$outdir" && mkdir -p $_
 # outputs we care about
 final_mniSpheres=$outdir/$name

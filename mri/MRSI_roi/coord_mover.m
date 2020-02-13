@@ -340,10 +340,12 @@ function set_coord(src, roibox, fromidx, toidx)
 
   if strncmp(get(root.CurrentFigure,'SelectionType'), 'alt', 3)
   %% right click: update current roi using closest location
-    xys=data.coords(:,toidx+1),
-    click=xyz(1,fromidx),
-    click_dist = squareform(pdist([click; xys])),
-    [~, closest_roi] = min(click_dist(2:end,1)),
+    xys=data.coords(:,toidx+1);
+    click=xyz(1,fromidx);
+    click_dist = squareform(pdist([click; xys]));
+    % first pair is where we clicked, dont inclue that in the min search
+    % only care about one row or column in dist matrix. pick first column to search
+    [~, closest_roi] = min(click_dist(2:end,1));
     set(roibox, 'Value', closest_roi);
   else
   %% left click: update position of cur roi to clicked location
