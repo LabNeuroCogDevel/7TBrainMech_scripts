@@ -53,6 +53,7 @@ function [f, coords] = coord_mover(ld8, varargin)
   p.addOptional('brain', '', @isfile); 
   p.addOptional('gm', '', @isfile); 
   p.addOptional('show_grid', 1, @islogical); 
+  p.addOptional('who', []); 
   parse(p,ld8,varargin{:});
 
   % pop up file selector on subject id 'FF' or 'pick'
@@ -100,8 +101,9 @@ function [f, coords] = coord_mover(ld8, varargin)
      % potentially loaded if lunaid is only specfied argument
      mask_nii = [];
   end
-  
+
   %% pull from parsed data
+  data.roi_label = roi_label;
   % store grid spacing
   data.show_grid = p.Results.show_grid;
   % and id info
@@ -227,7 +229,7 @@ function [f, coords] = coord_mover(ld8, varargin)
 
 
   % pos: dist from left, dist from bottom, width, hieght
-  f = figure('Visible','off','Position',[360 500 3*a_w, 2*a_h+40]);
+  f = figure('Visible','off','Position',[360 500 3*a_w 2*a_h+40]);
   
   % put coords into gui data
   data.coords = coords;
@@ -236,9 +238,17 @@ function [f, coords] = coord_mover(ld8, varargin)
   data.nii = nii;
   data.mask = mask_nii;
   data.mprage_file = mprage_file;
+
+  % initialize undo
+  nundos=20;
+  data.undo=zeros([nundos, size(data.coords)]);
   
-  % as well as user label for output file
-  data.who = inputdlg('Your Initials (then TAB, then ENTER)');
+  % get initials (who) and add to data
+  if ~isempty(p.Results.who)
+     data.who = p.Results.who;
+  else
+     data.who = inputdlg('Your Initials (then TAB, then ENTER)');
+  end
   if isempty(data.who)
      data.who = 'UNKOWN';
   else
@@ -266,61 +276,93 @@ function [f, coords] = coord_mover(ld8, varargin)
   
 
   % box to select rois
-  roibox = uicontrol('Position',[20, a_h+40, floor(a_w/2), a_h-80], ...
+  buttonx=20;
+  roibox = uicontrol('Position',[buttonx, a_h+40, floor(a_w/2), a_h-80], ...
                      'String',roibox_str,...
                      'Style','listbox', ...
-                     'Tag', 'roibox');
-  roibox.Callback = @(s,r) update_display(gcf);
+                     'Tag', 'roibox', ...
+                     'Callback', @(s,r) update_display(gcf));
 
+  %% Buttons
+  uicontrol('Position',[buttonx, a_h+20, 100, 20], ...
+            'String','mni',...
+            'Tag', 'mni_button', ...
+            'Callback', @mni ...
+            );    
+  buttonx=buttonx+100;
 
-  % Buttons
-  uicontrol('Position',[20, a_h+20, 100, 20], ...
-                     'String','Reset',...
-                     'Tag', 'reset_button', ...
-                     'Callback', @reset_coords ...
-                     );
-                   
-  uicontrol('Position',[120, a_h+20, 100, 20], ...
-                     'String','Save',...
-                     'Tag', 'save_button', ...
-                     'Callback', @(s,e) save_coords() ...
-                     );
-  uicontrol('Position',[220, a_h+20, 100, 20], ...
-                     'String','Load',...
-                     'Tag', 'load_button', ...
-                     'Callback', @(s,e) load_coords(n_rois,z_mid) ...
-                     );
-  uicontrol('Position',[320, a_h+20, 100, 20], ...
-                     'String','Reset1',...
-                     'Tag', 'reset1_button', ...
-                     'Callback', @reset_coords1 ...
-                     );                 
-  uicontrol('Position',[420, a_h+20, 100, 20], ...
-                     'String','mni',...
-                     'Tag', 'mni_button', ...
-                     'Callback', @mni ...
-                     );    
+  uicontrol('Position',[buttonx, a_h+20, 100, 20], ...
+            'String','Reset',...
+            'Tag', 'reset_button', ...
+            'Callback', @reset_coords ...
+            );
+  buttonx=buttonx+100;
+
+  uicontrol('Position',[buttonx, a_h+20, 100, 20], ...
+            'String','Reset1',...
+            'Tag', 'reset1_button', ...
+            'Callback', @reset_coords1 ...
+            );                 
+  buttonx=buttonx+100;
+  % move to best GM spot
+  uicontrol('Position',[buttonx, a_h+20, 100, 20], ...
+            'String','GM search',...
+            'Tag', 'gmsearch_button', ...
+            'Callback', @gm_search ...
+            );      
+  buttonx=buttonx+100;
+
+  uicontrol('Position',[buttonx, a_h+20, 100, 20], ...
+            'String','GM1',...
+            'Tag', 'gmsearch1_button', ...
+            'Callback', @gm_search1 ...
+            );      
+  buttonx=buttonx+100;
+  % undo
+  uicontrol('Position',[buttonx, a_h+20, 100, 20], ...
+            'String','Undo',...
+            'Tag', 'undo_button', ...
+            'Callback', @undo_crd ...
+            );      
+  buttonx=buttonx+100;
+
   % toggle grid
-  uicontrol('Position',[520, a_h+20, 100, 20], ...
-                     'String','grid',...
-                     'Tag', 'grid_button', ...
-                     'Callback', @toggle_grid ...
-                     );      
+  uicontrol('Position',[buttonx, a_h+20, 100, 20], ...
+            'String','grid',...
+            'Tag', 'grid_button', ...
+            'Callback', @toggle_grid ...
+            );      
+  buttonx=buttonx+100;
+
+  uicontrol('Position',[buttonx, a_h+20, 100, 20], ...
+            'String','Save',...
+            'Tag', 'save_button', ...
+            'Callback', @(s,e) save_coords() ...
+            );
+  buttonx=buttonx+100;
+
+  uicontrol('Position',[buttonx, a_h+20, 100, 20], ...
+            'String','Load',...
+            'Tag', 'load_button', ...
+            'Callback', @(s,e) load_coords(n_rois,z_mid) ...
+            );
+  buttonx=buttonx+100;
+
+  %% position table
   % roi positions original and new
   % TODO: combine into one, add html color
   uicontrol('Position',[20+a_w/3, a_h+40, a_w/3, a_h-80], ...
-                     'String',sprintf('%d %d %d\n', coords(:,1:3)'),...
-                     'Style','text', ...
-                     'Tag', 'disp_orig');
+            'String',sprintf('%d %d %d\n', coords(:,1:3)'),...
+            'Style','text', ...
+            'Tag', 'disp_orig');
   uicontrol('Position',[a_w*2/3, a_h+40, a_w/3, a_h-80], ...
-                     'String',sprintf('%d %d %d\n', coords'),...
-                     'Style','text', ...
-                     'Tag', 'disp_current');
+            'String',sprintf('%d %d %d\n', coords'),...
+            'Style','text', ...
+            'Tag', 'disp_current');
 
 
   % draw all the rectangles
   update_display(f); %,[axial_above, axial_mid, axial_below])
-  
   
   f.Visible = 'on';
 end
@@ -365,6 +407,62 @@ function set_coord(src, roibox, fromidx, toidx)
   %fprintf('roi %d: %d %d %d\n',cur_roi, data.coords(cur_roi,2:4))
 end
 
+function i = rng(center,sz)
+   i = (center-floor(sz/2)):(center+floor(sz/2));
+end
+function [mask_sum, nvox]  = ngm(crd, mask, vsz)
+   mask_sum = 0;
+   nvox = 0;
+   % only highlight current rois if we have it
+   if(crd(1) == 0 || crd(2) == 0 || isempty(mask) ), return; end
+   mcnt = mask(rng(crd(1),vsz(1)),...
+               rng(crd(2),vsz(2)),...
+               rng(crd(3),vsz(3)) );
+   mask_sum = sum(mcnt(:));
+   nvox = numel(mcnt);
+end
+
+function best_crd = gm_searchr(r, data)
+     crd = data.coords(r,2:4);
+     best_crd = crd;
+     best_sum = ngm(crd, data.mask, data.vox_size);
+     orig_sum = best_sum;
+     % dumb slow search of 11x11 grid for best local gm value
+     for shifti=-5:5
+        for shiftj=-5:5
+           moveby = [shifti, shiftj, 0];
+           thiscrd = crd + moveby;
+           thisgm = ngm(thiscrd, data.mask, data.vox_size);
+           if thisgm > best_sum
+              best_crd = thiscrd;
+              best_sum = thisgm;
+           end
+        end
+     end
+     fprintf('roi %d: %s\t(%d,%d)=%d moved to (%d,%d)=%d\n', ...
+        r, data.roi_label{r}, crd(1),crd(2),orig_sum,best_crd(1),best_crd(2),best_sum);
+end
+function gm_search(varargin)
+  f=gcf;
+  data = guidata(f);
+  nroi = size(data.coords, 1);
+  for r = 1:nroi
+     best_crd = gm_searchr(r, data);
+     data.coords(r,2:4) = best_crd;
+  end
+  guidata(f,data);
+  update_display(f);
+end
+function gm_search1(varargin)
+  f=gcf;
+  data = guidata(f);
+  r = get(findobj(f,'Tag','roibox'), 'Value');
+  best_crd = gm_searchr(r, data);
+  data.coords(r,2:4) = best_crd;
+  guidata(f,data);
+  update_display(f);
+end
+
 function reset_coords1(varargin)
   f=gcf;
   cur_roi = get(findobj(f,'Tag','roibox'), 'Value');
@@ -387,23 +485,20 @@ function mni(varargin)
   outname = save_coords();
   savedir = fileparts(outname);
 
-  %% this should be in own bash script
-
   %% take coorddinates into mni space 
-  % see 050_ROIs.bash and subjcoord2mni.bash. same as coord_builder.bash mni-subjblob ...
+  % see 050_ROIs.bash (initial coord lookup),
+  %   [called by coord_builder:]
+  %     subjcoord2mni.bash (makes blob),
+  %     subjroimni2mniroi.bash (makes sphere) 
+  % requires lncd preproc directory (for warp coefs)
   preprocdir = [data.rdir '/../../ppt1'];
   slicedir = [data.rdir '../..'];
-  cmd = sprintf('env -i bash -lc "./subjcoord2mni.bash %s %s %s %s"', ...
+  cmd = sprintf('env -i bash -lc "./coord_builder.bash subj-to-mni %s %s %s %s"', ...
         outname, preprocdir, slicedir, savedir)
   system(cmd)
 
-  %% make nifti from mni coordinates
-  % calls into ./subjroimni2mniroi.bash 
-  blobin=fullfile(savedir,'blob-mni.nii.gz')
-  sphereout=fullfile(savedir,'cmsphere-mni.nii.gz')
-  cmd = sprintf('env -i bash -lc "./coord_builder.bash mni-cm-sphere %s %s"', blobin, sphereout)
-  system(cmd)
-  system('afni %s', savedir)
+  % TODO: only run afni if it's not already running (check pgrep?)
+  system(sprintf('afni %s', savedir))
 end
 
 function reset_coords(varargin)
@@ -460,18 +555,38 @@ function coords = read_coords(coords_file, n_rois, z_mid)
   end
 end
 
-function update_display(f,all_ax)
+function m = update_undo(m, crd)
+   if all(reshape(squeeze(m(1,:,:)) == crd,1,[])), return, end
+   topgone = m(1:(end-1),:,:);
+   crd = reshape(crd,[1 size(crd)]);
+   m = [crd; topgone];
+end
+function undo_crd(varargin)
+   f=gcf;
+   data = guidata(f);
+   crds = squeeze(data.undo(2,:,:));
+   % dont do anything if we've reached the end of the undos
+   if(all(reshape(crds==0,[],1))), return; end
+   data.coords = crds;
+
+   data.undo = [ data.undo(2:end,:,:); zeros([1,size(crds)]) ];
+   guidata(f,data);
+   update_display(f, [], 0);
+end
+
+function update_display(f, all_ax, updateundo)
+   % defaults
+   if nargin < 1, f=gcf;        end % get current figure if not provided
+   if nargin < 2, all_ax=[];    end % axis if we didn't explicly give them
+   if nargin < 3, updateundo=1; end % default to updating undo
+
    % rectantles
    data = guidata(f);
-      
    if ~isfield(data,'rects'), data.rects={}; end
-   
-   % get current figure if not provided
-   if nargin < 1
-       f=gcf;
-   end
-   % axis if we didn't explicly give them
-   if nargin < 2
+   % undos
+   if updateundo && isfield(data,'undo'), data.undo = update_undo(data.undo, data.coords); end
+   % axes
+   if isempty(all_ax)
        axes = arrayfun(@(x) strncmp(x.Tag,'ax',2), f.Children);
        all_ax = f.Children(axes);
    end
@@ -495,23 +610,8 @@ function update_display(f,all_ax)
    end
 
    %% Calc number of true voxels in it
-   rng = @(center, size) (center-floor(size/2)):(center+floor(size/2));
    crd = data.coords(cur_roi,2:4);
-   vsz = data.vox_size;
-   
-   % only highlight current rois if we have it
-   if(crd(1) ~= 0 && crd(2) ~= 0 )
-       
-       mcnt = data.mask(rng(crd(1),vsz(1)),...
-                        rng(crd(2),vsz(2)),...
-                        rng(crd(3),vsz(3)) );
-      data.mask_sum = sum(mcnt(:));
-      nvox = numel(mcnt);
-   %fprintf('msk cnt: %d\n', data.mask_sum)
-   else
-       data.mask_sum = 0;
-       nvox = 0;
-   end
+   [data.mask_sum, nvox] = ngm(crd, data.mask, data.vox_size);
    
    
    %% update all axial

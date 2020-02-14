@@ -76,7 +76,16 @@ case "$action" in
             sed 's/:/\t50\t50/g' $roi_list > $coord_list
             ;;
       esac
-      mlrun "sf=autosid3('$subj'); [f, crd]=coord_mover('$subj', 'roilist','$roi_list','subjcoords', '$coord_list')"
+      #mlrun "try, sf=autosid3('$subj'); catch e, disp(e); sf=[];end; [f, crd]=coord_mover('$subj', 'roilist','$roi_list','subjcoords', '$coord_list')"
+      mlrun "[f, crd]=coord_mover('$subj', 'roilist','$roi_list','subjcoords', '$coord_list')"
+      ;;
+   subj-to-mni)
+      # do both mni-subjblob and mni-cm-sphere
+      # run from coord_mover.m
+      # cmd = sprintf('env -i bash -lc "./coord_builder.bash subj-to-mni %s %s %s %s"', ...
+      #       outname, preprocdir, slicedir, savedir)
+      mniblob=$(./subjcoord2mni.bash $@|tail -n1)
+      ./subjroimni2mniroi.bash $mniblob $(dirname $mniblob)/cmsphere-mni.nii.gz
       ;;
    mni-subjblob)
       # run from matlab. generate squares from coords positioned interatively in matlab on subject scout. warp to mni
@@ -109,7 +118,8 @@ case "$action" in
          24) roi_list="tmp/labels_MP20191015.txt";;
          *) echo "dont know what tmp/labels_* roilist to pick when nroi=$nroi (cnt from last line in $subj_coord)"; exit 1;;
       esac
-      mlrun "sf=autosid3('$subj'); [f,crd] = coord_mover('$subj', 'roilist','$roi_list','subjcoords', '$subj_coord')"
+      #mlrun "try, sf=autosid3('$subj'); catch e, disp(e); sf=[];end; [f,crd] = coord_mover('$subj', 'roilist','$roi_list','subjcoords', '$subj_coord')"
+      mlrun "[f,crd] = coord_mover('$subj', 'roilist','$roi_list','subjcoords', '$subj_coord')"
       ;;
    mni)
       echo "why?"
