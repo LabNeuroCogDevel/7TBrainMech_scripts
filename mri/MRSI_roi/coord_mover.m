@@ -245,7 +245,7 @@ function [f, coords] = coord_mover(ld8, varargin)
   
   % get initials (who) and add to data
   if ~isempty(p.Results.who)
-     data.who = p.Results.who;
+     data.who = {p.Results.who};
   else
      data.who = inputdlg('Your Initials (then TAB, then ENTER)');
   end
@@ -415,14 +415,25 @@ function keyboard_cb(src, event)
       roibox=findobj(src,'Tag','roibox');
       set(roibox, 'Value', roibox.Value-1);
       update_display()
-    otherwise
-      i=str2num(event.Key);
-      if ~isempty(i)
-        set(findobj(src,'Tag','roibox'), 'Value', i);
-        update_display()
-        return
-      end
 
+    % go to nearest roi
+    case 'n'
+      data = guidata(src);
+      roibox=findobj(src,'Tag','roibox');
+      cur = get(roibox, 'Value');
+      dist = squareform(pdist(data.coords(:,2:3)));
+      others = setdiff(1:length(data.coords),cur);
+      [~, closest_roi] = min(dist(others,cur));
+      % we took out cur, add back if closest is after cur
+      if closest_roi >= cur, closest_roi=closest_roi+1; end
+      set(roibox, 'Value', closest_roi);
+      update_display()
+      
+    % number 1-9
+    case arrayfun(@num2str,1:9,'Uni',0)
+        set(findobj(src,'Tag','roibox'), 'Value', str2num(event.Key));
+        update_display()
+    otherwise
       fprintf('no binding for %s\n',event.Key);
       return
   end
