@@ -210,9 +210,9 @@ function [f, coords] = coord_mover(ld8, varargin)
   % help from  https://www.mathworks.com/matlabcentral/answers/153064-change-color-of-each-individual-string-in-a-listbox
   data.roi_colors = jet(n_rois);
   rgb2hex = @(rgb) sprintf('%s', dec2hex(round(rgb.*255), 2 )');
-  html='<html><font id="%d" color="#%s">%s</font></html>';
+  html='<html><font id="%d" color="#%s">%d %s</font></html>';
   roibox_str = arrayfun(@(i) ...
-                 sprintf(html, i, rgb2hex(data.roi_colors(i,:)), roi_label{i}), ...
+                 sprintf(html, i, rgb2hex(data.roi_colors(i,:)), i, roi_label{i}), ...
                  1:n_rois, 'Un',0);
   
   %% GUI figure  
@@ -363,9 +363,82 @@ function [f, coords] = coord_mover(ld8, varargin)
 
   % draw all the rectangles
   update_display(f); %,[axial_above, axial_mid, axial_below])
+  set(f,'windowscrollWheelFcn', @scroll_cb);
+  % cannot bind to individual axis :(
+  % could use mousemove to see if we are in an image
+  % ax.windowscrollWheelFcn = @scroll_cb;
+  % Unrecognized property 'windowscrollWheelFcn' for class
+  % 'matlab.graphics.axis.Axes'
+  
+  set(f,'KeyPressFcn', @keyboard_cb);
   
   f.Visible = 'on';
 end
+
+function scroll_cb(src, event)
+  data = guidata(src);
+  root=groot;
+  % 1 is down
+  if event.VerticalScrollCount==1 
+    undo_crd();
+  else % -1 is up
+  % TODO if up, gm search; down = undo
+    gm_search1();
+  end
+end
+
+function keyboard_cb(src, event)
+  switch event.Key
+    case 'rightarrow'
+      shift_roi(1,1);
+    case 'leftarrow'
+      shift_roi(1,-1);
+    case 'uparrow'
+      shift_roi(2,1);
+    case 'downarrow'
+      shift_roi(2,-1);
+    case 'g'
+      gm_search1()
+    case 'u'
+      undo_crd();
+    case 'r'
+      reset_coords1();
+    case 'equal' % actually looking at + or |
+      toggle_grid();
+    case 'backslash'
+      toggle_grid();
+    case 'pagedown'
+      roibox=findobj(src,'Tag','roibox');
+      set(roibox, 'Value', roibox.Value+1);
+      update_display()
+    case 'pageup'
+      roibox=findobj(src,'Tag','roibox');
+      set(roibox, 'Value', roibox.Value-1);
+      update_display()
+    otherwise
+      i=str2num(event.Key);
+      if ~isempty(i)
+        set(findobj(src,'Tag','roibox'), 'Value', i);
+        update_display()
+        return
+      end
+
+      fprintf('no binding for %s\n',event.Key);
+      return
+  end
+
+end
+
+function shift_roi(xy,amnt)
+  f=gcf;
+  data = guidata(f);
+  cur_roi = get(findobj(f,'Tag','roibox'), 'Value');
+  i=xy+1; % first col is roi number
+  data.coords(cur_roi,i) = data.coords(cur_roi,i) + amnt;
+  guidata(f,data);
+  update_display(f);
+end
+
 
 
 
@@ -587,8 +660,8 @@ function update_display(f, all_ax, updateundo)
    if updateundo && isfield(data,'undo'), data.undo = update_undo(data.undo, data.coords); end
    % axes
    if isempty(all_ax)
-       axes = arrayfun(@(x) strncmp(x.Tag,'ax',2), f.Children);
-       all_ax = f.Children(axes);
+       axs = arrayfun(@(x) strncmp(x.Tag,'ax',2), f.Children);
+       all_ax = f.Children(axs);
    end
    
    % remove any previous rectangles
