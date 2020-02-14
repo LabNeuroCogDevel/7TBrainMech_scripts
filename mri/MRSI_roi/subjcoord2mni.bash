@@ -16,12 +16,13 @@ subjcoord2mni(){
    tmplbrain=$ppt1dir/template_brain.nii
    mpragepp=$ppt1dir/mprage.nii.gz
    warpcoef=$ppt1dir/mprage_warpcoef.nii.gz 
+   linwarp=$ppt1dir/mprage_warp_linear.nii.gz
    mp2slice=$slicedir/mprage_to_slice.mat
    rorig=$slicedir/MRSI/parc_group/rorig.nii
 
 
 
-   for v in coord rorig tmplbrain mp2slice mpragepp warpcoef; do
+   for v in coord rorig tmplbrain mp2slice mpragepp warpcoef linwarp; do
       # set v to full path
       origv=${!v}
       printf -v $v "$(readlink -f ${!v})"
@@ -30,9 +31,10 @@ subjcoord2mni(){
    done
 
 
-   ! test -e $outdir/$(basename $mpragepp)  && ln -s $mpragepp $_
-   ! test -e $outdir/$(basename $rorig)  && ln -s $rorig $_
-   ! test -e $outdir/$(basename $tmplbrain)  && ln -s $tmplbrain $_
+   # link in the structural/mni things we might want to see
+   for lnk in $mpragepp $rorig $tmplbrain $linwarp; do
+    ! test -e $outdir/$(basename $lnk)  && ln -s $lnk $_
+   done
 
    # did we already run?
 
