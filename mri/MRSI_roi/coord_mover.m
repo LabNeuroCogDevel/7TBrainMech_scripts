@@ -431,8 +431,20 @@ function keyboard_cb(src, event)
       
     % number 1-9
     case arrayfun(@num2str,1:9,'Uni',0)
-        set(findobj(src,'Tag','roibox'), 'Value', str2num(event.Key));
-        update_display()
+      set(findobj(src,'Tag','roibox'), 'Value', str2num(event.Key));
+      update_display()
+    case {'h','slash'}
+      msgbox({'pageup/down, 1-9: change roi'
+               'n: go to nearsest roi'
+               'arrows: move roi 1 px'
+               'right click:  select closest roi'
+               'left click: position roi'
+               'g, scroll up: position in best gm (-5:5 px)' 
+               'u, scroll down: undo'
+               '= |: toggle grid'
+               'r: reset this roi coord' ...
+               });
+      
     otherwise
       fprintf('no binding for %s\n',event.Key);
       return
