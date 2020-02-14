@@ -106,6 +106,10 @@ function [f, coords] = coord_mover(ld8, varargin)
   data.show_grid = p.Results.show_grid;
   % and id info
   data.ld8=ld8;
+  % label name with "labels" and ".txt"
+  %[ ~, label_fname, ~ ] = fileparts(mni_label_file);
+  %data.label=regexprep(regexprep(label_fname, '_?label(s|ed)?_?',''));
+  % e.g.  'mni_coords_MPOR_20190425' from ./mni_coords_MPOR_20190425_labeled.txt;
   %% if we are only given a lunaid, we can find nii and coord
   if isempty(p.Results.brain)
       fprintf('[INFO] no brain specified, looking up by id: %s\n', ld8)
@@ -380,23 +384,26 @@ end
 function mni(varargin)
   f=gcf;
   data = guidata(f);
-  master = data.mprage_file;
-  [d n e] = fileparts(data.coords_file);
-  dtime=datenum(datetime);
-  txtfile=sprintf('%s_%f_%s_%s_for_mni.txt',n,dtime,data.ld8,data.who);
-  outname=fullfile(d,txtfile);
-  nativeroi=fullfile(d,sprintf('native_roi_%s.txt',dtime));
-  dlmwrite(outname, data.coords, 'delimiter','\t')
+  outname = save_coords();
+  savedir = fileparts(outname);
+
+  %% this should be in own bash script
+
+  %% take coorddinates into mni space 
   % see 050_ROIs.bash and subjcoord2mni.bash. same as coord_builder.bash mni-subjblob ...
-  cmd = sprintf('env -i bash -lc "./subjcoord2mni.bash %s %s/../../ppt1 %s/../.. mni_examples"', ...
-        outname, data.rdir, data.rdir)
+  preprocdir = [data.rdir '/../../ppt1'];
+  slicedir = [data.rdir '../..'];
+  cmd = sprintf('env -i bash -lc "./subjcoord2mni.bash %s %s %s %s"', ...
+        outname, preprocdir, slicedir, savedir)
   system(cmd)
-  cmd = sprintf('env -i bash -lc "./coord_builder.bash mni-cm-sphere mni_examples/%s_mni-cm-sphere.nii.gz mni_examples/blobs/%s_mni-subjblob.nii.gz"', txtfile, txtfile)
+
+  %% make nifti from mni coordinates
+  % calls into ./subjroimni2mniroi.bash 
+  blobin=fullfile(savedir,'blob-mni.nii.gz')
+  sphereout=fullfile(savedir,'cmsphere-mni.nii.gz')
+  cmd = sprintf('env -i bash -lc "./coord_builder.bash mni-cm-sphere %s %s"', blobin, sphereout)
   system(cmd)
-  fprintf('====\nif not already open, run: afni %s/{mni_examples,mkcoords/out/%s} /Volumes/Hera/Projects/7TBrainMech/subjs/%s/preproc/t1/mprage_warp_linear.nii.gz\n\n', ...
-      data.ld8, data.ld8)
-  fprintf('====\nconsider: ln -s /Volumes/Hera/Projects/7TBrainMech/subjs/%s/preproc/t1/mprage_warp_linear.nii.gz %s/mkcoords/%s_lin_warp.nii.gz\n\n', ...
-     data.ld8, pwd, data.ld8)
+  system('afni %s', savedir)
 end
 
 function reset_coords(varargin)
@@ -410,10 +417,12 @@ end
 function outname=save_coords()
   f=gcf;
   data = guidata(f);
-  [d n e] = fileparts(data.coords_file);
-  outname=fullfile(d,sprintf('%s_%f_%s_%s.txt',n,datenum(datetime),data.ld8,data.who))
-  dlmwrite(outname, data.coords, 'delimiter','\t')
-  % todo use recommend (2019a): writematrix(data.coords, outname)
+  %% TODO: launch afni?
+  % inputs are subj, label, who
+  savedir = fullfile(fileparts(data.coords_file), data.who);
+  mkdir(savedir)
+  outname=fullfile(savedir,'picked_coords.txt');
+  dlmwrite(outname, data.coords, 'delimiter','\t');
 end
 
 function inname=load_coords(n_rois,z_mid)

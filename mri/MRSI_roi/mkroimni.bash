@@ -4,7 +4,7 @@
 
 # 20190425 - maria orma  (MPOR) rois
 # recenter
-echo ../mkcoords/01_11323_spheres_to_mni_cm.bash
+echo attic/mkcoords/01_11323_spheres_to_mni_cm.bash
 # 20190411 - make what is now csi_rois_mni_FC_20190411.nii.gz 
 # perl -F: -slane '$F[1] =~ s/,//g;print $F[1], " $."' mni_coords.txt > mni_coords_nolabel.txt
 # 3dUndump \

@@ -1,9 +1,12 @@
 all: .make/slice_roi.ls
 
-atlas_roi: csi_rois_mni_MPRO_20190425
+atlas_roi: roi_locations/ROI_mni_13MP20200207.nii.gz
 
-mkcoords/csi_rois_mni_MPRO_20190425.nii.gz  mkcoords/mni_coords_MPOR_20190425_labeled.txt:
-	mkcoords/01_11323_spheres_to_mni_cm.bash
+roi_locations/ROI_mni_13MP20200207.nii.gz: | roi_locations/20200207_rmsome.bash
+	roi_locations/20200207_rmsome.bash
+#mkcoords/csi_rois_mni_MPRO_20190425.nii.gz  mkcoords/mni_coords_MPOR_20190425_labeled.txt:
+#	mkcoords/01_11323_spheres_to_mni_cm.bash
+
 # mni_coords_nolabel.txt csi_rois_mni.nii.gz:
 # 	./mkroimni.bash
 

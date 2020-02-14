@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 trap 'e=$?; [ $e -ne 0 ] && echo "$0 exited in error"' EXIT
+cd $(dirname $0)
 
 #
 # make new labels by removing some from older labels
-#  20200207WF  init
+#  20200207WF  init - remove Left Thal, L&R MOG & SFS
 
 oldlabel="labels_18MP20200117.txt"
 oldnii=ROI_mni_18MP_20200117.nii.gz

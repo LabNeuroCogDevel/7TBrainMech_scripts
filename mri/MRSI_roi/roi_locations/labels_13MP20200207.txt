@@ -10,4 +10,4 @@ R DLPFC:	-46 -38 24
 L DLPFC:	42 -42 28
 R STS:	-64 32 4
 L STS:	64 24 4
-R (dm ?)Thalamus:	-6.16798 14 5.979
+R Thalamus:	-6.16798 14 5.979
