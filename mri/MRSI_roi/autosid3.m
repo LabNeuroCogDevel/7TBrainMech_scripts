@@ -26,7 +26,7 @@ function f = autosid3(subj)
   pfcrawdir=['/Volumes/Hera/Projects/7TBrainMech/subjs/' subj '/slice_PFC/MRSI_roi/raw/'];
 
   setbytag('SIName',    [pfcrawdir 'siarray.1.1']);
-  setbytag('ScoutName', [pfcrawdir 'seg.7']);
+  setbytag('ScoutName', [pfcrawdir 'seg.7']);  % is symlink to "17_7_FlipLR.MPRAGE"
   setbytag('ScoutRes',  '216');
   setbytag('ImageRes',  '216');
 
