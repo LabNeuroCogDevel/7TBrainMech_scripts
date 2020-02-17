@@ -348,6 +348,13 @@ function [f, coords] = coord_mover(ld8, varargin)
             );
   buttonx=buttonx+100;
 
+  uicontrol('Position',[buttonx, a_h+20, 100, 20], ...
+            'String','Help',...
+            'Tag', 'help_button', ...
+            'Callback', @roihelp ...
+            );
+  buttonx=buttonx+100;
+
   %% position table
   % roi positions original and new
   % TODO: combine into one, add html color
@@ -434,16 +441,7 @@ function keyboard_cb(src, event)
       set(findobj(src,'Tag','roibox'), 'Value', str2num(event.Key));
       update_display()
     case {'h','slash'}
-      msgbox({'pageup/down, 1-9: change roi'
-               'n: go to nearsest roi'
-               'arrows: move roi 1 px'
-               'right click:  select closest roi'
-               'left click: position roi'
-               'g, scroll up: position in best gm (-5:5 px)' 
-               'u, scroll down: undo'
-               '= |: toggle grid'
-               'r: reset this roi coord' ...
-               });
+      roihelp();
       
     otherwise
       fprintf('no binding for %s\n',event.Key);
@@ -462,7 +460,21 @@ function shift_roi(xy,amnt)
   update_display(f);
 end
 
-
+function roihelp(varargin)
+      msgbox({'pageup/down, 1-9: change roi'
+               'n: go to nearsest roi'
+               'arrows: move roi 1 px'
+               'right click:  select closest roi'
+               'left click: position roi'
+               'g, scroll up: position in best gm (-5:5 px)' 
+               'u, scroll down: undo'
+               '= |: toggle grid'
+               'r: reset this roi coord'
+               '!! google doc url placed on clipboard !!' ...
+               });
+      url='https://docs.google.com/document/d/1d6KCGho1bERh7dXoNBs0QXBdNbq6SHhjFFbDGg4Bgu8'
+      clipboard('copy',url)
+end
 
 
 function set_coord(src, roibox, fromidx, toidx)
