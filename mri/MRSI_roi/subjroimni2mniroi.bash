@@ -40,7 +40,9 @@ cm_nolab=$outdir/mni_coords_nolabels.txt
 bn=$(basename "$final_mniSpheres" .nii.gz)
 final_coordstxt=$outdir/${bn}_labeled.txt
 
-[ -r "$final_mniSpheres" ] && echo "have '$final_mniSpheres'; rm to reurn" >&2 && exit 0
+# always redo
+[ -r "$final_mniSpheres" ] && echo "# WARNING: remaking $final_mniSpheres" >&2
+#[ -r "$final_mniSpheres" ] && echo "have '$final_mniSpheres'; rm to reurn" >&2 && exit 0
 
 # get center of mass of unusually shaped rois now in mni space
 set -x

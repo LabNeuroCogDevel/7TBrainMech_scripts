@@ -11,7 +11,9 @@ subjcoord2mni(){
    outdir="$1"; shift   # /Volumes/Hera/Projects/7TBrainMech/subjs/10173_20180802/slice_PFC/roi/$mask/$initials
    # save to folder/roi path
    mniblob=$outdir/blob-mni.nii.gz
-   [ -r $mniblob ] && echo "# already finished, to redo:  rm $mniblob">&2 && echo $mniblob && return 0
+   # defalt to redo
+   [ -r $mniblob ] && echo "# WARNING: overwritting $mniblob">&2
+   #[ -r $mniblob ] && echo "# already finished, to redo:  rm $mniblob">&2 && echo $mniblob && return 0
 
    tmplbrain=$ppt1dir/template_brain.nii
    mpragepp=$ppt1dir/mprage.nii.gz

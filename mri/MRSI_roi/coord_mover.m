@@ -195,7 +195,8 @@ function [f, coords] = coord_mover(ld8, varargin)
   data.orig_coords = coords;
 
   % input filename
-  data.coords_file = coords_file;
+  data.coords_file = char(java.io.File(coords_file).getCanonicalPath()),
+  % TODO: dont use jvm? get absoulte path to coords_file
   
   % check roi labels match number of coordinates
   if length(roi_label) ~= size(coords,1)
@@ -601,8 +602,9 @@ function mni(varargin)
   % requires lncd preproc directory (for warp coefs)
   preprocdir = [data.rdir '/../../ppt1'];
   slicedir = [data.rdir '../..'];
-  cmd = sprintf('env -i bash -lc "./coord_builder.bash subj-to-mni %s %s %s %s"', ...
-        outname, preprocdir, slicedir, savedir)
+  shscript = fullfile(fileparts(mfilename('fullpath')),'coord_builder.bash'),
+  cmd = sprintf('env -i bash -lc "%s subj-to-mni %s %s %s %s"', ...
+        shscript, outname, preprocdir, slicedir, savedir)
   system(cmd)
 
   % TODO: only run afni if it's not already running (check pgrep?)
@@ -623,7 +625,7 @@ function outname=save_coords()
   %% TODO: launch afni?
   % inputs are subj, label, who
   savedir = fullfile(fileparts(data.coords_file), data.who);
-  mkdir(savedir)
+  if ~exist(savedir,'dir'), mkdir(savedir); end
   outname=fullfile(savedir,'picked_coords.txt');
   dlmwrite(outname, data.coords, 'delimiter','\t');
 end
