@@ -1,7 +1,7 @@
 .PHONY: alwaysrun all
 
 # all daw (pet and 7t)
-all: all_daw.csv
+all: all_daw.csv txt/upps_scored.csv
 
 .make:
 	mkdir .make
@@ -11,10 +11,16 @@ all: all_daw.csv
 	mkls $@ "/Volumes/L/bea_res/Data/Temporary*Raw*Data/7T/1*_2*/*_task.mat"
 
 # convert mats to txt files
-.make/task_txt.ls: .make/task_mats.ls daw2csv.m | .make
+.make/task_txt.ls: .make/task_mats.ls daw2csv.m 
 	matlab -nodisplay -nojvm -r 'try,daw2csv,end;quit'
 	mkls $@ '/Volumes/Hera/Projects/7TBrainMech/subjs/*/daw/daw_*.txt'
 
 # collapse all into one file
 all_daw.csv: daw.R .make/task_txt.ls
 	./daw.R
+
+.make/qualtrics.ls: alwaysrun |.make
+	mkls $@ '/Volumes/L/bea_res/Data/Temporary*Raw*Data/7T/*/*_selfreport.csv'
+
+txt/upps_scored.csv: .make/qualtrics.ls
+	./UPPS.R
