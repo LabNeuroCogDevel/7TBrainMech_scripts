@@ -11,4 +11,7 @@ SUBJECTS_DIR="/Volumes/Hera/Projects/7TBrainMech/subjs/FS"
 # TODO: maybe this should be part of /opt/ni_tools/preproc_pipelines/
 # can use the same source as pp to get SUBJECTS DIR?
 
-FS/001_toPSC.bash
+#FS/001_toPSC.bash
+
+cd $(dirname $0)
+FS/001_runlocal.bash
