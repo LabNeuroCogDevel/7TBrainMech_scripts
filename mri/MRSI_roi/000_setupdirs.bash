@@ -3,7 +3,8 @@ set -e
 trap 'e=$?; [ $e -ne 0 ] && echo "$0 exited in error"' EXIT
 cd $(dirname $0)
 #mni_atlas=$(pwd)/csi_rois_mni.nii.gz
-mni_atlas=$(pwd)/csi_rois_mni_MPRO_20190425.nii.gz
+#mni_atlas=$(pwd)/csi_rois_mni_MPRO_20190425.nii.gz
+mni_atlas="$(pwd)/roi_locations/ROI_mni_13MP20200207.nii.gz"
 statusfile="$(dirname $0)/../txt/status.csv"
 
 # default to show finish. if empty, does not print about completed subjects
@@ -117,7 +118,7 @@ SIARRAY="$(
   )"
 
 if [ -z "$SIARRAY" -o ! -d "$SIARRAY" ]; then
-   echo "cannot find siarray files in $rawdir or $boxsiarray; get data from Hoby or Victor (../001_rsync_MRSI_from_box.bash)!"
+   echo "cannot find siarray files in $rawdir or $boxsiarray; Victor may need to reconstruct (synced from 7tlinux shim [20200304]; prev ../001_rsync_MRSI_from_box.bash)!"
    # if we can use q to query the csv file w/sql, use it
    which q >/dev/null && [ -r "$statusfile" ] &&
       q -d, -H "select csipfc_raw from - where ld8 like '$ld8'" < $statusfile |
@@ -142,6 +143,14 @@ if [ ! -r $outimg ]; then
    3dNotes -h "$cmd # $0 $@" $outimg
 fi
 
+
+# add a total gm mask (based on victor's parcilation)
+# used to give an idea of wm total in matlab roi selection interface (coord_mover.m)
+AFNI_COMPRESSOR="" 3dMean -prefix gm_sum.nii -overwrite -sum $(dirname $parc_res)/r*gm*
+
+# 20200305 TODO: do we need this anymore
+# rois are handled by coord_builder.bash ??
+
 # later we'll use row/col to find postions in parc_res (216x216)
 # but we'll lose what slice we are on so cut that first
 # 3dcalc -a "$outimg" -expr "amongst(k,$slice_num_0+1,$slice_num_0, $slice_num_0-1)*a" -prefix csi_rois_slice_${ld8}_middle.nii.gz -overwrite
@@ -151,10 +160,6 @@ res_img=csi_rois_slice_${ld8}_middle_216x216.nii.gz
   3dresample -inset csi_rois_slice_${ld8}_middle.nii.gz \
      -master $parc_res \
      -prefix $res_img -rmode NN
-
-# add a total gm mask (based on victor's parcilation)
-# used to give an idea of wm total in matlab roi selection interface (coord_mover.m)
-AFNI_COMPRESSOR="" 3dMean -prefix gm_sum.nii -overwrite -sum $(dirname $parc_res)/r*gm*
 
 
 # get the center of mass coordinates on the zero-indexed center slice (likely 16)

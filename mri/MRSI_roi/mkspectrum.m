@@ -2,7 +2,7 @@
 % launch SVR1HFinal gui
 %
 % 20191126 - init
-function [f, coords] = mkspectrum(ld8)
+function f = mkspectrum(ld8)
   
   if nargin < 1
      [f, pth]= uigetfile({'*'},'any file with lunaid or inside a lunaid directory');

@@ -8,11 +8,16 @@ if nargin < 1
 end
 if nargin < 2
    offset=0
+   fprintf('using offset 0; rerun again like ')
+   fprintf('  mkspectrum_roi(f,12,coord_file)\n')
 end
 if mod(offset,12) ~= 0, error('offset to should be a mulitple of 12, not %d', offset); end
 
+% 20200220 - coord fliles now look like
+% /Volumes/Hera/Projects/7TBrainMech/subjs/10129_20180917/slice_PFC/MRSI_roi/13MP20200207/MP/coords_rearranged.txt
 if nargin < 3
-     [fn, pth]= uigetfile({'coords_rearranged.txt'},'coords_rearranged.txt');
+     [fn, pth]= uigetfile({'coords_rearranged.txt'},...
+                          'Find in subj/slice*/MRSI_roi/13*/');
      coord_file = fullfile(pth,fn);
 end
 
@@ -33,10 +38,12 @@ d.L = 1;  d.R = 1; % intialize left and right count
 lr = 'L';
 % what coluns are x and y values
 xi=1; yi=2;
-if max(coords(:,1)) <= 24
-   warnings('not using warp/*/*/coords_rearranged.txt')
-   xi=2; yi=3;
-end
+
+% 20200220 -- we have 13 rois!
+% if max(coords(:,1)) <= 24
+%    warnings('not using warp/*/*/coords_rearranged.txt')
+%    xi=2; yi=3;
+% end
 
 for i = (offset+1):(offset+12)
       % gui requires left and right
