@@ -98,11 +98,24 @@ for sraw in ${list[@]}; do
    "11724_20190104/0023_B0Scout33Slice_66" # no HC
    "11752_20190315/0025_B0Scout33Slice_66" # no HC
    "11634_20180409/0021_B0Scout41Slice_82" # 3, 82 at 002
-   "11757_20190322/0028_B0Map33Slice_66"   # no HC
+   "11757_20190322/0025_B0Map33Slice_209"  # no HC, weird scout numbers. visual inspected. angle a bit weird
    "11731_20190201/0023_B0Scout33Slice_66" # early 66 to be ignored
    "11760_20190311/0023_B0Scout33Slice_66" # mixed date data, this is from separate scout dir
-   "11728_20190114/0028_B0Map33Slice_66"   # 3 in a row, use the last before rest
    "11799_20190816/0025_B0Scout33Slice_66" # weird 0025_B0Scout33Slice_66  0026_B0Scout33Slice_33  0027_B0Map33Slice_165  0028_B0Map33Slice_33  0029_B0Map33Slice_16
+   "11782_20190930/0023_B0Scout33Slice_66" # no HPC? werid 82 dcm scan at 002
+   "11770_20190722/0027_B0Scout33Slice_66" # many B0Scouts, 4 possible. this one looks like the right angle
+   "11772_20190719/0016_B0Scout33Slice_66" # many B0Scouts, only this one has 66. positioning looks okay
+   "11768_20190913/0027_B0Scout33Slice_66" # only option
+   "11767_20190729/0024_B0Scout33Slice_66" # looks like right orentation, next is 0036 and is hippo
+   "11735_20190719/0023_B0Scout33Slice_66" # both this and 0016 orented for pfc. use later one
+   "11737_20190510/0039_B0Scout33Slice_66" # TWO SESSIONS: some linked at dir, others at dcm. first one (dcm links) is oriented 
+   "11748_20190401/0023_B0Scout33Slice_66" # other two are hpc
+   "11543_20180804/0024_B0Scout33Slice_66" # also have  no protocol name version 0024__66
+   "11728_20190114/0025_B0Map33Slice_330" # has way too many dicoms. but 2nd echo will be used. looks okay
+   # something weird. picking e2 looks okay (orientation is okay, and is not phase)
+   "11759_20190823/0030_B0Map33Slice_495"
+   # 11681_20181012 # no csi
+   # 11668_20180723 # no csi
    # FF scans
    "20180824FF2/0023_B0Scout33Slice_66"
    )

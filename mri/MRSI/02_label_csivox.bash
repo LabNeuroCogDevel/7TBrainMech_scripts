@@ -2,6 +2,8 @@
 
 # xxxxxxxxVI: Originally MRSI_CoregSeg_MB4_plusExtras.bash
 # 20181213WF: modified for lncd files
+# 20191212WF: add NOCSV to skip some processing (no grid, but want roi), use subj_date for freeserfer
+# 20200304WF: add MRDIR for new 7tlinuxshim rsync regout location
 #
 # wrapper for matlab:
 #  Divide ROI & Resize Scout to 1mm 
@@ -11,7 +13,10 @@
 # run for all with SI* sheets from box
 #
 [ -z "$DRYRUN" ] && DRYRUN=""
-export DRYRUN
+[ -z "$NOCSV" ] && NOCSV=""
+# if not defined don't print we've finished
+env | grep "^SHOWFINAL=" -q || SHOWFINAL="1"
+export DRYRUN NOCSV SHOWFINAL
 set -euo pipefail
 export AFNI_COMPRESSOR="" AFNI_NIFTI_TYPE_WARN=NO
 scriptdir=$(cd $(dirname $0);pwd)
@@ -27,6 +32,7 @@ if [ $# -eq 0 ]; then
 HEREDOC
   exit 1
 fi
+cd $(dirname $0)
 
 # get study from first argumetn if given
 # otherwise assume 7T
@@ -36,12 +42,14 @@ STUDY=7TBrainMech
 case $STUDY in
    FF) BOXMRSI="/Volumes/Hera/Raw/MRprojects/Other/FF/MRSI/"
        STUDYDIR="/Volumes/Hera/Projects/Collab/7TFF/"
-       RAWDIR=/Volumes/Hera/Raw/BIDS/7TFF/rawlinks/;;
+       RAWDIR=/Volumes/Hera/Raw/BIDS/7TFF/rawlinks/
+       MRDIR=/Volumes/Hera/Raw/MRprojects/7TFF/;;
    *)  BOXMRSI="/Volumes/Hera/Raw/MRprojects/7TBrainMech/MRSI_BrainMechR01/" 
        STUDYDIR="/Volumes/Hera/Projects/7TBrainMech"
-       RAWDIR=/Volumes/Hera/Raw/BIDS/7TBrainMech/rawlinks/;;
+       RAWDIR=/Volumes/Hera/Raw/BIDS/7TBrainMech/rawlinks/
+       MRDIR="/Volumes/Hera/Raw/MRprojects/7TBrainMech/";;
 esac
-echo $STUDY $STUDYDIR
+#echo $STUDY $STUDYDIR
 
 if [ $1 == "all" ]; then
    find $BOXMRSI -iname spreadsheet.csv -and -not -path '*/Hc/*' -and -not -ipath '*Thal*' -and -not -ipath '*20190507processed*'  |
@@ -89,11 +97,14 @@ subj_date=$1
 # check if we've already run
 data_dir="$STUDYDIR/subjs/$subj_date/slice_PFC/MRSI"
 final=$data_dir/all_probs.nii.gz
-[ -r  "$final" ] && echo "$subj_date: already finished. rm $final # to redo all" && exit 0
+if [ -r  "$final" ]; then
+   [ -n "$SHOWFINAL" ] && echo "$subj_date: already finished. rm $final # to redo all" 
+   exit 0
+fi
 
 # files
 subj=${subj_date%%_*}
-FSdir=$STUDYDIR/FS/$subj/ 
+FSdir=$STUDYDIR/FS/$subj_date/ 
 scout="$STUDYDIR/subjs/$subj_date/slice_PFC/slice_pfc.nii.gz"
 # no need for mprage -- using freesurfer's orig.nii
 # could use link
@@ -110,18 +121,20 @@ else
 fi
 
 #csi_si1_csv="/Volumes/Hera/Raw/MRprojects/7TBrainMech/MRSI_BrainMechR01/$mrid/SI1/spreadsheet.csv"
-csi_si1_csv=$(find -L $BOXMRSI -name spreadsheet.csv -ipath "*/$mrid*" -and -not -ipath '*Thal*' -print -quit)
+csi_si1_csv=$(find -L $BOXMRSI $MRDIR/$mrid*/ -name spreadsheet.csv -ipath "*/$mrid*" -and -not -ipath '*Thal*' -print -quit)
 
 # file indicating what slice was used. eg. 20181217Luna1/PFC_registration_out/17_10_FlipLR.MPRAGE
 #reg_out_file=$(find $(dirname $(dirname "$csi_si1_csv"))/*registration_out/ \
 #   -maxdepth 1 -type f -iname '[0-9][0-9]*MPRAGE' -print -quit)
-reg_out_file=$(find -L $BOXMRSI -ipath "*/$mrid*/*registration_out/*" -iname '[0-9][0-9]*MPRAGE' -print -quit )
+reg_out_file=$(find -L $BOXMRSI $MRDIR/$mrid*/ -ipath "*/$mrid*/*registration_out/*" -iname '[0-9][0-9]*MPRAGE' -print -quit )
 
 check_file(){
     file="$1";shift
     msg="$1";shift
     [ -n "$file" -a -r "$file" ] && return
-    echo "$subj_date ($mrid): no file like $BOXMRSI/*/$mrid*/*registration_out/*MPRAGE*"
+    # when file is empty, it is an empyt find for csi_si1_csv
+    [ -z "$file" ] && file="$BOXMRSI/*/spreadsheet.csv"
+    echo "$subj_date ($mrid): no file like $file"
     echo "  # fix: $msg" 
     exit 1
 }
@@ -129,22 +142,26 @@ check_file(){
 csi_json="$scriptdir/csi_settings.json"
 
 check_file "$scout"                     "run ./01_get_slices.bash $subj_date"
-check_file "$FSdir/mri/aparc+aseg.mgz"  "run ../FS/002_fromPSC.bash (or /Volumes/Hera/Projects/Collab/7TFF/scripts/030_FS.bash)"
-check_file "$csi_si1_csv"               "run ../001_rsync_MRSI_from_box.bash"
+check_file "$FSdir/mri/aparc+aseg.mgz"  "run ../FS/001_runlocal.bash (or /Volumes/Hera/Projects/Collab/7TFF/scripts/030_FS.bash)"
 check_file "$csi_json"                  "see https://github.com/LabNeuroCogDevel/7TBrainMech_scripts/blob/master/mri/MRSI/csi_settings.json"
+# for roi (instead of grid) we dont need the csv file
+[ -z "$NOCSV" ] && check_file "$csi_si1_csv"               "run ../001_rsync_MRSI_from_box.bash"
+# get slice number from total number of slices in scout
 #check_file "$reg_out_file"              "$BOXMRSI/**$mrid/regirstion_out/*MPRAGE is a product of MRSI box, cannot determine slice ($reg_out_file)"
 
 ## determine slice
 scout_slice_num=""
 [  -n "$reg_out_file" ] && [[ "$(basename $reg_out_file)" =~ ^([0-9]+)_ ]] && scout_slice_num=${BASH_REMATCH[1]}
 if [ -z "$scout_slice_num" ]; then
-   echo "WARNING: DNE $BOXMRSI/**$mrid/regirstion_out/*MPRAGE is a product of MRSI box"
+   echo "WARNING: DNE $BOXMRSI/**$mrid/regirstion_out/*MPRAGE is a product of MRSI box OR"
+   echo "(as of 20200304) $MRDIR/$mrid**/regirstion_out/*MPRAGE is a product of 7tlinuxshim tx"
    echo "trying to get slice number from scout '3dinfo $scout'"
    slices=$(3dNotes $scout 2>/dev/null |perl -lne 'print $1 if m/Slice_(\d+)$/'|uniq)
+   [ -z "$slices" ] && slices=$(3dinfo -nk $scout)
    case $slices in
-     66) scout_slice_num=17;;
-     82) scout_slice_num=21;;
-     *) echo "dont know what to do with $slices slices (not 66 or 82!)";;
+     33|66) scout_slice_num=17;;
+     41|82) scout_slice_num=21;;
+     *) echo "dont know what to do with $slices slices (not 33/66 or 41/82! in '$scout')";;
    esac 
 fi
 [ -z "$scout_slice_num" ] && echo "no slice number in $reg_out_file" >&2 && exit 1
@@ -235,7 +252,6 @@ csi_json='$csi_json';
 filename_scout='scout.nii';
 filename_flair='$filename_flair';
 
-csi_csv = '$csi_si1_csv';
 csi_nii_out = fullfile(data_dir,'csi_val');
 csi_template = fullfile(data_dir,'csi_template.nii');
 
@@ -254,24 +270,35 @@ csi_2d_dir = fullfile(data_dir,'2d_csi_ROI');
 dir2d_to_niis(csi_2d_dir,csi_2d_dir, csi_template);
 
 % for csi data too
-fprintf('converting spreadsheet to nii (%s -> %s)\\n',csi_csv, csi_nii_out)
-SI1_to_nii(csi_csv, csi_template, csi_nii_out);
+% [~,csi_csv]=system(find -L $BOXMRSI $MRDIR/$mrid -ipath "*/$mrid*/*registration_out/*" -iname '[0-9][0-9]*MPRAGE' -print -quit )
+csi_csv = '$csi_si1_csv';
+if ~isempty(csi_csv)
+   fprintf('converting spreadsheet to nii (%s -> %s)\\n',csi_csv, csi_nii_out)
+   SI1_to_nii(csi_csv, csi_template, csi_nii_out);
+else
+  fprintf('not running SI1_to_nii b/c no grid csi_csv file\n');
+end
 EOF
 
 echo "# running $(pwd)/$mscript"
 
 ### actually run!
 # -nodesktop -nosplash 
-matlab -nodisplay -r "try, run('${mscript%.m}'),catch e, disp(e); end; quit" |tee $log_reg
+matlab -nodesktop -nosplash -r "try, run('${mscript%.m}'),catch e, disp(e); end; quit" |tee $log_reg
 
-# put niftis together for easy viewing
-3dbucket -overwrite -prefix all_csi.nii.gz csi_val/*nii
-3dbucket -overwrite -prefix all_probs.nii.gz 2d_csi_ROI/*nii
-3drefit -relabel_all_str \
-  "$(ls 2d_csi_ROI/*nii |
-     perl -MFile::Basename -pe '
-       $_=basename($_,".nii");
-       s/^\d+_(.*)_FlipLR/\1/;
-       s/csivoxel.// ')" \
-   all_probs.nii.gz
-[ ! -r ../mprage_in_slice.nii.gz ] && ln -s ../mprage_in_slice.nii.gz ./
+if [ -z "$NOCSV" ]; then 
+   # put niftis together for easy viewing
+   3dbucket -overwrite -prefix all_csi.nii.gz csi_val/*nii
+   3dbucket -overwrite -prefix all_probs.nii.gz 2d_csi_ROI/*nii
+   3drefit -relabel_all_str \
+     "$(ls 2d_csi_ROI/*nii |
+        perl -MFile::Basename -pe '
+          $_=basename($_,".nii");
+          s/^\d+_(.*)_FlipLR/\1/;
+          s/csivoxel.// ')" \
+      all_probs.nii.gz
+fi
+
+[ -r ../mprage_in_slice.nii.gz -a ! -r mprage_in_slice.nii.gz ] && ln -s ../mprage_in_slice.nii.gz ./
+
+exit 0
