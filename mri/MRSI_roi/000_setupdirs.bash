@@ -4,16 +4,18 @@ trap 'e=$?; [ $e -ne 0 ] && echo "$0 exited in error"' EXIT
 cd $(dirname $0)
 #mni_atlas=$(pwd)/csi_rois_mni.nii.gz
 #mni_atlas=$(pwd)/csi_rois_mni_MPRO_20190425.nii.gz
-mni_atlas="$(pwd)/roi_locations/ROI_mni_13MP20200207.nii.gz"
+atlas=13MP20200207
+mni_atlas="$(pwd)/roi_locations/ROI_mni_$atlas.nii.gz"
 statusfile="$(dirname $0)/../txt/status.csv"
 
 # default to show finish. if empty, does not print about completed subjects
 env | grep '^SHOWFINISH=' -q || SHOWFINISH="yes"
+env | grep '^DRYRUN=' -q && DRYRUN=echo || DRYRUN=""
 
 #
 # creates directory with raw files need to run SVR1HFinal
 # 1. copy of an mprage in slice space (as mprage_middle.mat and seg.7)
-# 2. siarray.1.*
+# 2. siarray.1.1
 # 3. roi center coordinates in slice space
 #
 
@@ -82,7 +84,7 @@ slice_num_0=$((($slice_num - 1)))
 
 ## check final output -- no need to run if we already have it
 sdir=/Volumes/Hera/Projects/7TBrainMech/subjs/$ld8/slice_PFC/MRSI_roi/raw
-finalout=$sdir/slice_roi_MPOR20190425_CM_${ld8}_${slice_num_0}.txt
+finalout=$sdir/slice_roi_${atlas}_CM_${ld8}_${slice_num_0}.txt
 if [ -r "$finalout" ]; then
    [ -n "$SHOWFINISH" ] && echo "# have $finalout; rm -r '$sdir' # to redo" 
    exit 0
@@ -104,7 +106,7 @@ done
 rawdir="/Volumes/Hera/Raw/MRprojects/7TBrainMech/$MRID"
 boxsiarray="/Volumes/Hera/Raw/MRprojects/7TBrainMech/MRSI_BrainMechR01/PFC_siarray/$MRID"
 SIARRAY="$(
-  find $rawdir -maxdepth 1 -type d,l -iname '*CSI*' -print0 |
+  find $rawdir -maxdepth 1 -type d,l -iname '*CSI*' -not -ipath '*CSIHc*' -print0 |
    xargs -I{} -r0n1 find "{}" -maxdepth 1 -type f,l -iname 'siarray.*' -print -quit |
    sed 1q |
    xargs -r dirname
@@ -112,7 +114,7 @@ SIARRAY="$(
 # nothing in raw data, try box
 [ -z "$SIARRAY" -a -d "$boxsiarray" ] &&
   SIARRAY="$(
-     find -L "$boxsiarray" -maxdepth 1 -type f,l -iname 'siarray.*' -print -quit |
+     find -L "$boxsiarray" -maxdepth 1 -type f,l -iname 'siarray.1.1' -print -quit |
      sed 1q |
      xargs -r dirname
   )"
@@ -130,11 +132,11 @@ fi
 echo $ld8 $SIARRAY $MPRAGE
 [ ! -d $sdir ] && mkdir -p $sdir
 cd $sdir
-[ ! -e siarray.1.1 ] && ln -s $SIARRAY/siarray.* ./
-[ ! -e mprage_middle.mat ] && ln -s $MPRAGE mprage_middle.mat # make mat for easy selection
-[ ! -e seg.7 ] && ln -s $MPRAGE seg.7             # fake seg
-[ ! -e rorig.nii ] && ln -s $parc_res ./          # higher res mprage (from FS) in slice space
-
+[ ! -e siarray.1.1 ] && $DRYRUN ln -s $SIARRAY/siarray.1.1 ./
+[ ! -e mprage_middle.mat ] && $DRYRUN ln -s $MPRAGE mprage_middle.mat # make mat for easy selection
+[ ! -e seg.7 ] && $DRYRUN ln -s $MPRAGE seg.7             # fake seg
+[ ! -e rorig.nii ] && $DRYRUN ln -s $parc_res ./          # higher res mprage (from FS) in slice space
+[ -n "$DRYRUN" ] && exit 
 # warp our mni roi atlas to slice space (mni->t1->slice)
 outimg=csi_rois_slice_$ld8.nii.gz
 if [ ! -r $outimg ]; then
