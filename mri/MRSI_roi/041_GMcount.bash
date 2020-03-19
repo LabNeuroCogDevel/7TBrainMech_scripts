@@ -5,16 +5,23 @@ trap 'e=$?; [ $e -ne 0 ] && echo "$0 exited in error"' EXIT
 #  generate txt file with GM counts
 #
 atlas=13MP20200207
-nroi=$(3dBrickStat -max roi_locations/ROI_mni_$atlas.nii.gz)
+roi_gmpctout=roi_percent_cnt_$atlas.txt
+nroi=$(3dBrickStat -max roi_locations/ROI_mni_$atlas.nii.gz | sed 's/[ \t]*//g')
 
 #  20190509WF - init (now as atttic/051_GM_Count.bash)
 #  20200311WF - use coords_mprage made by gui. keep in same folder as picked_coords.txt
 #               specific to subj+coord picker
 doneflag=.gmcounted # file w/date if finished this already
-all_mprage=($(ls ../../../subjs/1*_2*/slice_PFC/MRSI_roi/$atlas/*/coords_mprage.nii.gz))
+all_mprage=($(ls $(cd ../../../;pwd)/subjs/1*_2*/slice_PFC/MRSI_roi/$atlas/*/coords_mprage.nii.gz))
+
+
+# ONLY DO ONE ID (for testing)
+env |grep -q '^ONLYID=' || ONLYID=""
+
 for coords_mprage in ${all_mprage[@]}; do
-   ld8=$(ld8 $od)
+   ld8=$(ld8 $coords_mprage)
    echo "# $ld8"
+   [ -n "$ONLYID" -a "$ONLYID" != "$ld8" ] && continue
    aparcaseg="/Volumes/Hera/preproc/7TBrainMech_rest/FS/$ld8/mri/aparc+aseg.mgz"
    [ ! -r "$aparcaseg" ] && echo "no FS for $ld8, redo ../011_FS.bash" && continue
 
@@ -46,8 +53,9 @@ for coords_mprage in ${all_mprage[@]}; do
      cat -n|
      sed "s/^/$ld8 $atlas /" > $roi_gmpctout
 
-   [ "$(awk 'END{print NR,NF }' $roi_gmpctout)" == "$nroi 5" ] &&
+   awksize="$(awk 'END{print NR,NF }' $roi_gmpctout)"
+   [ "$awksize" == "$nroi 5" ] &&
       echo "$(date) $0" > $doneflag ||
-      echo "BAD ROI file $(pwd)/$roi_gmpctout!"
+      echo "BAD ROI file: '$awksize' != '$nroi 5'; $(pwd)/$roi_gmpctout!"
 
 done
