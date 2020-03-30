@@ -31,43 +31,35 @@ BothHemisphere_met_age <- function(d, region1, region2, metabolite, CRLB, savepl
   # mtbl_str <- 'Glu.Cr'
   
   #linear
-  fml <- mtbl_str %>% sprintf("%s ~ age + GMrat + label + (1|ld8)",.) %>% as.formula
-  m1 <- lmer(fml, data = brain_region)
-  
-  #inverse 
-  fml <- mtbl_str %>% sprintf("%s ~ invage + GMrat + label+ (1|ld8)",.) %>% as.formula
-  m2 <- lmer(fml, data = brain_region)
+  models_strs <-
+      list(age   ="%s ~ age        + GMrat + label + (1|ld8)",
+           invage="%s ~ invage     + GMrat + label+ (1|ld8)",
+           age2  ="%s ~ age + age2 + GMrat + label+ (1|ld8)")
 
-  #quadratic
-  fml <- mtbl_str %>% sprintf("%s ~ age + age2 + GMrat + label+ (1|ld8)",.) %>% as.formula
-  m3 <- lmer(fml, data = brain_region)
-  
-  #calculate AIC 
-  AIC_lin <- AIC(m1)
-  AIC_inv <- AIC(m2)
-  AIC_quad <- AIC(m3)
-  
+  # fill in formula and calculate model
+  models <- lapply(models_strs, function(fmlstr) sprintf(fmlstr,mtbl_str) %>% as.formula %>% lmer(brain_region))
+  AICs <- sapply(models, AIC)
+
+  # find which is the best based on AIC
+  bestfit <- names(AICs)[which.min(AICs)] # age, invage, or age2
+  best_model <- models[[bestfit]]
+  smry <- summary(best_model)
+
+
+  # what to use as age column to use as input for emmeans
+  # age2 needs 2 columns (age + age2)
   interp_age <- seq(min(brain_region$age),
                     max(brain_region$age),
                     by=.1)
-  bestAICval <- min(c(AIC_quad, AIC_lin, AIC_inv))
-  if( AIC_lin == bestAICval) {
-    smry <- summary(m1)
-    best_model <- m1
-    bestfit <- 'age'
+
+  if( bestfit == "age") {
     best_list <- list(age=interp_age)
-  } else if (AIC_inv == bestAICval) {
-    smry <- summary(m2)
-    best_model <- m2
-    bestfit <- 'invage'
+  } else if (bestfit=="invage") {
     best_list <- list(invage=1/interp_age)
-  } else if (AIC_quad == bestAICval) { 
-    smry <- summary(m3)
-    best_model <- m3
-    bestfit <- 'age2'
+  } else if (bestfit=="age2") { 
     best_list <- list(age=interp_age,age2=interpage^2)
   } else {
-      stop('unkown best AIC!')
+      stop('unknown best AIC model!', bestfit)
   }
   
   print(smry)
@@ -79,6 +71,8 @@ BothHemisphere_met_age <- function(d, region1, region2, metabolite, CRLB, savepl
   #brain_region$est <- predict(best_model,  brain_region %>% mutate(GMrat=mean(GMrat,na.rm=T),  label=first(label)))
   avgs <- emmeans::ref_grid(best_model, at=best_list)
   fitdf <- as.data.frame(summary(avgs)) 
+  # add age back if we dont have it (invage fit)
+  if(bestfit == 'invage') fitdf$age <- 1/fitdf$invage
 
   #graph 
   
@@ -93,14 +87,14 @@ BothHemisphere_met_age <- function(d, region1, region2, metabolite, CRLB, savepl
   #plot L and R lines
   
   p <-
-    ggplot(plot_data) +
+    ggplot(brain_region) +
     aes(x=age, y=!!enquo(metabolite), color=label, group=label) +
     geom_point() +
     geom_line(data=fitdf,aes(y=prediction), color='black') +
     ggtitle(title)
 
 
-  # same as above, but without knowning what is happening!
+  # same as above, but with a lot less control
   # plot_data_ef <- ggeffects::ggpredict(best_model,c("age","label"))
   # p <- plot(plot_data_ef, add.data=T) + ggtitle(title)
 
