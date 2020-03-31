@@ -368,6 +368,11 @@ function [f, coords] = coord_mover(ld8, varargin)
             'Style','text', ...
             'Tag', 'disp_current');
 
+  % text box with current roi
+  curroibox = uicontrol('Position',[a_w*2/3, a_h, 2*a_w/3, 20], ...
+                     'String', 'SELECT ROI',...
+                     'Style','text', ...
+                     'Tag', 'curroibox');
 
   % draw all the rectangles
   update_display(f); %,[axial_above, axial_mid, axial_below])
@@ -714,6 +719,8 @@ function update_display(f, all_ax, updateundo)
    colors = data.roi_colors;
    roibox = findobj(f,'Tag','roibox');
    cur_roi = get(roibox, 'Value');
+   curroibox = findobj(f, 'Tag', 'curroibox');
+   curroibox.String = data.roi_label{cur_roi};
    if ~isempty(cur_roi)
        % cur_roi = 1;
        colors(cur_roi,:) = 1;
