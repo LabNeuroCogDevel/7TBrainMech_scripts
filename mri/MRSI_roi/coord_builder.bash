@@ -42,7 +42,7 @@ HEREDOC
 
 mlrun(){ 
    echo "$*"
-   matlab -nodesktop -nosplash -r "try; $@; catch e; disp(e); quit(); end"; }
+   matlab -nodesktop -nosplash -r "try; addpath('/opt/ni_tools/MRSIcoord.py/matlab'); $@; catch e; disp(e); quit(); end"; }
 
 
 
