@@ -21,13 +21,14 @@ subj_root=$(cd $(pwd)/../../../subjs/; pwd)
 # version=20200224      # init
 # version=20200311      # second pass
 version=$(date +%Y%m%d) 
+rawversion="-v2idxfix" # 20200413 - fix bad coords!
 
 _findspecs(){
    # default to "newer" find
    local newer="-newermt $2"
    local id="*"
    [ "$1" == "id" ] && id="$2" && newer=""
-   find $subj_root/$id/slice_PFC/MRSI_roi/raw/ -iname '*spectrum.[0-9]*' $newer -exec stat -c "%y %n" {} \+ 
+   find $subj_root/$id/slice_PFC/MRSI_roi/raw$rawversion/ -iname '*spectrum.[0-9]*' $newer -exec stat -c "%y %n" {} \+ 
 }
 usage(){ echo "USAGE: $0 new OR $0 20yy-mm-dd OR $0 ld8list.txt" && exit 1; }
 
@@ -37,7 +38,8 @@ if [[ "$1" == "new" ]]; then
    # will also check already recieved files
    findspecs(){ _findspecs newer 2020-02-24;}
 elif [[ "$1" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
-   findspecs(){ _findspecs newer $1;}
+   cmpdate="$1"
+   findspecs(){ _findspecs newer $cmpdate;}
 elif [ -r "$1" ]; then
    subjlist="$1"
    findspecs(){ for ld8 in $(cat $subjlist|xargs ld8); do _findspecs id $ld8; done; }
@@ -64,11 +66,11 @@ while read ld8 f d; do
    test -n "$prevlcm" -a -r "$prevlcm" && echo "# SKIP: have $_" >&2 && continue
 
    # test for were we want it
-   prevlcm=/Volumes/Hera/Projects/7TBrainMech/subjs/$ld8/slice_PFC/MRSI_roi/LCModel/v1/$specyx.dir 
+   prevlcm=/Volumes/Hera/Projects/7TBrainMech/subjs/$ld8/slice_PFC/MRSI_roi/LCModel/v2idxfx/$specyx.dir 
    test -r $prevlcm && echo "# SKIP: have $_" >&2 && continue
 
    if [ -n "$INPICKONLY" ]; then
-      xy=$(echo $specyx| awk -F\. '{print $3"\t"$2}')
+      xy=$(echo $specyx| awk -F\. '{print (216+1-$3)"\t"(216+1-$2)}')
       ! grep -q "$xy" /Volumes/Hera/Projects/7TBrainMech/subjs/$ld8/slice_PFC/MRSI_roi/$atlas/*/picked_coords.txt &&
          echo "# SKIP: $ld8 $(basename $f) '$xy' not in $_ (INPICKONLY='' to ignore)" >&2 && 
          continue

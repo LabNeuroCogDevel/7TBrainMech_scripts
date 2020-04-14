@@ -6,6 +6,8 @@ trap 'e=$?; [ $e -ne 0 ] && echo "$0 exited in error"' EXIT
 env |grep -q '^VERBOSE=' || VERBOSE=""
 # ONLYID to tust just one luna_date
 env |grep -q '^ONLYID=' || ONLYID=""
+env |grep -q '^DRYRUN=' || DRYRUN=""
+[ -n "$DRYRUN" ] && DRYRUN="echo"
 
 # CHANGE ME
 #unzipfolder="/Volumes/Hera/Raw/MRprojects/7TBrainMech/MRSI_BrainMechR01/20200224_13specs_processed/"
@@ -39,7 +41,7 @@ for d in $unzipfolder/*/; do
 
    keep=($(diff -y \
       <(ls $d | sed 's:spectrum.::;s:.dir::'|tr . ' ' |sort) \
-      <(awk '{print $3,$2}' $c|sort)  |
+      <(awk '{print 216+1-$3,216+1-$2}' $c|sort)  |
       egrep -v '[|<>]' | awk '{print "spectrum."$1"."$2".dir"}' || : ))
 
    # if we want to see whats going on
@@ -58,16 +60,18 @@ for d in $unzipfolder/*/; do
    [ ${#keep[@]} -eq 0 ] && continue
 
    # where to put things
-   M=$S/$ld8/slice_PFC/MRSI_roi/LCModel/v1
+   M=$S/$ld8/slice_PFC/MRSI_roi/LCModel/v2idxfix
 
    # copy
-   test ! -r $M && mkdir -p $_
-   test ! -r $M/${atlas}_picked_coords.txt && ln -s $c $_
+   test ! -r $M && $DRYRUN mkdir -p $_
+   test ! -r $M/${atlas}_picked_coords.txt && $DRYRUN ln -s $c $_
    for kd in ${keep[@]}; do
       [ -r $M/$kd/spreadsheet.csv ] && continue
       echo "copying to $M/$kd"
-      rsync -ravhi --size-only $d/$kd $M/
+      $DRYRUN rsync -ravhi --size-only $d/$kd $M/
    done
+
+   [ -n "$DRYRUN" ] && continue
 
    test ${#keep[@]} -ne $(find $M -iname 'spreadsheet.csv'|wc -l) && 
       echo "ERROR: $ld8 has $_ instead of expected ${#keep[@]} in $M (see $d)" || :
