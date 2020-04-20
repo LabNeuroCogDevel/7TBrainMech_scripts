@@ -28,7 +28,10 @@ _findspecs(){
    local newer="-newermt $2"
    local id="*"
    [ "$1" == "id" ] && id="$2" && newer=""
-   find $subj_root/$id/slice_PFC/MRSI_roi/raw$rawversion/ -iname '*spectrum.[0-9]*' $newer -exec stat -c "%y %n" {} \+ 
+   # pre 2020-04-13 - when coord_mover didn't also mkspectrum
+   #find $subj_root/$id/slice_PFC/MRSI_roi/raw$rawversion/ -iname '*spectrum.[0-9]*' $newer -exec stat -c "%y %n" {} \+ 
+   # now coord mover makes it's own spectrum files
+   find $subj_root/$id/slice_PFC/MRSI_roi/$atlas/LT -iname '*spectrum.[0-9]*' $newer -exec stat -c "%y %n" {} \+ 
 }
 usage(){ echo "USAGE: $0 new OR $0 20yy-mm-dd OR $0 ld8list.txt" && exit 1; }
 
