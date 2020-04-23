@@ -26,30 +26,51 @@ atlas=13MP20200207
 # subject root directory
 S="/Volumes/Hera/Projects/7TBrainMech/subjs/"
 
+showkeep(){
+   # give me spectrum dir and picked.txt
+   local d="$1";shift
+   local c="$1";shift
+   # diff spec folders and expected coords
+   # show only similiar
+   # -- why not use `comm -12` ?
+   diff -y \
+      <(ls $d | sed 's:spectrum.::;s:.dir::'|tr . ' ' |sort) \
+      <(awk '{print 216+1-$3,216+1-$2}' $c|sort)  |
+      egrep -v '[|<>]' | awk '{print "spectrum."$1"."$2".dir"}' || : 
+}
+
 for d in $unzipfolder/*/; do
    ld8=$(ld8 "$d")
+   # where to put things
+   M=$S/$ld8/slice_PFC/MRSI_roi/LCModel/v2idxfix
+
    [ -z "$ld8" ] && echo "ERROR: no lunadate in $d" && continue
    [ -n "$ONLYID" -a "$ONLYID" != "$ld8" ] && continue
    o=$S/$ld8/slice_PFC/MRSI_roi/$atlas
    [ ! -d $o ] && echo "ERROR: no out dir $o for $d" && continue
-   c=$(find $o/ \
+   cs=($(find $o/ \
       -mindepth 2 -maxdepth 2 \
       -iname picked_coords.txt \
-      \( -ipath '*/MP/*' -or -ipath '*/JJ/*' -or -ipath '*/OR/*' \) \
-      -exec stat -c "%Y %n" {} \+ | sort -n | cut -d' ' -f2| sed 1q)
-   [ -z "$c" ] && echo "ERROR: no $o/*/picked_coords.txt" && continue
+      -not -ipath  '*/WF*' \
+      -exec stat -c "%Y %n" {} \+ |
+      while read t f; do
+         echo $(showkeep $d $f|wc -l):::$t:::$f;
+      done|sort -nr))
+   # \( -ipath '*/MP/*' -or -ipath '*/JJ/*' -or -ipath '*/LT/*' -or -ipath '*/OR/*' \) \
+   [ -z "$cs" ] && echo "ERROR: no $o/*/picked_coords.txt" && continue
+   ncs=${#cs[@]}; neq13=$(for x in ${cs[@]}; do echo ${x/:::*}; done|grep 13 -c)
+   [ $neq13 -ne 1 ] && echo "WARNING: have $ncs coord files ($neq13 w/13): ${cs[@]}"
+   c=${cs[0]}; c=${c/*:::/} # remove timestamp
+   
 
-   keep=($(diff -y \
-      <(ls $d | sed 's:spectrum.::;s:.dir::'|tr . ' ' |sort) \
-      <(awk '{print 216+1-$3,216+1-$2}' $c|sort)  |
-      egrep -v '[|<>]' | awk '{print "spectrum."$1"."$2".dir"}' || : ))
+   keep=($(showkeep "$d" "$c"))
 
    # if we want to see whats going on
    [ -n "$VERBOSE" ] && echo "# $ld8 found ${#keep[@]} matching $c"
 
    # show difference
    if [ ${#keep[@]} -ne $(wc -l < $c) ]; then
-      echo "WARNING: $ld8 have ${#keep[@]}/$(ls $d|wc -l) match $(wc -l < $c); see ./check_speccoord $ld8" 
+      echo "WARNING: $ld8 have ${#keep[@]}/$(ls $d|wc -l) match $(wc -l < $c) (using $c in $M); see ./check_speccoord $ld8" 
     diff -y --suppress-common-lines -W 25 \
        <(ls $d | sed 's:spectrum.::;s:.dir::'|tr . ' ' |sort) \
        <(awk '{print $3,$2}' $c|sort)  | sed 's/^/\t/' || :
@@ -58,9 +79,6 @@ for d in $unzipfolder/*/; do
 
    # nothing to copy? do nothing
    [ ${#keep[@]} -eq 0 ] && continue
-
-   # where to put things
-   M=$S/$ld8/slice_PFC/MRSI_roi/LCModel/v2idxfix
 
    # copy
    test ! -r $M && $DRYRUN mkdir -p $_
