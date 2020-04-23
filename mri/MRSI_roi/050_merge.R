@@ -42,11 +42,12 @@ roi <- xyroi %>%
     bind_rows %>%
     `names<-`(c("roi", "x", "y", "ld8"))
 
+fd <- all7trestdf()
 d <-
     merge(roi, csi, by=c("ld8", "x", "y"), all=T) %>%
     merge(L, by="roi", all=T) %>%
     merge(G, by=c("ld8", "roi"), all=T) %>%
-    merge(all7trestdf(), by=c"ld8", all.x=T)
+    merge(fd, by=c("ld8"), all.x=T)
 
 ## get age and sex from DB
 query <-
