@@ -70,7 +70,7 @@ MRID="$(grep "$ld8" ../MRSI/txt/ids.txt|cut -d' ' -f2)"
 roi_struct=/Volumes/Hera/Projects/7TBrainMech/subjs/$ld8/slice_PFC/MRSI/struct_ROI/
 [ ! -d $roi_struct ] && echo "cannot find $roi_struct; try: NOCSV=1 ../MRSI/02_label_csivox.bash $ld8" && exit 1
 
-MPRAGE="$(find $roi_struct -maxdepth 1 -type f,l -iname '*_7_FlipLR.MPRAGE')"
+MPRAGE="$(find -L $roi_struct -maxdepth 1 -type f,l -iname '*_7_FlipLR.MPRAGE')"
 [ -z "$MPRAGE" ] && echo "cannot find '*_7_FlipLR.MPRAGE'; try: NOCSV=1 ../MRSI/02_label_csivox.bash $ld8" && exit 1
 parc_res="/Volumes/Hera/Projects/7TBrainMech/subjs/$ld8/slice_PFC/MRSI/parc_group/rorig.nii"
 [ ! -r "$parc_res" ] && echo "cannot find '$parc_res'; try: NOCSV=1 ../MRSI/02_label_csivox.bash $ld8" && exit 1
@@ -106,8 +106,8 @@ done
 rawdir="/Volumes/Hera/Raw/MRprojects/7TBrainMech/$MRID"
 boxsiarray="/Volumes/Hera/Raw/MRprojects/7TBrainMech/MRSI_BrainMechR01/PFC_siarray/$MRID"
 SIARRAY="$(
-  find $rawdir -maxdepth 1 -type d,l -iname '*CSI*' -not -ipath '*CSIHc*' -print0 |
-   xargs -I{} -r0n1 find "{}" -maxdepth 1 -type f,l -iname 'siarray.*' -print -quit |
+  find -L $rawdir -maxdepth 1 -type d,l -iname '*CSI*' -not -ipath '*CSIHc*' -print0 |
+   xargs -I{} -r0n1 find -L "{}" -maxdepth 1 -type f,l -iname 'siarray.*' -print -quit |
    sed 1q |
    xargs -r dirname
 )"
