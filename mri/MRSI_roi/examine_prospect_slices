@@ -1,0 +1,54 @@
+#!/usr/bin/env python3
+
+# 20200429WF - help inspect slices to ID which should be used
+"""
+Usage: examine_prospect_slices [--save=<img.png>] <slicedir>...
+
+Options:
+    <slicedir>  is like ../../rawlinks/11700_20190406/*{82,66}*
+"""
+
+from docopt import docopt
+from glob import glob
+# import nibabel.nicom.dicomwrappers as dcmw
+import matplotlib.pyplot as plt
+import numpy as np
+import pydicom.filereader as dcmr
+import os
+
+opts = docopt(__doc__)
+
+
+def dcm_center(folder):
+    gstr = '%s/*.IMA' % folder
+    g = glob(gstr)
+    print("# read %d dcms in %s" % (len(g), folder))
+    d = [dcmr.read_file(f).pixel_array for f in g]
+    x = np.stack(d, 2)
+    return (x, dcmr.read_file(g[0]))
+
+
+imgs = [dcm_center(f) for f in opts.get('<slicedir>')]
+print('# init plots')
+fg, ax = plt.subplots(len(imgs), 1)
+
+# if only one, subplot wont give an array. force array
+if len(imgs) == 1:
+    ax = [ax]
+for i, xd in enumerate(imgs):
+    x = xd[0]
+    d = xd[1]
+    dirname = os.path.basename(opts.get('<slicedir>')[i])
+    title = "%d %s %s %s" % (i, d.ProtocolName, dirname, d.AcquisitionTime)
+    print("# add %s" % title)
+    imslice = np.rot90(x[:, int(x.shape[1]/2), :])
+    ax[i].imshow(imslice, cmap=plt.cm.bone)
+    ax[i].set_title(title)
+    ax[i].axis('off')
+
+# show or save
+imgname = opts.get('--save')
+if imgname:
+    plt.savefig(imgname)
+else:
+    plt.show()

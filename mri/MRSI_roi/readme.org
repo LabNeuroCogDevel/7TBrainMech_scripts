@@ -1,0 +1,50 @@
+#+Title: MRSI roi atlas coordinate positioning pipeline
+* Placing coordinates
+  #+BEGIN_SRC bash
+  ./coord_builder.bash view 10129_20180917 roi_locations/ROI_mni_13MP20200207.nii.gz
+  #+END_SRC
+
+* Data pipeline
+  * for available files, see https://docs.google.com/spreadsheets/d/1_EdqA8ObwPaqeLd-BJuvXhimotkHG8zvHMTICmGEVyM/edit#gid=422528181&fvid=100563694
+  * need csipfc_raw, pfc_scout, rawt1, ppt1
+  * make pfc_picked (manually selected roi locations)
+
+
+** Debug missing
+ see output of ~./000_setupdirs.bash~
+ 
+*** example: unusual scout directories
+    #+BEGIN_SRC bash
+  cd /Volumes/Hera/Projects/7TBrainMech/scripts/mri/MRSI_roi
+  ./000_setupdirs.bash 11700_20190406
+    #+END_SRC
+
+    #+BEGIN_QUOTE
+    cannot find 11700_20190406/slice_PFC dir; run ../MRSI/01_get_slices.bash 11700_20190406
+    #+END_QUOTE
+
+    #+BEGIN_SRC bash
+   ../MRSI/01_get_slices.bash 11700_20190406
+    #+END_SRC
+    #+BEGIN_QUOTE
+   # 11700_20190406: bad slice raw dir num (3 /Volumes/Hera/Raw/BIDS/7TBrainMech/rawlinks/11700_20190406/*{82,66}*, expect 2). hardcode fix 'force_dir' in /Volumes/Hera/Projects/7TBrainMech/scripts/mri/MRSI/01_get_slices.bash
+    #+END_QUOTE
+    
+**** Fix: inspect and hardcode
+     We can see there are 4 scouts, the 3rd ~0028_*~ is a close in time to the 2nd and orientated like the PFC slice. All else equal, the later scout is the correct one.
+     #+BEGIN_SRC bash
+      ./examine_prospect_slices /Volumes/Hera/Raw/BIDS/7TBrainMech/rawlinks/11700_20190406/*{82,66}*
+      vim ../MRSI/01_get_slices.bash 
+      # in force_dir array, add: "11700_20190406/0028_B0Scout33Slice_66"
+     #+END_SRC
+     [[file:txt/example_choose_b0.png]]
+
+     and edit ~force_dir~ in ~../MRSI/01_get_slices.bash~, adding ~""11700_20190406/0028_B0Scout33Slice_66"~
+     
+*** needs struct_ROI freesurfer/gm matlab extraction
+    #+BEGIN_SRC bash
+ ./000_setupdirs.bash 11700_20190406
+ # cannot find /Volumes/Hera/Projects/7TBrainMech/subjs/11700_20190406/slice_PFC/MRSI/struct_ROI/; try: NOCSV=1 ../MRSI/02_label_csivox.bash 11700_20190406
+ NOCSV=1 ../MRSI/02_label_csivox.bash 11700_20190406
+    #+END_SRC
+

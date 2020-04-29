@@ -114,6 +114,9 @@ for sraw in ${list[@]}; do
    "11728_20190114/0025_B0Map33Slice_330" # has way too many dicoms. but 2nd echo will be used. looks okay
    # something weird. picking e2 looks okay (orientation is okay, and is not phase)
    "11759_20190823/0030_B0Map33Slice_495"
+   # 20200429 - after using examine_prospect_slice
+   "11700_20190406/0028_B0Scout33Slice_66"
+   "11816_20200203/0027_B0Map33Slice_165"
    # 11681_20181012 # no csi
    # 11668_20180723 # no csi
    # FF scans
