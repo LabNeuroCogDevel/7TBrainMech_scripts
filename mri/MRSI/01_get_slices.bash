@@ -145,7 +145,12 @@ for sraw in ${list[@]}; do
    elif [ $n -eq 2 ]; then
       slice_dcm_dir=$(lsscout "$sraw" |sed 1q)
    else
-      echo "# $ld8: bad slice raw dir num ($n $sraw/*{82,66}*, expect 2). hardcode fix 'force_dir' in $0" >&2
+      echo "# $ld8: bad slice raw dir num ($n $sraw/*{82,66}*, expect 2)" >&2
+      # if no matches. point to raw directory
+      [ $n -eq 0 ] && echo "search for missing link in '$(dirname $(readlink -f $(ls -d $sraw/*|sed 1q)))';
+        also ../BIDS/000_dcmfolder_201906fmt.bash" && continue
+      echo "# 1. pick best from: ./examine_prospect_slices $sraw/*{82,66}*" >&2
+      echo "# hardcode best protocol directory within 'force_dir' in $0"
       continue
    fi
 
