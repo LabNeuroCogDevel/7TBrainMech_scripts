@@ -14,6 +14,10 @@ if isa(taskname,'char') && strcmp(taskname,'#mgs')
    warning('searching for mgs task and variations (extend in find_bdf)')
    taskname={'mgs','MGS'};
 end
+if isa(taskname,'char') && strcmp(taskname,'#anti')
+   warning('searching for anti task and variations (extend in find_bdf)')
+   taskname={'Anti','ANTI', 'anti'};
+end
 
 %% cell of tasks => recursive calls to find_bdf
 % get each task individually, then combine

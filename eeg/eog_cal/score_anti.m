@@ -1,10 +1,10 @@
+% saves mat to trial_data/anti
+% and returns matrix like
+%   subjid date trialnum xdat correctsaccade lat eog/slope veldisp/slope calr2 calslope
 %
 % score a subject's anti state eeg
 %   using score_eog.m (VGS/MGS score) as reference
 %
-% saves mat to trial_data/anti
-% and returns matrix like
-%   subjid date trialnum xdat eog/slope veldisp/slope calr2 calslope
 %
 %  --- xdats ---
 % from anti task data
@@ -118,7 +118,10 @@ for triali = 1:nTrials
     antInd = intInds(find(intCodes>=150 & intCodes<200 & intCodes~=128 & intInds>cueInd, 1, 'first'));
     itiInd = intInds(find(intCodes==254 & intInds>cueInd, 1, 'first'));
     if isempty(itiInd)
-        itiInd = length(eogSm)-1;
+        itiInd = length(inds)-1;
+        intCodes,
+        fprintf('%s %d: warning no final itiInd using %d - %d (%.2f secs)\n', ...
+                subj, triali, cueInd, itiInd, (itiInd-cueInd)/d.Fs)
     end
 
     if isempty(cueInd) || isempty(antInd) || isempty(itiInd)
@@ -186,8 +189,15 @@ for triali = 1:nTrials
         fprintf('no data in %s trial %d (%d)', subj, triali, intCodes(1))
     end
     
-    thisdata(end+1,:) = [str2double(subjid) str2double(scandate) triali intCodes(1) ...
+    % 102 and 103 are left. but should have looked right
+    iscorrect = 1.*(sign(103 - intCodes(1)) == sign(meanEOG/cal.slope));
+    % no saccades found? drop it
+    iscorrect(~isfinite(antilat)) = NaN;
+    
+    thisdata(end+1,:) = [str2double(subjid) str2double(scandate)...
+                         triali intCodes(1) ...
                          antilat ...
+                         iscorrect ...
                          meanEOG/cal.slope ...
                          VelDisplacement/cal.slope ...
                          cal.r2 cal.slope];

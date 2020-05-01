@@ -39,7 +39,9 @@ function [Latency, meanEOG, VelDisplacement, saccades] = eog_sacs(eogsm_t, velTh
         saccades(end+1)=length(vel);
         returnSaccadeIdx=length(saccades);
         dur_of_mean = (saccades(end)-saccades(1))/Fs;
-        fprintf('Warning: no return saccade!? using rest for meanEOG (%.02f secs)\n', dur_of_mean)
+        if VERBOSE
+            fprintf('Warning: no return saccade!? using rest for meanEOG (%.02f secs)\n', dur_of_mean)
+        end
     end
 
     % find preceding and following zero
