@@ -6,12 +6,28 @@ SingleHemisphere_met_age <- function(d, region, metabolite, CRLB, saveplot=F) {
   require(dplyr)
   require(ggplot2)
   require(cowplot)
-  # Filtering
+
+  # check for age columns. make if we need and can
+  stopifnot('age' %in% names(d))
+  if (! 'invage'  %in% names(d)) d$invage <- 1/d$age
+  if (! 'age2'    %in% names(d)) d$age2   <- d$age^2
+
+  # currently not using fd, and it is missing for some subjects
+  d <- d %>% select(-matches('^fd'))
+
+    
+  ## Filtering
+  # only this roi region (roi# 1 to 13)
   brain_region_all <- d %>% filter(roi == region)
-  brain_region <-
-    brain_region_all %>%
-    filter(!!enquo(CRLB) <= 20) %>%
-    na.omit()
+  # check NAs
+  region_nona <- brain_region_all %>% na.omit()
+  nomit <- nrow(brain_region_all) - nrow(region_nona)
+  if(nomit >0L) cat("removed ", nomit, "rows with NA\n");
+  # filter by crlb
+  brain_region <- region_nona %>% filter(!!enquo(CRLB) <= 20)
+  nCRLBrm <- nrow(region_nona) - nrow(brain_region)
+  if(nCRLBrm >0L) cat("removed ", nCRLBrm, "rows with CRLB>=30\n");
+
 
   mtbl_str <- as.character(substitute(metabolite))
 
@@ -19,9 +35,13 @@ SingleHemisphere_met_age <- function(d, region, metabolite, CRLB, saveplot=F) {
   #brain_region$zscore <- scale(brain_region[,mtbl_str], center = TRUE, scale = TRUE)
   #brain_region$zscore <- abs(brain_region$zscore)
   #brain_region<-brain_region[brain_region$zscore<2,]
-  print.data.frame(brain_region %>% filter(!!enquo(CRLB)>20), n=Inf)
+
+  # debuging - print what we removed
+  #leftout <- brain_region %>% anti_join(brain_region_all, .) 
+  #print(str(leftout))
+
   #OUTPUT: return sample size so i know how many people i now have after exclusions
-  cat(sprintf("retaining %d/%d\n", nrow(brain_region), nrow(brain_region_all)))
+  cat(sprintf("after all filtering: retaining %d/%d\n", nrow(brain_region), nrow(brain_region_all)))
 
   # AGE EFFECT
   # Test linear, inverse, and quadratic fits without outliers
