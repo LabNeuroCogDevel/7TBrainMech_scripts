@@ -8,11 +8,11 @@ for subjc =allsubjs'
   catch
    continue
   end
-  data=[data;d]
+  data=[data;d];
 end
 
 % save all combined to .mat and to .csv
 datatable = array2table(data);
-datatable.Properties.VariableNames = {'LunaID','ScanDate','Trial','XDAT', 'Correct','Latency','meanEOGslope', 'velDispSlope','calR2', 'calSlope'};
+datatable.Properties.VariableNames = {'LunaID','ScanDate','Trial','XDAT','Latency','Correct','meanEOGslope', 'velDispSlope','calR2', 'calSlope'};
 save('eeg_anti.mat', 'datatable');
 writetable(datatable,'eeg_anti.csv');
