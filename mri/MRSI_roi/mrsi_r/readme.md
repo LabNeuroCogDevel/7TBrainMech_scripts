@@ -6,7 +6,7 @@ functions used to analyse MRSI ROI
 devtools::install_github('LabNeuroCogDevel/7TBrainMech_scripts/mri/MRSI_roi/mrsi_r')
 ```
 
-N.B. if you want to edit functions, this is not the best choice. See "Edit and Install"  beloww
+N.B. if you want to edit functions, this is not the best choice. See "Edit and Install"  below
 
 # Usage
 
@@ -36,6 +36,13 @@ fitdf <- rbind(fitdf_gaba, fitdf_glu)
    devtools::document(); devtools::install('./')
    ```
    or simimply `make` (using [`Makefile`](./Makefile))
+
+  3. Push back changes
+   ```bash
+    git commit -am '✨ my changes' # consider taging message with an emoji: https://gitmoji.carloscuesta.me/
+    git push
+    ```
+  
 
 # Refs
 * https://kbroman.org/pkg_primer/pages/minimal.html
