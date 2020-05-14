@@ -4,14 +4,14 @@
 #' @param asllist boolean to return list instead of string
 #' @export
 p_or_t <- function(cfs, aslist=F) {
-  if('Pr(>|t|)' %in% names(cfs))
-     sig <- list(m='p', v=cfs['Pr(>|t|)'])
+  if ("Pr(>|t|)" %in% names(cfs))
+     sig <- list(m="p", v=cfs["Pr(>|t|)"])
   else
-     sig <- list(m='t', v=cfs['t value'] )
+     sig <- list(m="t", v=cfs["t value"])
 
   if(aslist) return(sig)
 
-  do.call(paste,c(sep=": ", sig))
+  do.call(paste, c(sep=": ", sig))
 }
 
 #' @title what y: age2 invage or age
@@ -89,21 +89,21 @@ mrsi_bestmodel <- function(d, regions, metabolite, CRLB, crlb_thres=20) {
 
   # if we have more than one region, add label and random effect of subject
   # also need to use lmer instead of lm
-  if(length(regions) > 1) {
+  if (length(regions) > 1) {
      nuissance <- paste0(nuissance, '+ label + (1|ld8)')
      mdlfunc <- lme4::lmer
   }
 
   # fill in formula and calculate model
   models <- lapply(models_strs, function(fmlstr)
-                   sprintf(fmlstr,mtbl_str,nuissance) %>% as.formula %>% mdlfunc(brain_region))
+                   sprintf(fmlstr, mtbl_str, nuissance) %>% as.formula %>% mdlfunc(brain_region))
   AICs <- sapply(models, AIC)
 
   # find which is the best based on AIC
   bestfit <- names(AICs)[which.min(AICs)] # age, invage, or age2
   best_model <- models[[bestfit]]
 
-  cfs <- summary(best_model)$coefficients[bestfit,]
+  cfs <- summary(best_model)$coefficients[bestfit, ]
   sig = p_or_t(cfs)
   #MESG: return sample size so i know how many people i now have after exclusions
   cat(sprintf("%s region(s) %s: best=%s (AIC%.03f, %s)\n",
@@ -127,27 +127,30 @@ mrsi_fitdf <- function(m) {
   # reconstruct what age was used for this model
   cfs <- summary(m)$coefficients
   bestfit <- what_age_y(cfs)
-            
+
   # need max age
   # get data frame from model (different for lme4 and lm)
-  if(isClass('lme4',m)) d <- m@frame
+  if (isClass("lme4", m)) d <- m@frame
   else                  d <- m$model
   # and get age range (different for invage)
-  if(bestfit == 'invage') ages <- range(1/d$invage)
+  if (bestfit == "invage") ages <- range(1/d$invage)
   else                    ages <- range(d$age)
 
+  # assume first element in RHS of forumal is metabolite
+  # should maybe be something passed in to the function?
+  mtbl_str <- names(d)[1]
   # what to use as age column to use as input for emmeans
   # age2 needs 2 columns (age + age2)
   interp_age <- seq(ages[1], ages[2], by=.1)
 
-  if( bestfit == "age") {
+  if (bestfit == "age") {
     best_list <- list(age=interp_age)
   } else if (bestfit=="invage") {
     best_list <- list(invage=1/interp_age)
   } else if (bestfit=="age2") {
-    best_list <- list(age=interp_age,age2=interpage^2)
+    best_list <- list(age=interp_age, age2=interpage^2)
   } else {
-      stop('unknown best AIC model!', bestfit)
+      stop("unknown best AIC model!", bestfit)
   }
 
   avgs <- emmeans::ref_grid(m, at=best_list)
@@ -155,12 +158,12 @@ mrsi_fitdf <- function(m) {
 
   # will want age for plotting. add back if we dont have it (invage fit)
   # N.B. if we mean center inv age, this wont be as easy to revert
-  if(bestfit == 'invage') fitdf$age <- 1/fitdf$invage
+  if (bestfit == "invage") fitdf$age <- 1/fitdf$invage
 
   fitdf$bestfit <- bestfit
   fitdf$metabolite <- mtbl_str
-  fitdf$beta <- cfs[bestfit,'Estimate']
-  fitdf$tval <- cfs[bestfit,'t value']
+  fitdf$beta <- cfs[bestfit, "Estimate"]
+  fitdf$tval <- cfs[bestfit, "t value"]
 
   return(fitdf)
 }
