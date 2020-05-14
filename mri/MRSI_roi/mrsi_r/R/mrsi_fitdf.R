@@ -131,8 +131,8 @@ mrsi_fitdf <- function(m) {
 
   # need max age
   # get data frame from model (different for lme4 and lm)
-  if (isClass("lmerMod", m)) d <- m@frame
-  else                       d <- m$model
+  # if not slot, hopefully 'model' exists
+  d <- tryCatch(m@frame, error=function(e) m$model)
   # and get age range (different for invage)
   if (bestfit == "invage") ages <- range(1/d$invage)
   else                     ages <- range(d$age)
