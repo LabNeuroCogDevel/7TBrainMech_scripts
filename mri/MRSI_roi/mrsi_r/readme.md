@@ -1,5 +1,6 @@
-# MRSIROI R package 
-functions used to analyse MRSI ROI 
+Authors: Will Foran mostly and a little bit Maria Perica
+# MRSIROI R package
+functions used to analyse MRSI ROI
 
 # Quick install
 ```R
@@ -43,7 +44,7 @@ fitdf <- rbind(fitdf_gaba, fitdf_glu)
     git pull # incase any changes were made by anyone else
     git push
    ```
-  
+
 
 # Refs
 * https://kbroman.org/pkg_primer/pages/minimal.html
