@@ -16,7 +16,7 @@ detach("package:mrsiroi", unload=TRUE) # only if already loaded and need new cha
 library(mrsiroi)
 d <- read.csv('../../txt/13MP20200207_LCMv2fixidx.csv')
 m_glu <- mrsi_bestmodel(d, 1, Glu.Cr, Glu.SD)
-fitdf_glu <- mrsi_fi✨tdf(m_glu)
+fitdf_glu <- mrsi_fitdf(m_glu)
 
 m_gaba <- mrsi_bestmodel(d, 1, GABA.Cr, GABA.SD)
 fitdf_gaba <- mrsi_fitdf(m_gaba)
