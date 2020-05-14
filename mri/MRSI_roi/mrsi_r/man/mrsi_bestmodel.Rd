@@ -4,12 +4,16 @@
 \alias{mrsi_bestmodel}
 \title{find best MRSI data model fit}
 \usage{
-mrsi_bestmodel(d, regions, metabolite, CRLB, crlb_thres = 20)
+mrsi_bestmodel(d, regions, metabolite, crlb_thres = 20, CRLB = NULL)
 }
 \arguments{
-\item{d}{dataframe with ld8, region, metabolite, and CRLB columns}
+\item{d}{(cleaned) dataframe with ld8, region, metabolite, and CRLB columns}
 
 \item{regions}{numeric regions vector to include}
+
+\item{metabolite}{quoted column name (x value)}
+
+\item{CRLB}{quoted column name for thresholding (x value)}
 }
 \description{
 pick lowest AIC model among lin, inv, and quad w/rand effects if more than one region

@@ -4,7 +4,7 @@
 \alias{mrsi_plot}
 \title{Plot best model fit}
 \usage{
-mrsi_plot(d, regions, metabolite, CRLB, saveplot = F)
+mrsi_plot(d, regions, metabolite, crlb, saveplot = F)
 }
 \arguments{
 \item{d}{dataframe with region, metabolite, and crlb columns}
@@ -13,7 +13,7 @@ mrsi_plot(d, regions, metabolite, CRLB, saveplot = F)
 
 \item{metabolite}{unquoted column name for y}
 
-\item{CRLB}{unquoted column name for thres cutoff}
+\item{crlb}{unquoted column name for thres cutoff}
 
 \item{saveplot}{boolean save or not}
 }

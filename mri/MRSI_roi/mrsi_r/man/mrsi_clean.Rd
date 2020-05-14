@@ -11,6 +11,8 @@ mrsi_clean(d, regions, CRLB, crlb_thres = 20, mesg = F)
 \item{d}{dataframe with ld8, region, metabolite, and CRLB columns}
 
 \item{regions}{numeric regions vector to include}
+
+\item{CRLB}{quoted column name for thresholding}
 }
 \description{
 CRLB clean
