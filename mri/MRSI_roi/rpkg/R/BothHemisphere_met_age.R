@@ -1,3 +1,18 @@
+#' @title
+#' Model two regions
+#'
+#' @description
+#' `BothHemisphere_met_age` returns plot, model summary, and row count
+#'
+#' @details
+#' 
+#' 
+#' @param d dataframe with region, metabolite, and crlb columns
+#' @param region1 numeric region to include
+#' @param region2 numeric region to include
+#' @param metabolite unquoted column name for y
+#' @param CRLB unquoted column name for thres cutoff
+#' @param saveplot boolean save or not
 BothHemisphere_met_age <- function(d, region1, region2, metabolite, CRLB, saveplot=F) {                                                    
   # MP and WF 3/27/2020
   # setup like                                                                                                               
