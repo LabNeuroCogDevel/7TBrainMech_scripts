@@ -1,6 +1,11 @@
 # MRSIROI R package 
 functions used to analyse MRSI ROI 
 
+# Quick install
+```R
+devtools::install_github('LabNeuroCogDevel/7TBrainMech_scripts/tree/master/mri/MRSI_roi/mrsi_r')
+```
+
 # Usage
 
 ```R
