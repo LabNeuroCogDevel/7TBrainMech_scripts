@@ -15,10 +15,10 @@ N.B. if you want to edit functions, this is not the best choice. See "Edit and I
 detach("package:mrsiroi", unload=TRUE) # only if already loaded and need new changes
 library(mrsiroi)
 d <- read.csv('../../txt/13MP20200207_LCMv2fixidx.csv')
-m_glu <- mrsi_bestmodel(d, 1, Glu.Cr, Glu.SD)
+m_glu <- mrsi_bestmodel(d, 1, 'Glu.Cr', 'Glu.SD')
 fitdf_glu <- mrsi_fitdf(m_glu)
 
-m_gaba <- mrsi_bestmodel(d, 1, GABA.Cr, GABA.SD)
+m_gaba <- mrsi_bestmodel(d, 1, 'GABA.Cr', 'GABA.SD')
 fitdf_gaba <- mrsi_fitdf(m_gaba)
 
 fitdf <- rbind(fitdf_gaba, fitdf_glu)

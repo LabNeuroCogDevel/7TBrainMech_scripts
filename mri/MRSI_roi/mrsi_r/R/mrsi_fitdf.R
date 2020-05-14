@@ -29,6 +29,7 @@ what_age_y <- function(cfs) {
 #' add ages, remove bad crlb
 #' @param d dataframe with ld8, region, metabolite, and CRLB columns
 #' @param regions numeric regions vector to include
+#' @param CRLB quoted column name for thresholding
 #' @import dplyr
 #' @export
 mrsi_clean <- function(d, regions, CRLB, crlb_thres=20, mesg=F) {
@@ -36,19 +37,18 @@ mrsi_clean <- function(d, regions, CRLB, crlb_thres=20, mesg=F) {
   if(! 'invage' %in% names(d)) d$invage <- 1/d$age
   if(! 'age2'   %in% names(d)) d$age2   <- d$age^2
 
-  # Filtering
+  # Filtering. 2 steps so we can report a count
   brain_region_all <- d %>% filter(roi %in% regions)
-  # for debuging e.g.: CRLB <- quo(Clu.SD)
   brain_region <-
     brain_region_all %>%
-    filter(!!enquo(CRLB) <= crlb_thres) %>%
+    filter(!!sym(CRLB) <= crlb_thres) %>%
     na.omit()
 
   #MESG: return sample size so i know how many people i now have after exclusions
 
   if(mesg) cat(sprintf("region(s) %s, %s > %d: retaining %d/%d\n",
               paste(collapse=",", regions),
-              as.character(substitute(CRLB)), crlb_thres,
+              CRLB, crlb_thres,
               nrow(brain_region), nrow(brain_region_all)))
 
   return(brain_region)
@@ -58,19 +58,20 @@ mrsi_clean <- function(d, regions, CRLB, crlb_thres=20, mesg=F) {
 #' find best MRSI data model fit
 #' @description
 #' pick lowest AIC model among lin, inv, and quad w/rand effects if more than one region
-#' @param d dataframe with ld8, region, metabolite, and CRLB columns
+#' @param d (cleaned) dataframe with ld8, region, metabolite, and CRLB columns
 #' @param regions numeric regions vector to include
+#' @param metabolite quoted column name (x value)
+#' @param CRLB quoted column name for thresholding (x value)
 #' @import dplyr
 #' @importFrom lme4 lmer
 #' @export
-mrsi_bestmodel <- function(d, regions, metabolite, CRLB, crlb_thres=20) {
+mrsi_bestmodel <- function(d, regions, metabolite, crlb_thres=20, CRLB=NULL) {
   require(dplyr)
 
-  brain_region <- mrsi_clean(d, regions, !!enquo(CRLB), crlb_thres)
-
-  mtbl_str <- as.character(substitute(metabolite))
-  # for debug: metabolite <- quo(Glu.Cr)
-  # mtbl_str <- 'Glu.Cr'
+  # we should be given clean data
+  # but if not, clean using CRLB
+  if(is.null(CRLB)) brain_region <- d
+  else              brain_region <- mrsi_clean(d, regions, CRLB, crlb_thres)
 
   # AGE EFFECT
   # Test linear, inverse, and quadratic fits
@@ -96,7 +97,7 @@ mrsi_bestmodel <- function(d, regions, metabolite, CRLB, crlb_thres=20) {
 
   # fill in formula and calculate model
   models <- lapply(models_strs, function(fmlstr)
-                   sprintf(fmlstr, mtbl_str, nuissance) %>% as.formula %>% mdlfunc(brain_region))
+                   sprintf(fmlstr, metabolite, nuissance) %>% as.formula %>% mdlfunc(brain_region))
   AICs <- sapply(models, AIC)
 
   # find which is the best based on AIC
@@ -107,7 +108,7 @@ mrsi_bestmodel <- function(d, regions, metabolite, CRLB, crlb_thres=20) {
   sig = p_or_t(cfs)
   #MESG: return sample size so i know how many people i now have after exclusions
   cat(sprintf("%s region(s) %s: best=%s (AIC%.03f, %s)\n",
-              mtbl_str,paste(regions), bestfit, min(AICs), sig))
+              metabolite,paste(regions), bestfit, min(AICs), sig))
 
  return(best_model)
 }
@@ -130,11 +131,11 @@ mrsi_fitdf <- function(m) {
 
   # need max age
   # get data frame from model (different for lme4 and lm)
-  if (isClass("lme4", m)) d <- m@frame
-  else                  d <- m$model
+  if (isClass("lmerMod", m)) d <- m@frame
+  else                       d <- m$model
   # and get age range (different for invage)
   if (bestfit == "invage") ages <- range(1/d$invage)
-  else                    ages <- range(d$age)
+  else                     ages <- range(d$age)
 
   # assume first element in RHS of forumal is metabolite
   # should maybe be something passed in to the function?
