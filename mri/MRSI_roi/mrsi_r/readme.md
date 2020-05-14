@@ -31,11 +31,11 @@ fitdf <- rbind(fitdf_gaba, fitdf_glu)
    cd 7TBrainMech_scripts/mri/MRSI_roi/mrsi_r
    ```
 
-  2.  Then edit and install
+  2.  Then edit and (re)install (in `R`)
    ```R
    devtools::document(); devtools::install('./')
    ```
-   or simimply `make` (using [`Makefile`](./Makefile))
+   or simimply `make` from the shell (using [`Makefile`](./Makefile))
 
   3. Push back changes
    ```bash
