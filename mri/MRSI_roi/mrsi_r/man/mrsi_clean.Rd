@@ -5,7 +5,14 @@
 \title{CRLB clean
 add ages, remove bad crlb}
 \usage{
-mrsi_clean(d, regions, CRLB, crlb_thres = 20, mesg = F)
+mrsi_clean(
+  d,
+  regions,
+  CRLB,
+  nona = c("GMrat", CRLB),
+  crlb_thres = 20,
+  mesg = F
+)
 }
 \arguments{
 \item{d}{dataframe with ld8, region, metabolite, and CRLB columns}
@@ -13,6 +20,10 @@ mrsi_clean(d, regions, CRLB, crlb_thres = 20, mesg = F)
 \item{regions}{numeric regions vector to include}
 
 \item{CRLB}{quoted column name for thresholding}
+
+\item{crlb_thres}{where to discard SD values (default 20)}
+
+\item{mesg}{boolean if we should report how many are kept/removed (default F)}
 }
 \description{
 CRLB clean

@@ -18,7 +18,7 @@ mrsi_plot <- function(d, regions, metabolite, crlb, saveplot=F) {
   require(ggplot2)
 
   brain_region<- mrsi_clean(d, regions, crlb)
-  best_model  <- mrsi_bestmodel(brain_region, regions, metabolite)
+  best_model  <- mrsi_bestmodel(brain_region, metabolite)
   fitdf       <- mrsi_fitdf(best_model)
 
   ## info from model that we didn't expliclty return
@@ -77,8 +77,8 @@ mrsi_plot <- function(d, regions, metabolite, crlb, saveplot=F) {
 #' @import magrittr
 #' @importFrom dplyr bind_rows
 #' @importFrom magrittr %>%
-#' @example
-# ' mrsi_plot_many(d, 1, list(Glu.Cr='Glu.SD', GABA.Cr="GABA.SD")) %>% print
+#' @examples
+#' mrsi_plot_many(d, 1, list(Glu.Cr='Glu.SD', GABA.Cr="GABA.SD")) %>% print
 #' @export
 mrsi_plot_many <- function(d, regions, mtbl_thres, saveplot=F) {
   require(ggplot2)
@@ -102,12 +102,12 @@ mrsi_plot_many <- function(d, regions, mtbl_thres, saveplot=F) {
 # for internal use
 # get model and data
 fit_and_data <- function(d, regions, mtbl, thres) {
-  d <- mrsi_clean(d, regions, thres, mesg=T)
+  d <- mrsi_clean(d, regions, thres, mesg=T, nona=c("GMrat", mtbl))
   # set metabolite column to same value everywhere
   d$concentration <- d[,mtbl]
   d$metabolite <- mtbl
 
-  m <- mrsi_bestmodel(d, regions, mtbl)
+  m <- mrsi_bestmodel(d, mtbl)
   f <- mrsi_fitdf(m)
   return(list(d=d, f=f))
 }

@@ -1,9 +1,11 @@
 #' p-value or t-value
 #' returns whichever model supports
-#' @param cf single coefficent row from model summary.
-#' @param asllist boolean to return list instead of string
+#' @param cfs single coefficent row from model summary.
+#' @param aslist boolean to return list instead of string
+#' @importFrom methods isClass
 #' @export
 p_or_t <- function(cfs, aslist=F) {
+  stopifnot(isClass('numeric',summary(m)$coeff))
   if ("Pr(>|t|)" %in% names(cfs))
      sig <- list(m="p", v=cfs["Pr(>|t|)"])
   else
@@ -17,8 +19,10 @@ p_or_t <- function(cfs, aslist=F) {
 #' @title what y: age2 invage or age
 #' @description returns which age was modeled
 #' @param cfs coefficent table from model summary.
+#' @importFrom methods isClass
 #' @export
 what_age_y <- function(cfs) {
+  stopifnot(isClass('matrix',summary(m)$coeff))
   bestfit <- case_when( 'age2' %in% row.names(cfs) ~ 'age2',
                         'invage' %in% row.names(cfs) ~ 'invage',
                         TRUE ~ 'age')
@@ -30,19 +34,26 @@ what_age_y <- function(cfs) {
 #' @param d dataframe with ld8, region, metabolite, and CRLB columns
 #' @param regions numeric regions vector to include
 #' @param CRLB quoted column name for thresholding
+#' @param crlb_thres where to discard SD values (default 20)
+#' @param mesg  boolean if we should report how many are kept/removed (default F)
 #' @import dplyr
+#' @importFrom stats na.omit
 #' @export
-mrsi_clean <- function(d, regions, CRLB, crlb_thres=20, mesg=F) {
+mrsi_clean <- function(d, regions, CRLB, nona=c("GMrat", CRLB), crlb_thres=20, mesg=F) {
   # make nonline age columns if we don't already have them
   if(! 'invage' %in% names(d)) d$invage <- 1/d$age
   if(! 'age2'   %in% names(d)) d$age2   <- d$age^2
 
-  # Filtering. 2 steps so we can report a count
   brain_region_all <- d %>% filter(roi %in% regions)
+
+  # remove nas. like na.omit but only for a subset of columns
+  nas <- lapply(nona, function(x) is.na(brain_region_all[,x]))
+  anyna <- do.call(`|`, nas) # combine by and
+
   brain_region <-
     brain_region_all %>%
-    filter(!!sym(CRLB) <= crlb_thres) %>%
-    na.omit()
+    filter(!!sym(CRLB) <= crlb_thres, !anyna)
+
 
   #MESG: return sample size so i know how many people i now have after exclusions
 
@@ -58,20 +69,15 @@ mrsi_clean <- function(d, regions, CRLB, crlb_thres=20, mesg=F) {
 #' find best MRSI data model fit
 #' @description
 #' pick lowest AIC model among lin, inv, and quad w/rand effects if more than one region
-#' @param d (cleaned) dataframe with ld8, region, metabolite, and CRLB columns
-#' @param regions numeric regions vector to include
+#' @param d (cleaned) dataframe with ld8, roi+label, metabolite, and CRLB columns
 #' @param metabolite quoted column name (x value)
-#' @param CRLB quoted column name for thresholding (x value)
-#' @import dplyr
+#' @param nuissance formula string for additional regressors. defaults to "GMrat"
+#' @importFrom magrittr %>%
 #' @importFrom lme4 lmer
+#' @importFrom stats AIC as.formula lm predict
 #' @export
-mrsi_bestmodel <- function(d, regions, metabolite, crlb_thres=20, CRLB=NULL) {
+mrsi_bestmodel <- function(d, metabolite, nuissance="GMrat") {
   require(dplyr)
-
-  # we should be given clean data
-  # but if not, clean using CRLB
-  if(is.null(CRLB)) brain_region <- d
-  else              brain_region <- mrsi_clean(d, regions, CRLB, crlb_thres)
 
   # AGE EFFECT
   # Test linear, inverse, and quadratic fits
@@ -85,11 +91,11 @@ mrsi_bestmodel <- function(d, regions, metabolite, crlb_thres=20, CRLB=NULL) {
 
   # default to 
   # nuisance just GM ratio and using `lm`
-  nuissance <- "GMrat"
   mdlfunc <- lm
 
   # if we have more than one region, add label and random effect of subject
   # also need to use lmer instead of lm
+  regions <- unique(d$roi)
   if (length(regions) > 1) {
      nuissance <- paste0(nuissance, '+ label + (1|ld8)')
      mdlfunc <- lme4::lmer
@@ -97,7 +103,7 @@ mrsi_bestmodel <- function(d, regions, metabolite, crlb_thres=20, CRLB=NULL) {
 
   # fill in formula and calculate model
   models <- lapply(models_strs, function(fmlstr)
-                   sprintf(fmlstr, metabolite, nuissance) %>% as.formula %>% mdlfunc(brain_region))
+                   sprintf(fmlstr, metabolite, nuissance) %>% as.formula %>% mdlfunc(d))
   AICs <- sapply(models, AIC)
 
   # find which is the best based on AIC

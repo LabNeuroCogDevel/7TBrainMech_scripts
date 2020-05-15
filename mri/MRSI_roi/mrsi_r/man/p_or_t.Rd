@@ -8,9 +8,9 @@ returns whichever model supports}
 p_or_t(cfs, aslist = F)
 }
 \arguments{
-\item{cf}{single coefficent row from model summary.}
+\item{cfs}{single coefficent row from model summary.}
 
-\item{asllist}{boolean to return list instead of string}
+\item{aslist}{boolean to return list instead of string}
 }
 \description{
 p-value or t-value
