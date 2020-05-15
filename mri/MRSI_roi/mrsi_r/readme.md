@@ -28,7 +28,7 @@ p <- mrsi_plot_many(d, 1, list(Glu.Cr='Glu.SD', GABA.Cr="GABA.SD"))
 print(p)
 
 ## step by step
-glu_r1     <- mrsi_clean(d, 1, 'Glu.SD')
+glu_r1     <- mrsi_clean(d, 1, 'Glu.SD', nona=c("GMrat", "Glu.Cr", "age"))
 glu_r1_m   <- mrsi_bestmodel(glu_r1, 'Glu.Cr')
 glu_r1_fit <- mrsi_fitdf(glu_r1_m)
 

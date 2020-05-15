@@ -9,7 +9,7 @@ mrsi_clean(
   d,
   regions,
   CRLB,
-  nona = c("GMrat", CRLB),
+  nona = c("GMrat", "age", gsub(".SD", ".Cr", CRLB)),
   crlb_thres = 20,
   mesg = F
 )
@@ -21,6 +21,8 @@ mrsi_clean(
 
 \item{CRLB}{quoted column name for thresholding}
 
+\item{nona}{columsn that cannot be NA. default to GMrat, age, and CRLB's .SD -> .Cr}
+
 \item{crlb_thres}{where to discard SD values (default 20)}
 
 \item{mesg}{boolean if we should report how many are kept/removed (default F)}
@@ -28,4 +30,9 @@ mrsi_clean(
 \description{
 CRLB clean
 add ages, remove bad crlb
+}
+\examples{
+ glu_r1 <- mrsi_clean(d, 1, 'Glu.SD')
+ glu_r1 <- mrsi_clean(d, 1, 'Glu.SD', nona=c("GMrat", "Glu.Cr", "age")) # same as above
+ glu_r1 <- mrsi_clean(d, 1, 'Glu.SD', nona=NULL) # NA okay
 }

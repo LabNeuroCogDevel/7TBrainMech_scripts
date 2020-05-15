@@ -34,12 +34,17 @@ what_age_y <- function(cfs) {
 #' @param d dataframe with ld8, region, metabolite, and CRLB columns
 #' @param regions numeric regions vector to include
 #' @param CRLB quoted column name for thresholding
+#' @param nona columns that cannot be NA. default to GMrat, age, and CRLB's .SD -> .Cr
 #' @param crlb_thres where to discard SD values (default 20)
 #' @param mesg  boolean if we should report how many are kept/removed (default F)
 #' @import dplyr
 #' @importFrom stats na.omit
+#' @examples
+#'  glu_r1 <- mrsi_clean(d, 1, 'Glu.SD')
+#'  glu_r1 <- mrsi_clean(d, 1, 'Glu.SD', nona=c("GMrat", "Glu.Cr", "age")) # same as above
+#'  glu_r1 <- mrsi_clean(d, 1, 'Glu.SD', nona=NULL) # NA okay
 #' @export
-mrsi_clean <- function(d, regions, CRLB, nona=c("GMrat", CRLB), crlb_thres=20, mesg=F) {
+mrsi_clean <- function(d, regions, CRLB, nona=c("GMrat", "age", gsub(".SD",".Cr",CRLB)), crlb_thres=20, mesg=F) {
   # make nonline age columns if we don't already have them
   if(! 'invage' %in% names(d)) d$invage <- 1/d$age
   if(! 'age2'   %in% names(d)) d$age2   <- d$age^2
@@ -47,8 +52,12 @@ mrsi_clean <- function(d, regions, CRLB, nona=c("GMrat", CRLB), crlb_thres=20, m
   brain_region_all <- d %>% filter(roi %in% regions)
 
   # remove nas. like na.omit but only for a subset of columns
-  nas <- lapply(nona, function(x) is.na(brain_region_all[,x]))
-  anyna <- do.call(`|`, nas) # combine by and
+  if(!is.null(nona)){
+    nas <- lapply(nona, function(x) is.na(brain_region_all[,x]))
+    anyna <- Reduce(`|`, nas) # combine by or-ing each
+  } else {
+    anyna <- F
+  }
 
   brain_region <-
     brain_region_all %>%
@@ -57,10 +66,11 @@ mrsi_clean <- function(d, regions, CRLB, nona=c("GMrat", CRLB), crlb_thres=20, m
 
   #MESG: return sample size so i know how many people i now have after exclusions
 
-  if(mesg) cat(sprintf("region(s) %s, %s > %d: retaining %d/%d\n",
+  if(mesg) cat(sprintf("region(s) %s, %s > %d: retaining %d/%d (%d NA)\n",
               paste(collapse=",", regions),
               CRLB, crlb_thres,
-              nrow(brain_region), nrow(brain_region_all)))
+              nrow(brain_region), nrow(brain_region_all),
+              length(which(anyna))))
 
   return(brain_region)
 }
@@ -89,7 +99,7 @@ mrsi_bestmodel <- function(d, metabolite, nuissance="GMrat") {
            invage="%s ~ invage     + %s",
            age2  ="%s ~ age + age2 + %s")
 
-  # default to 
+  # default to
   # nuisance just GM ratio and using `lm`
   mdlfunc <- lm
 
