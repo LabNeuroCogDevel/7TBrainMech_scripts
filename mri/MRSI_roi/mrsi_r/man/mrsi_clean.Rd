@@ -21,7 +21,7 @@ mrsi_clean(
 
 \item{CRLB}{quoted column name for thresholding}
 
-\item{nona}{columsn that cannot be NA. default to GMrat, age, and CRLB's .SD -> .Cr}
+\item{nona}{columns that cannot be NA. default to GMrat, age, and CRLB's .SD -> .Cr}
 
 \item{crlb_thres}{where to discard SD values (default 20)}
 

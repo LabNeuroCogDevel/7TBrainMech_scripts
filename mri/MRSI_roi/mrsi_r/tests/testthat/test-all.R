@@ -1,6 +1,12 @@
 d <- read.csv('../../../txt/13MP20200207_LCMv2fixidx.csv')
 # tests will assume roi 1 Glu is invage
 
+# make sure we read in the data
+# otherwise other tests will fail in weird ways
+test_that("read data", {
+  expect_gt(nrow(d),100)
+})
+
 # culmination of everything
 test_that("can plot", {
   mrsi_plot_many(d, 1, list(Glu.Cr='Glu.SD', GABA.Cr="GABA.SD"))

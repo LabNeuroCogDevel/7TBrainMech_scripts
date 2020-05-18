@@ -123,7 +123,7 @@ mrsi_bestmodel <- function(d, metabolite, nuissance="GMrat") {
   cfs <- summary(best_model)$coefficients[bestfit, ]
   sig = p_or_t(cfs)
   #MESG: return sample size so i know how many people i now have after exclusions
-  cat(sprintf("%s region(s) %s: best=%s (AIC%.03f, %s)\n",
+  cat(sprintf("%s region(s) %s: best=%s (AIC %.03f, %s)\n",
               metabolite,paste(regions), bestfit, min(AICs), sig))
 
  return(best_model)
