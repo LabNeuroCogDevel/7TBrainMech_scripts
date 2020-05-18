@@ -165,7 +165,7 @@ mrsi_fitdf <- function(m) {
   } else if (bestfit=="invage") {
     best_list <- list(invage=1/interp_age)
   } else if (bestfit=="age2") {
-    best_list <- list(age=interp_age, age2=interpage^2)
+    best_list <- list(age=interp_age, age2=interp_age^2)
   } else {
       stop("unknown best AIC model!", bestfit)
   }
