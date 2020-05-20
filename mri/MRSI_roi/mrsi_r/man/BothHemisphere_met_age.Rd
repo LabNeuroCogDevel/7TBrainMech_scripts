@@ -4,8 +4,7 @@
 \alias{BothHemisphere_met_age}
 \title{Model two regions}
 \usage{
-BothHemisphere_met_age(d, region1, region2, metabolite, CRLB,
-  saveplot = F)
+BothHemisphere_met_age(d, region1, region2, metabolite, CRLB, saveplot = F)
 }
 \arguments{
 \item{d}{dataframe with region, metabolite, and crlb columns}

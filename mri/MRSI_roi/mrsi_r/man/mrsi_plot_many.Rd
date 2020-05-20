@@ -19,3 +19,6 @@ list(Glu.Cr="Glu.SD"), GABA.Cr="GABA.SD"))}
 \description{
 return a plot of fits and raw
 }
+\examples{
+mrsi_plot_many(d, 1, list(Glu.Cr='Glu.SD', GABA.Cr="GABA.SD")) \%>\% print
+}
