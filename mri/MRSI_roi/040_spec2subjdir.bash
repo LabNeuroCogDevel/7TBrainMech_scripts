@@ -12,8 +12,8 @@ env |grep -q '^DRYRUN=' || DRYRUN=""
 # CHANGE ME
 #unzipfolder="/Volumes/Hera/Raw/MRprojects/7TBrainMech/MRSI_BrainMechR01/20200224_13specs_processed/"
 #unzipfolder="/Volumes/Hera/Raw/MRprojects/7TBrainMech/MRSI_BrainMechR01/20200311_13specs_processed/"
-unzipfolder="/Volumes/Hera/Raw/MRprojects/7TBrainMech/MRSI_BrainMechR01/2020*processed/"
 atlas=13MP20200207
+unzipfolder="/Volumes/Hera/Raw/MRprojects/7TBrainMech/MRSI_BrainMechR01/2020*_$atlas*/"
 #
 # copy LCmodel output to subject MRSI_roi directory (MRSI_roi/LCModel/v1)
 # prereq:
