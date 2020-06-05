@@ -36,6 +36,13 @@ csi <-
    mutate(x=216+1-as.numeric(x), y=216+1-as.numeric(y)) %>%
    select(-f, -Row, -Col)
 
+weird_csi <- csi %>% group_by(ld8) %>% tally %>% filter(n!=13)
+if(nrow(weird_csi) > 0L){
+    cat("have ", nrow(weird_csi), " without exact expected roi counts in csi!\n")
+    print(weird_csi)
+    cat("will probably have NaN roi number when x,y merge fails. will keep around\n")
+}
+
 roi <- xyroi %>%
     lapply(function(f) read.table(f)[, 1:3] %>%
                        mutate(LNCDR::ld8from(f))) %>%
@@ -63,9 +70,18 @@ query <-
 
 r <- LNCDR::db_query(query)
 
-da <-
+sep <-
    d %>% tidyr::separate(ld8, c("id", "vdate"), remove=F) %>%
-   mutate(vdate=lubridate::ymd(vdate)) %>%
+   mutate(vdate=lubridate::ymd(vdate)) 
+
+# 20200504 - have 7 repeat subjects!
+visitnum <-
+    sep %>% group_by(id,vdate) %>% tally() %>%
+    group_by(id) %>% mutate(visitnum=rank(vdate)) %>%
+    select(-n)
+
+da <-
+   merge(visitnum, sep, all=T) %>%
    merge(r, ., by="id", all=T) %>%
    mutate(age=round(as.numeric(vdate-dob)/365.25, 2)) %>%
    select(-id, -dob, -vdate)

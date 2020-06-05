@@ -31,7 +31,7 @@ _findspecs(){
    # pre 2020-04-13 - when coord_mover didn't also mkspectrum
    #find $subj_root/$id/slice_PFC/MRSI_roi/raw$rawversion/ -iname '*spectrum.[0-9]*' $newer -exec stat -c "%y %n" {} \+ 
    # now coord mover makes it's own spectrum files
-   find $subj_root/$id/slice_PFC/MRSI_roi/$atlas/LT -iname '*spectrum.[0-9]*' $newer -exec stat -c "%y %n" {} \+ 
+   find $subj_root/$id/slice_PFC/MRSI_roi/$atlas/ -iname '*spectrum.[0-9]*' $newer -exec stat -c "%y %n" {} \+ 
 }
 usage(){ echo "USAGE: $0 new OR $0 20yy-mm-dd OR $0 ld8list.txt" && exit 1; }
 
@@ -39,7 +39,7 @@ usage(){ echo "USAGE: $0 new OR $0 20yy-mm-dd OR $0 ld8list.txt" && exit 1; }
 if [[ "$1" == "new" ]]; then
    # didn't start creating 13 ROI spectrum files until after feb 24
    # will also check already recieved files
-   findspecs(){ _findspecs newer 2020-02-24;}
+   findspecs(){ _findspecs newer 2020-04-20;}
 elif [[ "$1" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
    cmpdate="$1"
    findspecs(){ _findspecs newer $cmpdate;}
