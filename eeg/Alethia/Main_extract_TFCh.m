@@ -19,7 +19,7 @@ ROI = 5;
 
 files = dir(hera('Projects/7TBrainMech/scripts/eeg/Alethia/Results/TF/Fixation/*.mat'));
 % files = dir('C:\Users\Amelie\Documents\LNCDpasantia\data\test/*.mat');
-
+com
 % Regios for the slopes
 Bfullrange = [1:45];% seems ether
 Buprange = [22:45];

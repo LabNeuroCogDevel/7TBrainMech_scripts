@@ -5,7 +5,7 @@
 # compute new warp and difference with current
 # does NOT overwrite old
 
-fsl6warpd="/Volumes/Hera/Projects/7TBrainMech/scripts/mri/MRSI_roi/mni_examples/fsl6_mprage_to_slice"
+fsl6warpd="/Volumes/Hera/Projects/7TBrainMech/scripts/mri/txt/fsl6_mprage_to_slice/"
 
 # searlizes 4x4 matrix to single long vector
 unnset() { perl -slane 'print $_ for @F' $@; }

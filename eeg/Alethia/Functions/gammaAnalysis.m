@@ -4,16 +4,17 @@ locs = find(freqs > 30);
 
 %% to create age vs gamma power scatter plot and linear regression 
 
-for k = 1:length(gammaBroad_i)
+for k = 1:size(gammaBroad_i,1)
     
     
-    gammaFreq = gammaBroad_i(5,locs);
+    AllFreq = gammaBroad_i(k,:);
+    gammaFreq = AllFreq(locs);
     
-    avgGammaFreq = gammaBroad_i(5,:);
+    avgGammaFreq = gammaBroad_i(k,:);
     
     % mean(gammaFreq,2);
     
-    IDdata = xlsread('H:\Projects\7TBrainMech\scripts\eeg\Alethia\Results\ERPs\R\EdaDI.csv');
+    IDdata = xlsread('H:\Projects\7TBrainMech\scripts\eeg\Alethia\Results\ERPs\EdaDI.csv');
     
     for a = 1:75
         subject = files(a).name;

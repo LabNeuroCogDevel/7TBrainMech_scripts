@@ -15,10 +15,10 @@ library(stringr)
 ctime <- function(x) ifelse(file.exists(x), as.character(file.info(x)$ctime), NA)
 nfiles <- function(x) sapply(x, function(g) length(Sys.glob(g)))
 
-sheets_deauth()
+gs4_deauth()
 # BJuvXhimotkHG8zvHMTICmGEVyM
 # https://docs.google.com/spreadsheets/d/1_EdqA8ObwPaqeLd-BJuvXhimotkHG8zvHMTICmGEVyM/edit?usp=sharing
-r <- sheets_get("1_EdqA8ObwPaqeLd-BJuvXhimotkHG8zvHMTICmGEVyM")
+r <- gs4_get("1_EdqA8ObwPaqeLd-BJuvXhimotkHG8zvHMTICmGEVyM")
 
 
 ## get id for all the places it could be
@@ -38,7 +38,9 @@ ids <- LNCDR::db_query("
  with 
    ld as (select pid, id as luna from enroll where etype like 'LunaID'),
    mr as (select pid, id as mrid from enroll where etype like '7TMRID')
-   select mrid, luna, dob from ld join mr on ld.pid=mr.pid join person on ld.pid=person.pid;");
+   select mrid, luna, dob from ld
+     join mr on ld.pid=mr.pid
+     join person on ld.pid=person.pid;");
 
 # make dob age
 ids <-
@@ -47,20 +49,23 @@ ids <-
    select(-dob)
 
 # ld8 -- people we migth be missing b/c we don't have a MRID
-ld8 <- LNCDR::db_query("select id || '_' || to_char(vtimestamp,'YYYYmmdd') as ld8, vscore
-                from visit
-                natural join visit_study
-                natural join enroll 
-                where vtype ilike 'scan%'
-                  and study ilike 'Brain%'
-                  and etype like 'LunaID'")
+ld8 <- LNCDR::db_query("
+   select id || '_' || to_char(vtimestamp,'YYYYmmdd') as ld8, vscore
+   from visit
+   natural join visit_study
+   natural join enroll 
+   where vtype ilike 'scan%'
+     and study ilike 'Brain%'
+     and etype like 'LunaID'")
 
 # ids from BIDS rawlink
 cat("search all rawlinks in 'BIDS' on Hera\n")
 links <-
  Sys.glob('/Volumes/Hera/Raw/BIDS/7TBrainMech/rawlinks/1*_*/') %>%
- sapply(function(x) sprintf("find %s -type l -print0 -print -quit |xargs -0 readlink",x) %>%
-                    system(intern=T) %>% str_extract('(?<=7TBrainMech/)[^/]+'))
+ sapply(function(x)
+         sprintf("find %s -type l -print0 -print -quit |xargs -0 readlink",x) %>%
+         system(intern=T) %>%
+         str_extract('(?<=7TBrainMech/)[^/]+'))
 links_df <-
    data.frame(ld8=names(links) %>% basename, mrid=links %>% unname) %>%
    mutate(luna=gsub("_.*", "", ld8)) 
@@ -78,12 +83,18 @@ d_task <-
 d <- 
    merge(links_df, ids, all=T, by=c('mrid','luna')) %>%
    merge(files_mrid,all=T, by='mrid') %>%
-   merge(ld8 %>% filter(!is.na(vscore)),all=T, by='ld8') %>%
+   merge(ld8, all=T, by='ld8') %>%
    merge(d_task, all=T, by='ld8') %>%
-   merge(d_google %>% select(-ld8, -luna, -age, -vscore), by='mrid',all=T) %>%
+   merge(d_google %>% select(mrid, notes), by='mrid',all=T) %>%
    filter(! mrid %in% c('20170929Luna', '20171009Luna'), !duplicated(mrid))
 
-
+# add timepoint. visists that are more than 200 days apart count as a new visit
+# N.B. should get this from DB. but easier here
+d <- d %>%
+   tidyr::separate(ld8, c('luna','vdate'), remove=F) %>%
+   mutate(vdate=lubridate::ymd(vdate)) %>%
+   group_by(luna) %>%
+   mutate(tp=cumsum(c(0,diff(vdate)>200))+1)
 
 ## find all the files (count and/or creation time)
 
@@ -94,22 +105,33 @@ d$csipfc_raw <- ctime(file.path('/Volumes/Hera/Raw/MRprojects/7TBrainMech', d$mr
 # raw csi lives in box too
 mi <- is.na(d$csipfc_raw)
 d$csipfc_raw[mi] <- ctime(file.path('/Volumes/Hera/Raw/MRprojects/7TBrainMech/MRSI_BrainMechR01/PFC_siarray/', d$mrid[mi], 'siarray.1.1'))
+# also check anything we linked in raw
+#mi <- is.na(d$csipfc_raw)
+#d$csipfc_raw[mi] <- ctime(file.path('/Volumes/Hera/Projects/7TBrainMech/subjs/', d$ld8[mi], '/slice_PFC/MRSI_roi/raw/siarray.1.1'))
 
 bidspath <- paste0('sub-',gsub('_','/', d$ld8))
 d$`# BIDS`  <- nfiles(file.path('/Volumes/Hera/Raw/BIDS/7TBrainMech', bidspath, '*/*.nii.gz'))
 d$rest_brnaswdkm <- ctime(file.path('/Volumes/Hera/preproc/7TBrainMech_rest/MHRest_nost_ica/', d$ld8, '/brnaswdkm_func_4.nii.gz')) 
 d$task_preproc <- ctime(file.path('/Volumes/Hera/preproc/7TBrainMech_mgsencmem/MHTask_nost/', d$ld8, '/alltasks_preproc_complete')) 
-d$FS     <- ctime(file.path('/Volumes/Hera/preproc/7TBrainMech_rest/FS', d$luna, 'mri/aseg.mgz')) 
+d$rawt1 <- ctime(file.path('/Volumes/Hera/Raw/BIDS/7TBrainMech', bidspath, sprintf('anat/sub-%s_T1w.nii.gz',d$luna))) 
+d$ppt1 <- ctime(file.path('/Volumes/Hera/preproc/7TBrainMech_rest/MHT1_2mm/', d$ld8, 'mprage_warpcoef.nii.gz')) 
+d$FS     <- ctime(file.path('/Volumes/Hera/preproc/7TBrainMech_rest/FS', d$ld8, 'mri/aseg.mgz')) 
 d$pfc_coordroi <- ctime(file.path('/Volumes/Hera/Projects/7TBrainMech/subjs/', d$ld8, 'slice_PFC/MRSI/all_csi.nii.gz')) 
 
+
 # get csi slice number by looking for apodized
-d$csi_slice <- file.path('/Volumes/Hera/Projects/7TBrainMech/subjs/', d$ld8, 'slice_PFC/MRSI/2d_csi_ROI/*SumProb_FlipLR') %>%
+d$pfc_scout <- ctime(file.path('/Volumes/Hera/Projects/7TBrainMech/subjs/', d$ld8, 'slice_PFC/slice_pfc.nii.gz'))
+d$pfc_slice <- file.path('/Volumes/Hera/Projects/7TBrainMech/subjs/', d$ld8, 'slice_PFC/MRSI/2d_csi_ROI/*SumProb_FlipLR') %>%
              lapply(function(x) Sys.glob(x) %>% first %>% basename) %>% unlist %>% str_extract('^\\d+')
+
+# 20200313 - slice pfc processing
+d$`pfc_picked`  <- nfiles(file.path('/Volumes/Hera/Projects/7TBrainMech/subjs/', d$ld8, '/slice_PFC/MRSI_roi/13MP20200207/*/picked_coords.txt'))
+d$`pfc_recieved`  <- nfiles(file.path('/Volumes/Hera/Projects/7TBrainMech/subjs/', d$ld8, '/slice_PFC/MRSI_roi/LCModel/v2idxfix/*.dir'))
 
 
 # find all spreadsheet files and merge back into d
 pfcfiles <- 
-   system("find /Volumes/Hera/Raw/MRprojects/7TBrainMech/MRSI_BrainMechR01/ -iname spreadsheet.csv",
+   system("find /Volumes/Hera/Raw/MRprojects/7TBrainMech/MRSI_BrainMechR01/ -not -ipath '*/BAD_rowcol/*' -iname spreadsheet.csv",
           intern=T) %>% 
    data.frame(fname=., stringsAsFactors=F) %>% 
    mutate(mrid=str_extract(fname, '(?<=/)20\\d{6}[^/]+'),
@@ -119,9 +141,8 @@ pfcfiles <-
 d.order <- names(d)
 d <- 
    pfcfiles %>% select(-fname) %>%
-   merge(d, ., by='mrid', all.x=T, all.y=F, suffixes=c('.x','')) %>%
-   select(-pfc_csv.x)
-d <- d[,d.order]
+   merge(d, ., by='mrid', all.x=T, all.y=F, suffixes=c('.x',''))
+d <- d[,unique(c(d.order,'pfc_csv'))]
 
 # blank out NA notes
 names(d)
@@ -133,8 +154,15 @@ missingMR <- ld8 %>% tidyr::separate(ld8,c('luna','vdate'),remove=F) %>%
    filter(as.numeric(vdate) > lastmrid)
 d <- merge(d,missingMR %>% select(luna,ld8,vscore),all=T)
 
+# 20200520 - hc from csv output
+hc <- read.csv('Hc/txt/all_hc.csv') %>% group_by(ld8) %>% tally() %>% rename(nHc=n)
+d <- merge(d, hc, by="ld8", all.x=T)
+
+
 outstatus <- "/Volumes/Hera/Projects/7TBrainMech/scripts/mri/txt/status.csv"
-write.csv(d, file=outstatus, row.names=F)
+write.csv(as.data.frame(d), file=outstatus, row.names=F)
+cat("uploading to goolge drive\n")
+drive_deauth()
 up <- drive_update(as_id(r$spreadsheet_id), outstatus)
 cat("see https://docs.google.com/spreadsheets/d/1_EdqA8ObwPaqeLd-BJuvXhimotkHG8zvHMTICmGEVyM\n")
 # set header using lncdtool's gsheets - freeze and bold first row

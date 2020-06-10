@@ -1,4 +1,4 @@
-%% paths
+a%% paths
 addpath(genpath('Functions'));
 addpath(hera('Projects/7TBrainMech/scripts/eeg/toolbox/eeglab14_1_2b'))
 

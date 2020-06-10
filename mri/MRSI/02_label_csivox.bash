@@ -80,12 +80,12 @@ if [ $1 == "ALL" ]; then
    # if we havne't updated the id text file in a while
    [ -z $(find txt/ids.txt -mtime +2 -type f) ] &&
       echo "# not running ./id_list.bash" ||
-      $(dirname $0)/id_list.bash
+      $scriptdir/id_list.bash
 
    # get from all ids
    sort -t' ' -k2,2 txt/ids.txt|
      cut -f 1 -d' '|
-     xargs -n1 $0
+     xargs -n1 $scriptdir/$(basename $0)
      exit
 fi
 

@@ -11,7 +11,12 @@ pg=1
 newer=2020-04-19
 tmpdir=$(mktemp -d /tmp/mrsi-pdfs-XXXX)
 test -d $tmpdir || mkdir $_
+#find /Volumes/Hera/Raw/MRprojects/7TBrainMech/MRSI_BrainMechR01/HPC/ProcessedHc20200422/20*/spectrum*.dir -type f -name csi.ps -newermt $newer | while read f; do
 find /Volumes/Hera/Raw/MRprojects/7TBrainMech/MRSI_BrainMechR01/20*/*_20*/spectrum*.dir -type f -name csi.ps -newermt $newer | while read f; do
+
+  #name=$(basename $(dirname $(dirname $f)))
+  #pos=$(echo $f|perl -lne 'print $1 if /(\d+.\d+\.[LR])/')
+  #out=$tmpdir/$name-$pos-pg$pg.pdf
   out=$tmpdir/$(ld8 $f)-$(echo $f|perl -lne 'print $1 if /spectrum.(\d+.\d+).dir/')-pg$pg.pdf
   [ -r "$out" ] && continue
   echo $out
@@ -25,6 +30,9 @@ ls $tmpdir/*-pg$pg.pdf |
 
 echo "combining"
 [ ! -d pdf ] && mkdir $_
-gs -q -dSAFER -dBATCH -sDEVICE=pdfwrite -o pdf/csi_all-gt$newer-pg$pg.pdf $tmpdir/bookmarks-pg$pg.ps -f $tmpdir/*pg$pg.pdf
+finalout=pdf/csi_all-gt$newer-pg$pg.pdf 
+gs -q -dSAFER -dBATCH -sDEVICE=pdfwrite -o $finalout $tmpdir/bookmarks-pg$pg.ps -f $tmpdir/*pg$pg.pdf
+#gs -q -dSAFER -dBATCH -sDEVICE=pdfwrite -o pdf/hpc-$(date +%F)-pg$pg.pdf $tmpdir/bookmarks-pg$pg.ps -f $tmpdir/*pg$pg.pdf
+echo made $finalout
 
 rm -r "$tmpdir"

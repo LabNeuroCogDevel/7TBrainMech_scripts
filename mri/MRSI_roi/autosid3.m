@@ -1,4 +1,4 @@
-function f = autosid3(subj)
+function f = autosid3(subj, f)
   sid3dir='/opt/ni_tools/matlab_toolboxes/sid3_MRRC/';
   addpath(sid3dir);
   % wont work if dir doesnt exist
@@ -11,7 +11,10 @@ function f = autosid3(subj)
      return
   end
   def4
-  f=hgload('new10.fig');
+
+  if nargin < 2
+    f=hgload('new10.fig');
+  end
 
   % where to find things and how to change them
   % see buttom siarray_ifft_gui.m for more

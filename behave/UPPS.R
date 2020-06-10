@@ -1,3 +1,4 @@
+#!/usr/bin/env Rscript
 library(dplyr)
 l <- Sys.glob('/Volumes/L/bea_res/Data/Temporary Raw Data/7T/*/*_selfreport.csv')
 extract_upps<-function(f) {
@@ -24,5 +25,9 @@ uppsout <-
     mutate(id=sapply(l,stringr::str_extract,'\\d{5}_\\d{8}'))
 
 # uppsp_scoring expects colnames to be e.g. "1.I have a resev...." which is what we have!
+###BTC edit 2020/02/26
+names(uppsout)[names(uppsout)!="id"]<-paste(seq(1:59),names(uppsout[names(uppsout)!="id"]),sep=".") ###scoring algorithm expects actual numbers (consider changing later?
+########
+ 
 upps_scored <- LNCDR::uppsp_scoring(uppsout) %>% mutate(id=uppsout$id)
-write.csv(upps_scored, 'txt/upps_scored.csv',row.names=F)
+write.csv(upps_scored, '/Volumes/Phillips/mMR_PETDA/scripts_BTC_diss/data/7Tupps_scored.csv',row.names=F)

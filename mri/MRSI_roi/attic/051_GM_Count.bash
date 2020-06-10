@@ -12,7 +12,7 @@ for d in /Volumes/Hera/Projects/7TBrainMech/subjs/*/slice_PFC/MRSI_roi/spectrum;
    # check inputs
    ! [[ $d =~ [0-9]{5}_[0-9]{8} ]] && echo "no ld8 in $d" && continue
    ld8=$BASH_REMATCH
-   aparcaseg="/Volumes/Hera/preproc/7TBrainMech_rest/FS/${ld8/_*/}/mri/aparc+aseg.mgz"
+   aparcaseg="/Volumes/Hera/preproc/7TBrainMech_rest/FS/${ld8}/mri/aparc+aseg.mgz"
    [ ! -r $aparcaseg ] && echo "no FS for $ld8, redo ../011_FS.bash" && continue
 
    cd $d

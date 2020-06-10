@@ -60,33 +60,6 @@ disp(currentEEG);
 ALLEEG = [];
 [ALLEEG EEG CURRENTSET] = pop_newset(ALLEEG, EEG, 0, 'setname', name, 'gui','off');
 
-% % % run ICA
-% % if(size(EEG.data,1)<100)
-% %     all_ch = 1:64;
-% % else
-% %     all_ch = 1:128;
-% % end
-% % %canales que van para ICA
-% % all_ch(badchans) = [];
-% % 
-% % 
-% % % old call: EEG = pop_runica(EEG, 'extended',1,'stop',1e-07,'interupt','on','pca',newRank);
-% % % new call:
-% % % EEG = pop_runica(EEG, 'extended', 1, 'interupt', 'on', 'chanind', [all_ch-1]);
-    EEG = pop_runica(EEG, 'extended',1,'interupt','on','PCA',30); 
-
-%create file name
-name = EEG.setname;
-%name = EEG.filename(1:end-4);
-
-name = [name, '_ICA'];
-
-%change set name
-fprintf('saving %s\n', fullfile(outpath, [name '.set']))
-EEG = pop_editset(EEG, 'setname', name);
-[ALLEEG EEG] = eeg_store(ALLEEG, EEG, CURRENTSET);
-EEG = pop_saveset(EEG, 'filename', [name '.set'], 'filepath', outpath);
-
 % %% SASICA Command
 % pop_runica
 % %Then the user would pull up ICA'd results, and run SAS:
@@ -106,7 +79,7 @@ EEG = pop_saveset(EEG, 'filename', [name '.set'], 'filepath', outpath);
 %     'resvar_enable',0,...
 %     'resvar_thresh',15,...
 %     'SNR_enable',1,...
-%     'SNR_snrcut',1,...
+%     'SNR_snrcut',1,...q
 %     'SNR_snrBL',[-Inf 0] ,...
 %     'SNR_snrPOI',[0 Inf] ,...
 %     'trialfoc_enable',0,...
@@ -122,5 +95,20 @@ EEG = pop_saveset(EEG, 'filename', [name '.set'], 'filepath', outpath);
 % 
 % fprintf('saving %s\n', fullfile(outpath, [name '_SAS.set']))
 % EEG = pop_saveset( EEG, 'filename',[name,'_SAS.set'], 'filepath', outpath); %save final preprocessed output
+
+
+EEG = pop_runica(EEG, 'extended',1,'interupt','on','PCA',30); 
+
+%create file name
+name = EEG.setname;
+%name = EEG.filename(1:end-4);
+
+name = [name, '_ICA'];
+
+%change set name
+fprintf('saving %s\n', fullfile(outpath, [name '.set']))
+EEG = pop_editset(EEG, 'setname', name);
+[ALLEEG EEG] = eeg_store(ALLEEG, EEG, CURRENTSET);
+EEG = pop_saveset(EEG, 'filename', [name '.set'], 'filepath', outpath);
 
 end

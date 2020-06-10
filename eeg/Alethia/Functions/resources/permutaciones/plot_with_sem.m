@@ -21,14 +21,14 @@ for k=1:size(cond,2)
     cond_std=std(squeeze(cond(k).data(canal,:,:)),[],2)';
 	mean_plus_error = cond_avg + (cond_std / sqrt(size(cond(k).data,3))); % no of epochs
 	mean_min_error = cond_avg - (cond_std / sqrt(size(cond(k).data,3)));
-    h(k)=plot(t,cond_avg, 'Color',color_code{k}, 'LineWidth', 1.5)
+    h(k) = plot(t,cond_avg, 'Color',color_code{k}, 'LineWidth', 1.5);
     hold on
     f_l=fill([t t(end:-1:1)],[mean_plus_error mean_min_error(end:-1:1)],color_code{k},'EdgeColor',color_code{k}); %shaded error bar
 	set(f_l,'FaceAlpha',.1,'EdgeAlpha',.1)
     data_guardar{k}.mean = cond_avg;
     data_guardar{k}.desest = (cond_std / sqrt(size(cond(k).data,3)));
     data_guardar{k}.time = t;
-    %     [y,i_ind]= max(cond_avg(151:300));
+%     [y,i_ind]= max(cond_avg(130:180));
     hold on;
     
 end
@@ -52,6 +52,7 @@ else
     end
     
 end
+
 title([erp 'Channels: ' num2str(roi.chans)])
 
  line([0 0],ylim,'Color','k')

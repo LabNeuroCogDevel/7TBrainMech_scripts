@@ -5,8 +5,8 @@ clc
 
 %% Path
 addpath(genpath('Functions'));
-Resultados_folder = hera('Projects\7TBrainMech\scripts\eeg\Alethia\Results\ERPs');
-datapath = hera('Projects\7TBrainMech\scripts\eeg\Alethia\Prep\AfterWhole\PermutEpoch');
+Resultados_folder = hera('Projects/7TBrainMech/scripts/eeg/Alethia/Results/ERPs');
+datapath = hera('Projects/7TBrainMech/scripts/eeg/Alethia/Prep/AfterWhole/PermutEpoch');
 %% Parameters
 % Dataset conditions
 condition{1} = 'ITI';
@@ -26,10 +26,10 @@ ventana = 'given'; % or 'SIGNI' to set the time for calculations.
 % ven = [0.6 0.7];  cond = 'lmen_'; cfg.pretag = [condition{6},'_GAv'] ;
 
 % % late visual ERP / Blink?
- ven = [0.3 0.4]; cond = 'lVis_'; cfg.pretag = [condition{3},'_GAv'] ;
+%  ven = [0.3 0.4]; cond = 'lVis_'; cfg.pretag = [condition{3},'_GAv'] ;
 
 % % early visual ERP
-% ven = [0.1 0.2];cond = 'eVis_'; cfg.pretag = [condition{3},'_GAv'] ;
+ven = [0.1 0.2];cond = 'eVis_'; cfg.pretag = [condition{3},'_GAv'] ;
 
 % grand average for each condition
 cfg.orig_dir_uno=datapath;
@@ -58,7 +58,7 @@ if strcmp(ventana,'SIGNI')
     cfg.gruping = 'off';
     % nombre figuras
     cfg.name_fig=['ROI',cfg.set_name1, 'Vs' cfg.set_name2];
-    cfg.outputpath = [Resultados_folder,'\',cfg.set_name1, 'Vs' cfg.set_name2, '\'];
+    cfg.outputpath = [Resultados_folder,'/',cfg.set_name1, 'Vs' cfg.set_name2, '/'];
     [times] = Permutame( cfg );
     close all
     

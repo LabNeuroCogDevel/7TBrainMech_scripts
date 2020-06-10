@@ -34,7 +34,7 @@ for m = 1:length(epochstofind)
     if length(find(strcmp(mark,list)))>5
         EEGm = eeg_checkset( EEG );
         EEGm = pop_epoch( EEGm, {mark}, [wind], 'newname', [outname '_epochs'], 'epochinfo', 'yes');
-        EEGm = pop_rmbase( EEGm, [wind(1,1)*1000    0]);
+%         EEGm = pop_rmbase( EEGm, [wind(1,1)*1000    0]);
         
         epochstofind{m}.nepocs = length([EEGm.epoch]);
         

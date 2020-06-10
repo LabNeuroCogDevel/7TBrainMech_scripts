@@ -117,6 +117,15 @@ for sraw in ${list[@]}; do
    # 20200429 - after using examine_prospect_slice
    "11700_20190406/0028_B0Scout33Slice_66"
    "11816_20200203/0027_B0Map33Slice_165"
+   "11791_20191101/0023_B0Scout33Slice_66"
+   "11789_20191028/0022_B0Scout33Slice_66"
+   # 20200603
+   "11675_20200103/0024_B0Scout33Slice_66"
+   "11766_20191025/0027_B0Scout33Slice_66"
+   "11810_20191212/0025_B0Scout33Slice_66"
+   "11811_20200124/0023_B0Scout33Slice_66" # 4 choices. this is only mag img in cor orientation
+   # 20200604
+   "11668_20180723/0003_B0Scout41Slice_82" # only one. looks like PFC scout 
    # 11681_20181012 # no csi
    # 11668_20180723 # no csi
    # FF scans
@@ -145,12 +154,12 @@ for sraw in ${list[@]}; do
    elif [ $n -eq 2 ]; then
       slice_dcm_dir=$(lsscout "$sraw" |sed 1q)
    else
-      echo "# $ld8: bad slice raw dir num ($n $sraw/*{82,66}*, expect 2)" >&2
+      echo "# $ld8: bad slice raw dir num ($n ${sraw}*{82,66}*, expect 2)" >&2
       # if no matches. point to raw directory
       [ $n -eq 0 ] && echo "search for missing link in '$(dirname $(readlink -f $(ls -d $sraw/*|sed 1q)))';
         also ../BIDS/000_dcmfolder_201906fmt.bash" && continue
-      echo "# 1. pick best from: ./examine_prospect_slices $sraw/*{82,66}*" >&2
-      echo "# hardcode best protocol directory within 'force_dir' in $0"
+      echo "# 1. pick best from: ../MRSI_roi/examine_prospect_slices $sraw/*{82,66}*" >&2
+      echo "# 2. hardcode best protocol directory within 'force_dir' in $0"
       continue
    fi
 

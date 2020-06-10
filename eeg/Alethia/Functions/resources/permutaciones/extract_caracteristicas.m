@@ -29,4 +29,5 @@ for s = 1:length(EEG_ERP_variables)
 row_header(s)={['s',num2str(s)]};     %Column cell array (for row labels)
 end
 output_matrix=[{' '} col_header; row_header' data_cells];     %Join cell arrays
-xlswrite([filename_out,'ERP_Variables.xls'],output_matrix);     %Write data and both headers
+
+writecell(output_matrix,['/Volumes/Hera/Projects/7TBrainMech/scripts/eeg/Alethia/Results/ERPs/',filename_out,'_ERP_Variables.xlsx']);     %Write data and both headers

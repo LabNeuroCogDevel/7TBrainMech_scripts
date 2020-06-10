@@ -1,4 +1,4 @@
-function [  ] = grandaverage(datapath,outputname,condition)
+function [Bins] = grandaverage(datapath,outputname,condition)
 % uses eeglab14_1_2b\plugins\grandaverage
 %UNTITLED5 Summary of this function goes here
 % where to find eeglab stuff
@@ -9,16 +9,32 @@ eeglab
 [ALLEEG EEG CURRENTSET ALLCOM] = eeglab;
 
 current = pwd;
+Bins = struct();
 
-setfiles0 = dir([datapath '/*.set']);
-usefiles = strfind({setfiles0.name}',condition);
-subjnum_sp =find(~cellfun(@isempty,usefiles));
+[Bins.bin1FINAL, Bins.bin2FINAL, Bins.bin3FINAL, Bins.bin4FINAL] = binSubjects(condition); 
 
-setfiles = {setfiles0(subjnum_sp).name}; % cell array with EEG file names
-EEG = pop_grandaverage(setfiles, 'pathname', [datapath,'/']);
-cd(datapath)
-[ALLEEG EEG CURRENTSET] = pop_newset(ALLEEG, EEG, 3,'setname',outputname,'savenew',outputname,'gui','off'); 
+%% to run all subjects and not bin them by age
+% setfiles0 = dir([datapath '/*.set']);
+% usefiles = strfind({setfiles0.name}',condition);
+% subjnum_sp =find(~cellfun(@isempty,usefiles));
+% 
+% setfiles = {setfiles0(subjnum_sp).name}; % cell array with EEG file names
+% output = outputname;
 
-cd(current)
+%% 
+
+% 
+for i = 1:length(fieldnames(Bins))
+    setfiles = Bins.(['bin' num2str(i) 'FINAL']); 
+    
+    EEG = pop_grandaverage(setfiles, 'pathname', [datapath,'/']);
+    cd(datapath)
+    output = [outputname '_AgeBin' num2str(i)];
+    [ALLEEG EEG CURRENTSET] = pop_newset(ALLEEG, EEG, 3,'setname',output,'savenew',output,'gui','off');
+    
+    cd(current)
+    
+end
+
 end
 

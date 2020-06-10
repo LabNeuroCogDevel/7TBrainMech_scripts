@@ -445,6 +445,8 @@ end
 % replaced with `rjpath`
 %[~, subjname, ~] = fileparts(setfiles{i})
 % rjpath = fullfile(outpath, epochrj_folder, [sujname, '*']);
+
+%this doesnt do anything because nothing exits in the ICA folder
 if exist(subj_files.icaout, 'file')
   runICAss(epochrj, icaout)
 end

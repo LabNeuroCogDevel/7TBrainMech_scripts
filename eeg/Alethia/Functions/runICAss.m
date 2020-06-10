@@ -1,9 +1,17 @@
 function [] = runICAss(inpath, outpath, varargin)
 %% this script runs ICA on all filtered/cleaned/epoched EEG dmt data.
 % PCA is used to decrease the number of components 
+% inpath like ....rerefwhole/*_rerefwhole.set
+% ouptath like .../ICAwhole/
 % varargin can contain 'redo' to ignore file already done
 
-%files = file_locs(inpath);
+
+% could use files from file_locs instead of defining here
+files = file_locs(inpath);
+
+% -- icawhole defined elswhere like:
+% icawholeout = fullfile(outpath, 'ICAwhole');
+
 
 %% find file
 % if no file, try searching with *.set
@@ -15,18 +23,20 @@ end
 currentEEG = EEGfileNames(1).name;
 [~, name, ext] = fileparts(currentEEG);
 
-% did we already run?
-finalout = fullfile(outpath, [name '_ICA_SAS.set']);
-if exist(finalout, 'file') && ~isempty(strmatch('redo', varargin))
+% did we already run? 
+% 20191220 - never creates, ICA_SAS code commented out -- why?!
+%          - instead we'll check for the actual final file _ICA.set
+finalout = files.icawhole;
+if exist(finalout, 'file') && ~isempty(strncmp('redo', varargin, 4))
    warning('already created %s, not running. add "redo" to ICA call to redo', finalout)
    return
 end
 
 %% run ICA
 eeglab
-
-% load data to get bad channels and check channel #
-EEG = pop_loadset('filename', currentEEG, 'filepath', fileparts(inpath));
+% 
+% % load data to get bad channels and check channel #
+% EEG = pop_loadset('filename', currentEEG, 'filepath', fileparts(inpath));
 % TODO: just use clean_channel_mask
 schans = {name, EEG.channels_rj, find(EEG.etc.clean_channel_mask==0)}';
 badchans = schans{3,1};
@@ -50,20 +60,23 @@ disp(currentEEG);
 ALLEEG = [];
 [ALLEEG EEG CURRENTSET] = pop_newset(ALLEEG, EEG, 0, 'setname', name, 'gui','off');
 
-% % % run ICA
-% % if(size(EEG.data,1)<100)
-% %     all_ch = 1:64;
-% % else
-% %     all_ch = 1:128;
-% % end
-% % %canales que van para ICA
-% % all_ch(badchans) = [];
-% % 
-% % 
-% % % old call: EEG = pop_runica(EEG, 'extended',1,'stop',1e-07,'interupt','on','pca',newRank);
-% % % new call:
-% % % EEG = pop_runica(EEG, 'extended', 1, 'interupt', 'on', 'chanind', [all_ch-1]);
-    EEG = pop_runica(EEG, 'extended',1,'interupt','on','PCA',30); 
+% different code for different total channels
+% 20191220 - why was this commented out!? 
+% % run ICA
+% if(size(EEG.data,1)<100)
+%     all_ch = 1:64;
+% else
+%     all_ch = 1:128;
+% end
+% %canales que van para ICA
+% all_ch(badchans) = [];
+% 
+% 
+% % old call: EEG = pop_runica(EEG, 'extended',1,'stop',1e-07,'interupt','on','pca',newRank);
+% % new call:
+% % EEG = pop_runica(EEG, 'extended', 1, 'interupt', 'on', 'chanind', [all_ch-1]);
+
+EEG = pop_runica(EEG, 'extended',1,'interupt','on','PCA',30); 
 
 %create file name
 name = EEG.setname;
@@ -78,7 +91,7 @@ EEG = pop_editset(EEG, 'setname', name);
 EEG = pop_saveset(EEG, 'filename', [name '.set'], 'filepath', outpath);
 
 % %% SASICA Command
-% 
+% pop_runica
 % %Then the user would pull up ICA'd results, and run SAS:
 % EEG = eeg_SASICA(EEG, ...
 %     'MARA_enable',0, ...
@@ -95,7 +108,7 @@ EEG = pop_saveset(EEG, 'filename', [name '.set'], 'filepath', outpath);
 %     'EOGcorr_corthreshV','auto 4',...
 %     'resvar_enable',0,...
 %     'resvar_thresh',15,...
-%     'SNR_enable',1,...
+%     'SNR_enable',1,runICAss...
 %     'SNR_snrcut',1,...
 %     'SNR_snrBL',[-Inf 0] ,...
 %     'SNR_snrPOI',[0 Inf] ,...

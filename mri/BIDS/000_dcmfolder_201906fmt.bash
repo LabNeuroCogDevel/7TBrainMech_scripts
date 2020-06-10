@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+env |grep -q ^NOSKIP= || NOSKIP="" # dont skip linking. useful if 2 TIEJUN folders (20200429)
 trap 'e=$?; [ $e -ne 0 ] && echo "$0 exited in error"' EXIT
 scriptdir=$(cd $(dirname $0);pwd)
 source $scriptdir/func.bash # getld8: getld8_dcmdir getld8_db
@@ -41,7 +42,7 @@ link_master_folder() {
 
    # report protocol info. skip if done
    echo -n "# have $nlinked/$nseq linked in $linktoroot"
-   [ $nlinked -ge $nseq ] && echo " skipping" && return 0
+   [ $nlinked -ge $nseq -a -z "$NOSKIP" ] && echo " skipping" && return 0
    echo ""
 
    # re-link each folder to match what we've done before
@@ -85,8 +86,8 @@ USAGE:
  $0 /Volumes/Hera/Raw/MRprojects/7TBrainMech/20190422Luna1/20190422Luna1DCMALL/TIEJUN_JREF-LUNA_20190422_134510_234000
 " && exit 1
 
-# 'all' means look for TIEJUN folders
-[ $1 = "all" ] && dirs=(/Volumes/Hera/Raw/MRprojects/7TBrainMech/2019*/2019*/TIEJUN_JREF-LUNA*/) || dirs=($@) 
+# 'all' means look for TIEJUN fold220
+[ $1 = "all" ] && dirs=(/Volumes/Hera/Raw/MRprojects/7TBrainMech/20{19*/2019*,2*/202*,{19,2}*/DICOM}/TIEJUN_JREF-LUNA*/) || dirs=($@) 
 
 for d in ${dirs[@]}; do
    link_master_folder $d || continue

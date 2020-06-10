@@ -12,7 +12,8 @@ baseline_vec_sd(:,1) = [1:size(EEG.data,3)];
 
 if cfg.normaliza_datos ~= 1
     cfg_bl = cfg;
-    cfg_bl.ventana = cfg.baseline;baseline_times = puntos_times(cfg_bl);
+    cfg_bl.ventana = cfg.baseline;
+    baseline_times = puntos_times(cfg_bl);
 
     for r = 2:size(cfg.tiempos,2)+1
         averageROI = mean(EEG.data([cfg.rois{1,r-1}],cfg.tiempos(r-1).puntos,:),1);

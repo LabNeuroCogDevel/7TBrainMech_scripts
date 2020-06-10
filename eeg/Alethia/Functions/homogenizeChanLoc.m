@@ -20,11 +20,11 @@ end
 % TODO: probably not going to run correctly!!
 
 differ = find(~strcmp(CL.name, CL_old.name)); 
-for d = differ'
-    missingIDX = find(strcmp(CL.name(d), CL_old.name(d)));
-    EEG.chanlocs(d) = EEG_old.chanlocs(missingIDX);        % update ChanLoc
-    EEG.chanlocs(d).urchan  = missingIDX;                  % update number *maybe not mandatory
-    EEG.data(d,:) = EEG_old.data(missingIDX,:);            % move data
+for idealIDX = differ'
+    previousIDX = find(strcmp(CL.name(idealIDX), CL_old.name));
+    EEG.chanlocs(idealIDX) = EEG_old.chanlocs(previousIDX);        % update ChanLoc
+    EEG.chanlocs(idealIDX).urchan  = idealIDX;                  % update number *maybe not mandatory
+    EEG.data(idealIDX,:) = EEG_old.data(previousIDX,:);            % move data
     
 end
 

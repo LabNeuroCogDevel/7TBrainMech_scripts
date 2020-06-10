@@ -1,6 +1,6 @@
 restoredefaultpath
 addpath('Functions')
-addpath(genpath('Functions/resources/Euge/Toolbox_v2018'))
+addpath(genpath('Functions/resources/Euge/Toolbox_v2018/Toolbox_v2018'))
 
 % 'Toolbox' looks into folders and pulls from functions.txt
 %  Functions/resources/Euge/Toolbox_v2018/Toolbox_v2018/Toolbox.m
@@ -12,7 +12,7 @@ addpath(genpath('Functions/resources/Euge/Toolbox_v2018'))
 % GUI:
 %  run('Toolbox.m')
 %   EEG; File -> path to data -> 
-%   /Volumes/Hera/Projects/7TBrainMech/scripts/eeg/Alethia/Prep/AfterWhole/epochcleanTF
+%   /Volumes/Hera/Projects/7TBrainMech/scripts/eeg/Shane/Prep/AfterWhole/epochcleanTF
 %   Function groups: processing
 %   select function: Calculate and plot ERSP by channel (EEG)
 %   select empyt first row
@@ -21,7 +21,7 @@ addpath(genpath('Functions/resources/Euge/Toolbox_v2018'))
 %     cycle: 0=forier 1+ cycles for wavelet
 %     freq_range: 50 b/c downsampled to 100hz. but 70 okay anyway
 %     alpha: 0.05 (calc stats, not used yet?) 
-%    save_as: /Volumes/Hera/Projects/7TBrainMech/scripts/eeg/Alethia/Results/TF/test
+%    save_as: /Volumes/Hera/Projects/7TBrainMech/scripts/eeg/Shane/Results/TF/test
 % Command:
 % Functions/resources/Euge/Toolbox_v2018/Toolbox_v2018/Techniques/EEG/Processing/w_erps_by_channel_EEG.m
 % Functions/resources/Euge/Toolbox_v2018/Toolbox_v2018/Techniques/EEG/Processing/w2_erps_by_channel_EEG.m
@@ -29,8 +29,8 @@ addpath(genpath('Functions/resources/Euge/Toolbox_v2018'))
 
 %% to remove data that does have the correct epoch you want 
 
-% files = dir(hera('/Projects/7TBrainMech/scripts/eeg/Alethia/Prep/AfterWhole/epochclean/*.set'));
-
+% files = dir(hera('/Projects/7TBrainMech/scripts/eeg/Shane/Prep/AfterWhole/epochclean_homogenize/*.set'));
+% 
 % for i = 1: length(files)
 %  
 %     filename = fullfile(files(i).folder,files(i).name);
@@ -43,14 +43,14 @@ addpath(genpath('Functions/resources/Euge/Toolbox_v2018'))
 %    
 %    if totalEvents < 2
 %        warning('%s was moved to folder entitled SubjectsWithoutEpoch2', filename);
-%        movefile(filename, hera('/Projects/7TBrainMech/scripts/eeg/Alethia/Prep/AfterWhole/SubjectsWithoutEpoch2/')); 
+%        movefile(filename, hera('/Projects/7TBrainMech/scripts/eeg/Shane/Prep/AfterWhole/SubjectsWithoutEpoch2/')); 
 %        
 %    end 
 % end
 
 %% run the toolbox
-condition_1='2'; % fixation
-condition_2='';
+condition_1='4'; % delay
+condition_2='1'; %ISI
 cycles='0';
 freq_range='4 70';
 alpha='0.05';
@@ -58,11 +58,11 @@ fdr='none';
 scale='log';
 basenorm='off';
 erps_max='';
-path_to_save = hera('/Projects/7TBrainMech/scripts/eeg/Alethia/Results/TF/Fixation');
+path_to_save = hera('/Projects/7TBrainMech/scripts/eeg/Shane/Results/TF/Delay');
 
 % data setup for w2_erps_by_channel_EEG
-data.path_to_files = hera('/Projects/7TBrainMech/scripts/eeg/Alethia/Prep/AfterWhole/epochclean');
-data.path_to_save = hera('/Projects/7TBrainMech/scripts/eeg/Alethia/Results/TF/Fixation');
+data.path_to_files = hera('/Projects/7TBrainMech/scripts/eeg/Shane/Prep/AfterWhole/ICAwholeClean_homogenize');
+data.path_to_save = hera('/Projects/7TBrainMech/scripts/eeg/Shane/Results/TF/Delay');
 % done in w_erps_by_channel_EEG.m but never used
 % data.parent_directory = ''
 

@@ -31,7 +31,7 @@ EXAMPLE:
 
  # 4. view mni coords as placed in a subjects slice space using matlab gui coord_viewer
  #  mni_examples/scout_space/
- $0 view 10129_20180917 ROI_mni_MP_20191004.nii.gz
+ $0 view 10129_20180917 ROI_mni_13MP20200207.nii.gz
 
  # x. open coord_mover on an mni brain with z-coord unlocked. not currently useful
  $0 mni

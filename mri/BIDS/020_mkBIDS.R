@@ -7,8 +7,8 @@ suppressPackageStartupMessages({library(dplyr)})
 hfixfile <- '/Volumes/Hera/Projects/7TBrainMech/scripts/mri/BIDS/hardcode.txt'
 hardcode_fix <- read.table(hfixfile,comment.char='#', header=T) %>%
    mutate(folder=gsub('/Volumes/Hera/Raw/BIDS/7TBrainMech/rawlinks/','', folder) %>%
-                 gsub('_','/',.)) %>%
-   tidyr::separate(folder, c('luna','vdate','seqno','protocol'), sep='/',drop=T) 
+                 gsub('_','/',.) %>% gsub('/$','',.)) %>%
+   tidyr::separate(folder, c('luna','vdate','seqno','protocol','count'), sep='/',extra="drop") 
 
 # make niftis in BIDS dir format
 # expect raw dicoms like rawlinks/subj_date/seqno_protcol_ndcm
@@ -35,6 +35,11 @@ info <-
    lapply( strsplit(dirlist, "[/_]"),
          function(x) {
             x <- as.list(x)
+            if(length(x) != 6) {
+               cat("getting info from path failed (", length(x), "items instead of raw,l,vd,s#,prt,#dcm)! ",
+                   paste(x,collapse=" "), '\n')
+               x <- c(x[1:length(x)], rep(NA,max(6-length(x),0)))
+            }
             names(x)<-c("raw", "luna", "vdate", "seqno", "protocol", "ndcm")
             as.data.frame(x)
          }) %>%
@@ -67,9 +72,9 @@ if (!any(lapply(idxs, any)))
 # -- apply assignments
 info$process <- NA
 # ugly `<<-`, reader beware -- code might burn your eyes
+# cumlative count to get run number
 discard <-
    mapply(function(i, n) info$process[i] <<- n, idxs, names(idxs))
-
 
 # --- setup file and directory names, and dcm2nii command to run
 # like
@@ -121,7 +126,7 @@ proc$file <- sprintf("%s/%s.nii.gz", proc$outdir, proc$name)
 proc$cmd <- sprintf("dcm2niix -o %s -f %s %s",
                     proc$outdir, proc$name, proc$indir)
 
-print(proc)
+print.data.frame(proc)
 # create directories and nifti files
 discard <-
   lapply(proc$outdir, function(x) dir.exists(x) || dir.create(x, recursive=T) )

@@ -117,10 +117,21 @@ c1_erps = []; %4D matrix where results will be stored (channels, freq, times, su
     c2_alltfX=[];
     timesout=[];
     freqs=[];
+
     g=[];
 
-for suj = 44 : file_nr
+    
+  
+    
+for suj = 1:length(filenames)
+    
     file_name = filenames{suj};
+
+    
+    if exist([path_to_save '/' file_name(1:48) '_2.mat']) ~= 0
+        continue;
+    end
+    
     disp(path_to_files)
     disp(file_name);
     
@@ -234,24 +245,30 @@ for suj = 44 : file_nr
 end
 
 %save results
-% if two_conditions
-if ~isempty(condition_1) && ~isempty(condition_2) %modificación 27/3
-    erps = {c1_erps,c2_erps,c1_c2_erps};
-    erpsboot = {c1_erpsboot,c2_erpsboot,c1_c2_erpsboot};
-    mbases = {c1_mbases,c2_mbases};
-    prefix_file_name_to_save = [condition_1 '_' condition_2];
-else
-    erps = c1_erps;
-    erpsboot = c1_erpsboot;
-    mbases = c1_mbases;
-    prefix_file_name_to_save = [condition_1];
-end
+if two_conditions
+    if ~isempty(condition_1) && ~isempty(condition_2) %modificaciï¿½n 27/3
+        erps = {c1_erps,c2_erps,c1_c2_erps};
+        erpsboot = {c1_erpsboot,c2_erpsboot,c1_c2_erpsboot};
+        mbases = {c1_mbases,c2_mbases};
+        prefix_file_name_to_save = [condition_1 '_' condition_2];
+    else
+        erps = c1_erps;
+        erpsboot = c1_erpsboot;
+        mbases = c1_mbases;
+        prefix_file_name_to_save = [condition_1];
+    end
 
 %save results in mat
 
 mat_name = fullfile(path_to_save,[prefix_file_name_to_save '.mat']);
 save(mat_name, 'erps','erpsboot','mbases','timesout','freqs','g','-v7.3');
 
-clear erps erpsboot mbases timesout freqs g;
+% clear erps erpsboot mbases timesout freqs g;
 %plot -> TODO add conditional
-plot_erps_2_conditions_by_channel(mat_name,sample_EEG,path_to_save,prefix_file_name_to_save)
+if two_conditions
+    plot_erps_2_conditions_by_channel(mat_name,sample_EEG,path_to_save,prefix_file_name_to_save)
+    
+end
+
+end 
+

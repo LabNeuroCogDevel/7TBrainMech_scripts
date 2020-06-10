@@ -1,8 +1,20 @@
-function calStruct = make_cal(subj, VERBOSE)
+function calStruct = make_cal(subj, VERBOSE, MAKEFIGS)
 
 if nargin<2
     VERBOSE = 0;
 end
+
+if nargin<3
+    MAKEFIGS = 1;
+end
+
+if VERBOSE
+    vis = 'on';
+    fprintf(1, 'Running calibration for subject %s, with VERBOSE=%d and MAKEFIGS=%d\n', subj, VERBOSE, MAKEFIGS);
+else
+    vis = 'off';
+end
+
 
 d=eeg_data('#cal', {'Status','horz_eye'}, 'subjs', {subj});
 if length(d)>1
@@ -45,8 +57,8 @@ alignedData = nan*ones(length(trialOnsets), 1+posttaskInds);
 w = gausswin(20);
 w = w./sum(w);
 
-if VERBOSE
-    figure
+if MAKEFIGS
+    figure('Visible', vis);
     set(gcf, 'Position', [475         104        1711        1241]);
 end
 
@@ -54,7 +66,13 @@ fitData = [];
 for triali = 1:length(trialOnsets)
     
     % extract pre-trial baseline and get robust mean
-    thisPre = eyeDiff(trialOnsets(triali)-pretaskInds:trialOnsets(triali));
+    
+    try
+        thisPre = eyeDiff(trialOnsets(triali)-pretaskInds:trialOnsets(triali));
+    catch
+        fitData(triali, 1:3) = [NaN NaN NaN];
+        continue;
+    end
     
     z = (thisPre - nanmean(thisPre))/nanstd(thisPre);
     u = nanmean(thisPre(abs(z)<4));
@@ -77,9 +95,10 @@ for triali = 1:length(trialOnsets)
     %[triali onsetGuess ampGuess]
     
     x = 1:length(thisPost);
+    
     [b,RESNORM,RESIDUAL,EXITFLAG,OUTPUT,LAMBDA,JACOBIAN] = lsqcurvefit(squareWave, [onsetGuess .4*d.Fs ampGuess thisPost(end)], x, thisPost, [], [], OPTS);
     
-    if VERBOSE
+    if MAKEFIGS
         yhat = squareWave(b, x);
 
 
@@ -90,30 +109,73 @@ for triali = 1:length(trialOnsets)
     end
     
     % summarize
-    fitData(triali,:) = [d.Status(trialOnsets(triali)) b(3) RESNORM];
-    alignedData(triali,1:length(thisPost)) = thisPost;
+    try
+        fitData(triali,:) = [d.Status(trialOnsets(triali)) b(3) mean(RESIDUAL(ceil(b(1)):floor(b(1)+b(2))).^2)/mean(thisPost(ceil(b(1)):floor(b(1)+b(2))).^2)]; % or RESNORM?
+        alignedData(triali,1:length(thisPost)) = thisPost;
+    catch
+        fitData(triali, 1:3) = [NaN NaN NaN];
+    end
 end
 
-if VERBOSE
-    figure
+%
+idx = fitData(:,1) <= length(POSITION_LOOKUP) & ~isnan(fitData(:,1));
+fitData = fitData(idx,:);
+
+z = zscore(1./fitData(:,3));
+scalerange = .9;
+w = ( scalerange*(1./(1+exp(-5*z))) )+(1-scalerange);
+
+if MAKEFIGS
+    if VERBOSE
+        fprintf('%d: %.4f\n', [(1:length(w))' w]')
+    end
+    
+    for triali = 1:length(trialOnsets)
+        subplot(7,7,triali)
+        ax = get(gca);
+        xr = diff(ax.XLim); yr = diff(ax.YLim);
+        text(ax.XLim(1)+.6*xr, ax.YLim(1)+.75*yr, sprintf('res = %.3g\nz=%.3f\nw = %.3f', fitData(triali,3), z(triali), w(triali)), 'FontSize', 10);
+    end
+    
+    export_fig(sprintf('fits/calFits_%s.png', subj), '-r100');
+end
+
+%%
+
+
+%[slope,dev,stats] = glmfit(POSITION_LOOKUP(fitData(:,1)), fitData(:,2), 'normal','Constant','off');%,'Weights', max(fitData(:,3)) - fitData(:,3));
+mdl = fitlm(POSITION_LOOKUP(fitData(:,1)), fitData(:,2), 'Weights', w);
+goodidx = find(abs(zscore(mdl.Residuals.Raw))<=2);
+badidx = find(abs(zscore(mdl.Residuals.Raw))>2);
+mdl = fitlm(POSITION_LOOKUP(fitData(:,1)), fitData(:,2), 'Weights', w, 'Exclude', badidx);
+slope = mdl.Coefficients.Estimate(2);
+
+if MAKEFIGS
+    figure('Visible', vis);
     %plot(POSITION_LOOKUP(fitData(:,1)), fitData(:,2), 'or');
-    %scatter(POSITION_LOOKUP(fitData(:,1)), fitData(:,2), [], max(fitData(:,3)) - fitData(:,3),'filled'); colormap(jet);
-    scatter(POSITION_LOOKUP(fitData(:,1)), fitData(:,2),'filled'); colormap(jet);
+    %scatter(POSITION_LOOKUP(fitData(:,1)), fitData(:,2), [], max(fitData(:,3)) - fitData(:,3),'filled'); colormap(jet);    
+    scatter(POSITION_LOOKUP(fitData(goodidx,1)), fitData(goodidx,2),100*w(goodidx), 'filled'); colormap(jet);
+    hold on
+    scatter(POSITION_LOOKUP(fitData(badidx,1)), fitData(badidx,2),100*w(badidx)); colormap(jet);
 end
 
-[slope,dev,stats] = glmfit(POSITION_LOOKUP(fitData(:,1)), fitData(:,2), 'normal','Constant','off');%,'Weights', max(fitData(:,3)) - fitData(:,3));
 
 % b is in unites of voltage per screen unit
-
-
-
-if VERBOSE
+if MAKEFIGS
     xhat = sort(POSITION_LOOKUP);
-    [yhat,dylo,dyhi] = glmval(slope,xhat,'identity',stats,'Constant','off');
+    %[yhat,dylo,dyhi] = glmval(slope,xhat,'identity',stats,'Constant','off');
+    [yhat,YCI] = predict(mdl, xhat');
+    
     hold on
-    shadedErrorBar(xhat, yhat, [dylo dyhi], 'k', 1);
-end
+    shadedErrorBar(xhat, yhat, [yhat-YCI(:,1) YCI(:,2)-yhat], 'k', 1);
+    
+    ax = get(gca);
+    xr = diff(ax.XLim); yr = diff(ax.YLim);
+    text(ax.XLim(1)+.8*xr, ax.YLim(1)+.75*yr, sprintf('slope = %.3g\nr2=%.3f', slope, mdl.Rsquared.Adjusted), 'FontSize', 10);
 
+    export_fig(sprintf('fits/calRegression_%s.png', subj), '-r100');
+end
+%%
 % convert to voltage per degree
 %   width = 53.3cm
 %   viewing dist = 58.4cm
@@ -122,3 +184,12 @@ end
 calStruct.slope = slope/24.5;
 calStruct.units = 'voltage per visual angle';
 calStruct.id = d.id;
+calStruct.r2 = mdl.Rsquared.Adjusted;
+
+if VERBOSE
+    uiwait
+elseif MAKEFIGS
+    close all
+end
+
+

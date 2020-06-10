@@ -1,29 +1,41 @@
 function [EEG] = remarcadata(path_file,outputpath)
 eeglab
+
+path_file = '/Volumes/Hera/Raw/EEG/7TBrainMech';
+outputpath = '/Volumes/Hera/Projects/7TBrainMech/scripts/eeg/Shane/Prep/remarked';
+
 %directory of EEG data
 [path,folder] = fileparts(path_file);
 d =[path,'/',folder,'/'];
 % d ='/Users/macbookpro/Documents/MBCS/BA/DMT_experiment/drive-download-20190719T191352Z-001/';
 % names = dir([d,'*mgs.bdf']);
 
-namesOri = dir([d,'*.bdf']);
-nameslist = {namesOri.name}.';
+namesOri = dir([d,'*/*.bdf']);
+mgsIDX = find (cellfun (@any,regexpi ( {namesOri.name}.', 'mgs')));
+% names = namesOri();
+% 
+% % names = dir([d,'*eyecal.bdf']);
+% 
+% names = {names(~[names.isdir]).name}; %cell array with EEG file names
+% nr_eegsets = size(names,2); %number of EEG sets to preprocess
 
-names = namesOri(find (cellfun (@any,regexpi (nameslist, 'mgs'))));
-
-% names = dir([d,'*eyecal.bdf']);
-
-names = {names(~[names.isdir]).name}; %cell array with EEG file names
-nr_eegsets = size(names,2); %number of EEG sets to preprocess
-
-for idx = 1:nr_eegsets
+for idx = mgsIDX'
     
-    currentName = names{idx}(1:end-4);
-    
+    currentName = namesOri(idx).name(1:end-4);
+    d = [namesOri(idx).folder '/'];
+
     %to know how far your script is with running
-    disp(currentName)
-    
-    %load EEG set
+    %disp(currentName);
+ 
+    %% skip if we've already done
+    finalfile=fullfile(outputpath, [currentName '_Rem.set']);
+    if exist(finalfile,'file')
+        fprintf('already have %s\n', finalfile)
+        continue
+    end
+    fprintf('making %s\n',finalfile);
+  
+    %% load EEG set
 %     EEG = pop_biosig([d currentName '.bdf'],'ref',[65 66] );
     EEG = pop_biosig([d currentName '.bdf']);
     EEG.setname=[currentName 'Rem']; %name the EEGLAB set (this is not the set file itself)

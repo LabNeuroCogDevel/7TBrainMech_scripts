@@ -2,6 +2,7 @@
 ## extra output if verbose is set
 # set verbose to empty if not in env
 env |grep -q ^VERBOSE= || VERBOSE=""
+env |grep -q ^USEDB= || USEDB=""
 warnifverb(){ [ -n "$VERBOSE" ] && echo -e "$@" >&2 || return 0; }
 verbtee(){ [ -n "$VERBOSE" ] && tee >( cat|sed 's/^/# \t/' >&2) || cat;}
 
@@ -77,9 +78,24 @@ getld8_hardcoded(){
    [ $patname == '20181001Luna2' ] && ld8="11693_20181001"  # no luna1?
    [ $patname == '20190222Luna2' ] && ld8="11651_20190222"  # no luna1 was dropped -- did half protocol
    [ $patname == '20190712Luna'  ] && ld8="11776_20190712"  # luna1 cancelled last minute
-   # TODO:
-   # 20190510Luna2 will come back 20190913
-   # 20190715Luna (11788) tech issue not rescheduled yet (as of 20190823)
+
+   # SWAPPED
+   [ $patname == "20190906Luna1" ] && ld8="11802_20190906"  # 1 THESE WERE SWAPPED ORIGINALLY
+   [ $patname == "20190906Luna2" ] && ld8="11784_20190906"  # 2 THESE WERE SWAPPED ORIGINALLY
+   [ $patname == "20190906Luna_2" ] && ld8="11784_20190906" # 2 THESE WERE SWAPPED ORIGINALLY
+
+   [ $patname == "20191004Luna2" ] && ld8="11805_20191004"  # no luna1
+   [ $patname == '20190506Luna1' ] && ld8="11763_20190506"  # nolonger interested, didn't show up in normal spot on sheet->db
+   # impatiant mosaic test, should eventuall be in db
+   [ $patname == '20191219Luna1' ] && ld8="11813_20191219"
+   # ISSUES/TODO
+   [ $patname == "20190715Luna"  ] && ld8="11788_TECHISSUE"  # not rescheduled yet (as of 20190823, 20191023)
+   [ $patname == "20190510Luna2" ] && ld8="11768_20190510" # 20190510Luna2 will come back 20190913
+   [ $patname == "20190913Luna2" ] && ld8="11768_20190913" # 20190510Luna2 will come back 20190913
+   
+   [ $patname == "20200103Luna11" ] && ld8="11675_20200103"
+   [ $patname == "20200103Luna2"  ] && ld8="10202_20200103" # 10202 tp1
+   
    
    #[[ $patname == '20180521Luna1' ]] && patname=xxxxx_20180521
 
@@ -96,15 +112,21 @@ getld8(){
    ld8db=$(getld8_db $d) || :
    echo "# INFO:  dcmid '$ld8' vs. dbid '$ld8db' (only need 1 valid)" >&2
    if [ -z "$ld8" -a -z "$ld8db" ]; then
-      echo "ERROR: $d has no luna in dcm or db?! run again with VERBOSE=1">&2
-      local dt=$(basename $(dirname $d))
+      echo "$0:${FUNCNAME}:ERROR: $d has no luna in dcm or db?! run again with VERBOSE=1">&2
+      #local dt=$(basename $(dirname $d))
+      [[ $d =~ [0-9]{8}Luna ]] || search="??" && search=${BASH_REMATCH:0:8}
       #echo $dt >&2;
-      echo -e "psql -h arnold.wpic.upmc.edu lncddb lncd -c \"select id,vtype,study,vtimestamp from visit natural join person natural join visit_study natural join enroll where to_char(vtimestamp,'YYYYmmdd') like '${dt:0:8}%' and etype like 'LunaID'\"" >&2
+      echo -e "psql -h arnold.wpic.upmc.edu lncddb lncd -c \"select id,vtype,study,vtimestamp from visit natural join person natural join visit_study natural join enroll where to_char(vtimestamp,'YYYYmmdd') like '$search%' and etype like 'LunaID'\"" >&2
       return 1
    fi
    [ -z "$ld8" ]   &&   ld8="$ld8db"  && warnifverb "#   $d: no dcm luna (maybe okay)"
    [ -z "$ld8db" ] && ld8db="$ld8"  && warnifverb "#   $d: no db luna: update pull_from_sheets (maybe okay)"
-   [ "x$ld8db" != "x$ld8" ] && echo "# WARNING: db $ld8db does not match dcm $ld8, using db (run again with export VERBOSE=1)">&2 && ld8=$ld8db
+   if [ "x$ld8db" != "x$ld8" ]; then 
+      echo "# WARNING: db $ld8db does not match dcm $ld8" >&2
+      [ -z "$ld8" ] && should_usedb=1 || should_usedb=""
+      [ -n "$USEDB" -o -n "$should_usedb" ] && ld8=$ld8db
+      echo "using $ld8 (run again with export VERBOSE=1, set USEDB to force db)">&2
+   fi
    echo "$ld8"
    return 0
 }

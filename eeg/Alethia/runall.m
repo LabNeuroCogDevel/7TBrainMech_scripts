@@ -8,7 +8,7 @@ addpath(genpath(hera('Projects/7TBrainMech/scripts/eeg/toolbox/eeglab14_1_2b')))
 
 %% settings
 only128 = 0; % 0==do all, 1==only 128 channel subjects
-xEEG = 0; %0 - iff you want to overwrite an already existing file, 1- if you want it to skip subjects who have already been run through singlesubject
+xEEG = 0; %0 - if you want to overwrite an already existing file; 1- if you want it to skip subjects who have already been run through singlesubject
 
 % preproc settings
 lowBP = 0.5;
@@ -29,7 +29,7 @@ end
 
 % 
 %     
-redo = [11299];
+redo = [10129];
 for i = 1: length(redo) 
     file = sprintf('Projects/7TBrainMech/scripts/eeg/Alethia/Prep/remarked/%d', redo(i));
     setfiles = dir(hera([file '*_*.set']));
@@ -37,7 +37,7 @@ for i = 1: length(redo)
     allfiles(i,:) = setfiles; 
 end
 
-% setfiles =  allfiles(:,2); 
+setfiles =  allfiles; 
 %% allocate cell
 %create empty variables
 n = size(setfiles,1); %number of EEG sets to preprocess

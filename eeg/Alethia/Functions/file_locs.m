@@ -37,7 +37,7 @@ loc.epoch           = mkname('epoched',           '_epochs');
 loc.epoch_rj_marked = mkname('marked_epochs',     '_Rem_epochs_marked');
 loc.epochrj         = mkname('rejected_epochs',   '_Rem_epochs_rj');
 loc.icaout          = mkname('ICA',               '_Rem_epochs_rj_ICA');
-loc.icawhole        = mkname('ICAwhole',          '_Rem_ICAwhole');
+loc.icawhole        = mkname('ICAwhole',          '_Rem_rerefwhole_ICA');
 loc.SASICA          = mkname('ICA',               '_Rem_epochs_rj_ICA_SAS');
 %TODO: add rerefwhole_name
 
@@ -50,5 +50,9 @@ loc.is_finished = exist(loc.icaout, 'file') ~= 0;
 
 % not single subject 
 loc.epochClean      = mkname('AfterWhole/epochclean', '_Rem_rerefwhole_ICA_icapru_epochs_rj');
+loc.ICAwholeClean      = mkname('AfterWhole/ICAwholeClean', '_Rem_rerefwhole_ICA_icapru');
+loc.epochCleanHomongenize      = mkname('AfterWhole/epochclean_homogenize', '_Rem_rerefwhole_ICA_icapru_epochs_rj');
+
+
 
 end
