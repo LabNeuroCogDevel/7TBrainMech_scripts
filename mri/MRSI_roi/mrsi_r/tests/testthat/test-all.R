@@ -22,7 +22,7 @@ test_that("clean", {
   expect_true(all(clean$roi==1))
 
   clean <- mrsi_clean(d, c(3, 5), 'Glu.SD')
-  expect_equal(unique(clean$roi), c(3, 5))
+  expect_equal(sort(unique(clean$roi)), c(3, 5))
 })
 
 test_that("model: lm", {
