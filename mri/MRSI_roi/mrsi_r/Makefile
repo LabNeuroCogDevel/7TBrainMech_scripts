@@ -10,4 +10,4 @@ install: .make/install
 	cd tests/ && Rscript "testthat.R" | tee ../$@
 
 .make:
-	@mkdir .make
+	@-mkdir .make
