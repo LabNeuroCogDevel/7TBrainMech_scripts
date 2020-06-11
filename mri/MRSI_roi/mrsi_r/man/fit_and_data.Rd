@@ -4,7 +4,7 @@
 \alias{fit_and_data}
 \title{fit and filter data}
 \usage{
-fit_and_data(d, regions, mtbl, thres)
+fit_and_data(d, regions, mtbl, thres, crlb_thres = 20)
 }
 \arguments{
 \item{d}{datafraem with region, metabolite, and crlb columns}

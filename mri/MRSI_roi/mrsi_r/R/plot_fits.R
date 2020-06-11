@@ -110,8 +110,8 @@ mrsi_plot_many <- function(d, regions, mtbl_thres, saveplot=F) {
 #' @return
 #'  list with d (cleaned data w/concentration and metabolite column names) and f (fitted data)
 #' @export
-fit_and_data <- function(d, regions, mtbl, thres) {
-  d <- mrsi_clean(d, regions, thres, mesg=T, nona=c("GMrat", mtbl))
+fit_and_data <- function(d, regions, mtbl, thres, crlb_thres=20) {
+  d <- mrsi_clean(d, regions, thres, mesg=T, nona=c("GMrat", mtbl), crlb_thres=crlb_thres)
   # set metabolite column to same value everywhere
   d$concentration <- d[,mtbl]
   d$metabolite <- mtbl
