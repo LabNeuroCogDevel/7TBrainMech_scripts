@@ -108,7 +108,7 @@ mrsi_bestmodel <- function(d, metabolite, nuissance="GMrat") {
   regions <- unique(d$roi)
   if (length(regions) > 1) {
      nuissance <- paste0(nuissance, '+ label + (1|ld8)')
-     mdlfunc <- lme4::lmer
+     mdlfunc <- lmer
   }
 
   # fill in formula and calculate model
