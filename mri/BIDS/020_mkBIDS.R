@@ -26,10 +26,13 @@ args <- commandArgs(trailingOnly=TRUE)
 if(length(args)>0L) {
    matchesrawlink <- grepl('rawlinks/',args)
    if(!all(matchesrawlink)) stop('inputs must be rawlink directories!\n Bad inputs:', paste("\n\t", args[!matchesrawlink]))
-   dirlist <- lapply(args,function(x) gsub('^\\.\\*rawlinks/', 'rawlinks/', x) %>% paste0('/*/') %>% Sys.glob) %>% unlist
+   dirlist <- lapply(args,function(x) gsub('^.*rawlinks/', 'rawlinks/', x) %>% gsub("/$", "", .) %>% paste0('/*/') %>% Sys.glob) %>% unlist
 } else {
    dirlist <- Sys.glob("rawlinks/1*_2*/*/")
 }
+
+# need something to process
+stopifnot(length(dirlist)>0L) 
 
 info <-
    lapply( strsplit(dirlist, "[/_]"),

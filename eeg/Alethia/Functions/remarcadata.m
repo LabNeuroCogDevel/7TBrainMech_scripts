@@ -1,8 +1,9 @@
-function [EEG] = remarcadata(path_file,outputpath)
+function [EEG] = remarcadata()
 eeglab
 
-path_file = '/Volumes/Hera/Raw/EEG/7TBrainMech';
-outputpath = '/Volumes/Hera/Projects/7TBrainMech/scripts/eeg/Shane/Prep/remarked';
+path_file = hera('Raw/EEG/7TBrainMech');
+outputpath = hera('Projects/7TBrainMech/scripts/eeg/Shane/Prep/remarked';
+dryrun  = 1;
 
 %directory of EEG data
 [path,folder] = fileparts(path_file);
@@ -33,6 +34,11 @@ for idx = mgsIDX'
         fprintf('already have %s\n', finalfile)
         continue
     end
+    if dryrun
+      fprintf('would make %s, but dryrun=1 so skipping\n', finalfile);
+      continue
+    end
+
     fprintf('making %s\n',finalfile);
   
     %% load EEG set

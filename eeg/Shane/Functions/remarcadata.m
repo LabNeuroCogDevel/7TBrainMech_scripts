@@ -1,8 +1,14 @@
-function [EEG] = remarcadata(path_file,outputpath)
+function [EEG] = remarcadata(dryrun)
+
+% should we actually run, or just say what we'd do (dry run)
+% defaut to just printing, not actually running
+if nargin < 1
+    dryrun=1;
+end
 eeglab
 
-path_file = '/Volumes/Hera/Raw/EEG/7TBrainMech';
-outputpath = '/Volumes/Hera/Projects/7TBrainMech/scripts/eeg/Shane/Prep/remarked';
+path_file = hera('Raw/EEG/7TBrainMech');
+outputpath = hera('Projects/7TBrainMech/scripts/eeg/Shane/Prep/remarked');
 
 %directory of EEG data
 [path,folder] = fileparts(path_file);
@@ -31,6 +37,10 @@ for idx = mgsIDX'
     finalfile=fullfile(outputpath, [currentName '_Rem.set']);
     if exist(finalfile,'file')
         fprintf('already have %s\n', finalfile)
+        continue
+    end
+    if dryrun
+        fprintf('want to run %s; set dryrun=0 to actually run\n', finalfile)
         continue
     end
     fprintf('making %s\n',finalfile);
@@ -95,4 +105,7 @@ EEG = pop_saveset( EEG, 'filename',[currentName '_Rem.set'],'filepath',outputpat
 end
 clear all 
 close all
+
+
+end
 

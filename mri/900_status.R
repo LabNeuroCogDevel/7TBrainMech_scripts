@@ -45,18 +45,19 @@ ids <- LNCDR::db_query("
 # make dob age
 ids <-
    ids %>%
-   mutate(age = floor(as.numeric(ymd(str_extract(mrid,'\\d{8}')) - ymd(dob))/365.25) ) %>%
+   mutate(age_floor = floor(as.numeric(ymd(str_extract(mrid,'\\d{8}')) - ymd(dob))/365.25) ) %>%
    select(-dob)
 
 # ld8 -- people we migth be missing b/c we don't have a MRID
 ld8 <- LNCDR::db_query("
-   select id || '_' || to_char(vtimestamp,'YYYYmmdd') as ld8, vscore
+   select id || '_' || to_char(vtimestamp,'YYYYmmdd') as ld8, age, sex, vscore
    from visit
    natural join visit_study
    natural join enroll 
-   where vtype ilike 'scan%'
+   natural join person
+   where vtype ilike '%scan%'
      and study ilike 'Brain%'
-     and etype like 'LunaID'")
+     and etype like 'LunaID'") %>% mutate(age=round(age,2))
 
 # ids from BIDS rawlink
 cat("search all rawlinks in 'BIDS' on Hera\n")
@@ -86,7 +87,7 @@ d <-
    merge(ld8, all=T, by='ld8') %>%
    merge(d_task, all=T, by='ld8') %>%
    merge(d_google %>% select(mrid, notes), by='mrid',all=T) %>%
-   filter(! mrid %in% c('20170929Luna', '20171009Luna'), !duplicated(mrid))
+   filter(! mrid %in% c('20170929Luna', '20171009Luna'), is.na(mrid) | !duplicated(mrid))
 
 # add timepoint. visists that are more than 200 days apart count as a new visit
 # N.B. should get this from DB. but easier here
@@ -159,15 +160,6 @@ hc <- read.csv('Hc/txt/all_hc.csv') %>% group_by(ld8) %>% tally() %>% rename(nHc
 d <- merge(d, hc, by="ld8", all.x=T)
 
 
-outstatus <- "/Volumes/Hera/Projects/7TBrainMech/scripts/mri/txt/status.csv"
-write.csv(as.data.frame(d), file=outstatus, row.names=F)
-cat("uploading to goolge drive\n")
-drive_deauth()
-up <- drive_update(as_id(r$spreadsheet_id), outstatus)
-cat("see https://docs.google.com/spreadsheets/d/1_EdqA8ObwPaqeLd-BJuvXhimotkHG8zvHMTICmGEVyM\n")
-# set header using lncdtool's gsheets - freeze and bold first row
-system("gsheets -w 1_EdqA8ObwPaqeLd-BJuvXhimotkHG8zvHMTICmGEVyM -a header")
-
 # print missing
 cat("missing csi\n")
 d %>%
@@ -191,4 +183,18 @@ print.data.frame(missing_task, row.names=F)
 sink('txt/missing_task.ld8.txt')
 cat(paste(collapse="\n", missing_task$ld8),"\n")
 sink()
+
+# upload to goolge sheet
+outstatus <- "/Volumes/Hera/Projects/7TBrainMech/scripts/mri/txt/status.csv"
+write.csv(as.data.frame(d), file=outstatus, row.names=F)
+cat("uploading to goolge drive\n")
+# no longer works :(
+# drive_deauth()
+# up <- drive_update(as_id(r$spreadsheet_id), outstatus)
+# cat("see https://docs.google.com/spreadsheets/d/1_EdqA8ObwPaqeLd-BJuvXhimotkHG8zvHMTICmGEVyM\n")
+
+# this is dangerous. does nto remove formatting
+system(sprintf("gsheets -w 1_EdqA8ObwPaqeLd-BJuvXhimotkHG8zvHMTICmGEVyM -a upload %s", outstatus))
+# set header using lncdtool's gsheets - freeze and bold first row
+system("gsheets -w 1_EdqA8ObwPaqeLd-BJuvXhimotkHG8zvHMTICmGEVyM -a header")
 
