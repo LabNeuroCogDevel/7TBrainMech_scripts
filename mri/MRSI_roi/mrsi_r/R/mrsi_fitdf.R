@@ -37,14 +37,21 @@ what_age_y <- function(cfs) {
 #' @param nona columns that cannot be NA. default to GMrat, age, and CRLB's .SD -> .Cr
 #' @param crlb_thres where to discard SD values (default 20)
 #' @param mesg  boolean if we should report how many are kept/removed (default F)
+#' @param zscore name zscore thres, like list(Glu.Cr=3)
 #' @import dplyr
 #' @importFrom stats na.omit
 #' @examples
 #'  glu_r1 <- mrsi_clean(d, 1, 'Glu.SD')
 #'  glu_r1 <- mrsi_clean(d, 1, 'Glu.SD', nona=c("GMrat", "Glu.Cr", "age")) # same as above
 #'  glu_r1 <- mrsi_clean(d, 1, 'Glu.SD', nona=NULL) # NA okay
+#'  glu_r1 <- mrsi_clean(d, 1, 'Glu.SD', zscore=NULL) # no zscore
+#'  glu_r1 <- mrsi_clean(d, 1, 'Glu.SD', zscore=list(Glu.Cr=2)) # explicit zscore, default is 3
 #' @export
-mrsi_clean <- function(d, regions, CRLB, nona=c("GMrat", "age", gsub(".SD",".Cr",CRLB)), crlb_thres=20, mesg=F) {
+mrsi_clean <- function(d, regions, CRLB,
+                       nona=c("GMrat", "age", gsub(".SD", ".Cr", CRLB)),
+                       crlb_thres=20,
+                       mesg=F,
+                       zscore=list(3)%>%`names<-`(gsub(".SD", ".Cr", CRLB))) {
   # make nonline age columns if we don't already have them
   if(! 'invage' %in% names(d)) d$invage <- 1/d$age
   if(! 'age2'   %in% names(d)) d$age2   <- d$age^2
@@ -63,6 +70,13 @@ mrsi_clean <- function(d, regions, CRLB, nona=c("GMrat", "age", gsub(".SD",".Cr"
     brain_region_all %>%
     filter(!!sym(CRLB) <= crlb_thres, !anyna)
 
+  # keep only those within a zscore if we have axsore
+  if(!is.null(zscore) && length(zscore)>0L)
+     brain_region <-
+        mapply(function(n,z) abs(scale(brain_region[n], center=T, scale=T)) < z,
+               names(zscore), zscore) %>%
+        apply(1,all) %>%
+        `[`(brain_region,.,)
 
   #MESG: return sample size so i know how many people i now have after exclusions
 
