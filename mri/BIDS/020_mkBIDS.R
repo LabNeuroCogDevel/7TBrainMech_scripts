@@ -55,6 +55,8 @@ idxs <- list(
              #^MP2RAGE.*T1-Images
   t1 = grepl("^MP2RAGEPTX.TR6000.*.UNI.DEN$", info$protocol, perl=T) &
            info$ndcm %in% c(256, 192),
+  t1low = grepl("^MPRAGE.*GRAPPA1mm", info$protocol, perl=T) &
+           info$ndcm %in% c(192),
   MGS= grepl("bold.*(TASK|MGS|tacq2s-180).*", info$protocol) &
              info$ndcm %in% c(9216,192), # 20191220 -  allow new mosaic 192
   rest= grepl("bold.*(REST|tacq2s-180).*", info$protocol) &
@@ -96,7 +98,7 @@ proc <- info %>%
    # and update any where if is not NA
    mutate(item=ifelse(is.na(item.fix),item,item.fix),
           # t1-> anat, MGS|REST->func, MT->mt
-          type=ifelse(process=="t1", "anat", "func"),
+          type=ifelse(grepl("t1", process), "anat", "func"),
           type=ifelse(process=="MT", "mt", type),
           # name actually only for bold. anat and mt will be changed later
           name=sprintf("sub-%s_task-%s_run-%02d_bold", luna, process, item),
@@ -116,6 +118,9 @@ suspect %>% select(luna,vdate) %>% mutate(process='MGS') %>% unique %>% inner_jo
 # rename file for anat
 t1idx <- proc$type=="anat"
 proc$name[t1idx] <- gsub("_task.*", "_T1w", proc$name[t1idx])
+# 20200807 - mp2rage failing. use lowres if we have it
+lowidx <- proc$process=="t1low"
+proc$name[lowidx] <- gsub("_task.*|_T1w", "_acq-lowres_T1w", proc$name[lowidx])
 
 # rename mt
 mtidx <- proc$type=="mt"
