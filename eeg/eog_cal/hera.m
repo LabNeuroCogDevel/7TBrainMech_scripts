@@ -11,7 +11,7 @@ function savedir = hera(varargin)
       '/Volumes/Hera'
       '/Users/fcalabro/mnt/rhea/Volumes/Hera'};
    rootdir = '';
-   for p=places
+   for p=places'
       if exist(p{1}, 'dir')
          rootdir=p{1};
          break
