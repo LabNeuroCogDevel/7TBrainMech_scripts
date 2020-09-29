@@ -24,7 +24,8 @@ function [subj_struct] = eeg_data(taskname, channels, varargin)
 %    * for just a file list use find_bdf
 %       find_bdf('1*MGS')
 %    * for one file, use  bdf_read_chnl(file, ch [,header])
-%       f='/Volumes/Hera/Raw/EEG/7TBrainMech/11676_20180821/11676_20180821_ANTI.bdf'
+%       f=hera('Raw/EEG/7TBrainMech/11676_20180821/11676_20180821_ANTI.bdf');
+%       % on rhea: '/Volumes/Hera/Raw/EEG/7TBrainMech/11676_20180821/11676_20180821_ANTI.bdf'
 %       bdf_read_chnl(f, ch)
 %    * for all header information use fieldtrip:
 %       h=ft_read_header(f)

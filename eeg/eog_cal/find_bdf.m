@@ -32,7 +32,7 @@ end
 %  1) full path to a single subject (or own glob)
 %  2) specific glob for all subjects
 %  3) a simple task pattern
-root='/Volumes/Hera/Raw/EEG/7TBrainMech/';
+root=hera('Raw/EEG/7TBrainMech/');
 if contains(taskname,'/')
     if ~ contains(taskname,root)
         warning(['you gave a path but it doesnt include the root dir (' ...

@@ -1,5 +1,5 @@
 function file_status()
-   root='/Volumes/Hera/Raw/EEG/7TBrainMech/';
+   root=hera('Raw/EEG/7TBrainMech/');
    mi = getIds('#mgs');
    ci = getIds('#cal');
 
