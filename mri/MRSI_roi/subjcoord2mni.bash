@@ -66,13 +66,15 @@ subjcoord2mni(){
    niinote $mniblob \
       applywarp -o $mniblob \
        -i $outdir/coords_slicespace.nii.gz \
-       -r \"$tmplbrain\" \
-       -w \"$warpcoef\" \
+       -r "$tmplbrain" \
+       -w "$warpcoef" \
        --premat=$affine \
        --interp=nn
    set +x
    echo $mniblob
  }
+
+command -v niinote || export PATH="$PATH:/opt/ni_tools/lncdtools/"
 
 if [ $(basename $0) == "subjcoord2mni.bash" ]; then
    set -euo pipefail
