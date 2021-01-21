@@ -1,0 +1,1458 @@
+"V1","V2"
+"Start Date","Start Date"
+"End Date","End Date"
+"Response Type","Response Type"
+"IP Address","IP Address"
+"Progress","Progress"
+"Duration (in seconds)","Duration (in seconds)"
+"Finished","Finished"
+"Recorded Date","Recorded Date"
+"Response ID","Response ID"
+"Recipient Last Name","Recipient Last Name"
+"Recipient First Name","Recipient First Name"
+"Recipient Email","Recipient Email"
+"External Data Reference","External Data Reference"
+"Location Latitude","Location Latitude"
+"Location Longitude","Location Longitude"
+"Distribution Channel","Distribution Channel"
+"User Language","User Language"
+"How worried have you been about the coronavirus (COVID-19)?","In the past week: - How worried have you been about coronavirus (COVID-19)?"
+"How much do you think your life has changed due to the coronavirus (COVID-19)?","In the past week: - How much do you think your life has changed due to coronavirus (COVID-19)?"
+"How many people are living at your address? INCLUDE yourself and everyone who is living or staying at your place this week.","How many people are living at your address? INCLUDE yourself and everyone who is living or staying at your place this week."
+"Is anyone in your household a healthcare worker or other essential personnel who has to go to their place of work, and are at increased exposure to coronavirus (such as grocery store, public transit. gig economy, or factory)?","Is anyone in your household a healthcare worker or other essential personnel who has to go to their place of work, and are at increased exposure to coronavirus (such as grocery store, public transit, gig economy, or factory)?"
+"Did this person need to self-quarantine in a separate section of the household?","Did this person need to self-quarantine in a separate section of the household?"
+"Has a healthcare provider ever told you that your child has or might have COVID-19 (coronavirus)?","Has a healthcare provider ever told you that you have or might have COVID-19 (coronavirus)?"
+"How confident are you in this coronavirus diagnosis?","How confident are you in this coronavirus diagnosis?"
+"Which of the following symptoms has your child had at any point in time since March 2020? (check all that apply) - Fever or chills","Which of the following symptoms have you had at any point in time since March 2020? (check all that apply) - Fever or chills"
+"Which of the following symptoms has your child had at any point in time since March 2020? (check all that apply) - Cough","Which of the following symptoms have you had at any point in time since March 2020? (check all that apply) - Cough"
+"Which of the following symptoms has your child had at any point in time since March 2020? (check all that apply) - Shortness of breath","Which of the following symptoms have you had at any point in time since March 2020? (check all that apply) - Shortness of breath"
+"During that time, which of the following symptoms did your child also have? (check all that apply) - Sore throat","During that time, which of the following symptoms did you also have? (check all that apply) - Sore throat"
+"During that time, which of the following symptoms did your child also have? (check all that apply) - Headache","During that time, which of the following symptoms did you also have? (check all that apply) - Headache"
+"During that time, which of the following symptoms did your child also have? (check all that apply) - Muscle or body aches","During that time, which of the following symptoms did you also have? (check all that apply) - Muscle or body aches"
+"During that time, which of the following symptoms did your child also have? (check all that apply) - Runny nose","During that time, which of the following symptoms did you also have? (check all that apply) - Runny nose"
+"During that time, which of the following symptoms did your child also have? (check all that apply) - Fatigue or excessive sleepiness","During that time, which of the following symptoms did you also have? (check all that apply) - Fatigue and excessive sleepiness"
+"During that time, which of the following symptoms did your child also have? (check all that apply) - Nausea, or vomiting","During that time, which of the following symptoms did you also have? (check all that apply) - Nausea, or comiting"
+"During that time, which of the following symptoms did your child also have? (check all that apply) - Loss of sense of smell or taste","During that time, which of the following symptoms did you also have? (check all that apply) - Loss of sense of smell or taste"
+"During that time, which of the following symptoms did your child also have? (check all that apply) - Itchy/red eyes","During that time, which of the following symptoms did you also have? (check all that apply) - Itchy/red eyes"
+"Which of the following ever occurred as a result of your child's symptoms? (check all that apply) - My child saw a healthcare provider in person, such as in a clinic, doctor's office, urgent care, or ER.","Which of the following ever occurred as a result of your symptoms? (check all that apply) - I saw a healthcare provider in person, such as in a clinic, doctor's office, urgent care, or ER"
+"In the two weeks before your child had symptoms, did your child: (check all that apply) - Have contact with someone who tested positive for COVID-19","In the two weeks before you had symptoms, did you: (check all that apply) - Have contact with someone who tested positive for COVID-19"
+"In the two weeks before your child had symptoms, did your child: (check all that apply) - Have contact with someone who likely had COVID-19 (that is, they were not tested but had symptoms or was told by a healthcare provider they likely had it)","In the two weeks before you had symptoms, did you: (check all that apply) - Have contact with someone who likely had COVID-19 (that is, they were not tested but had symptoms or was told by a healthcare provider they likely had it)"
+"a. Number of immediate family members (same household) diagnosed with coronavirus:","a. Number of immediate family members (same household) diagnosed with coronavirus:"
+"b. Rate the symptoms of the person who was most sick:","b. Rate the symptoms of the person who was most sick:"
+"c. Did this family member test positive for coronavirus (COVID-19)?","c. Did this family member test positive for coronavirus (COVID-19)?"
+"e. Did the family member require hospitalization?","e. Did the family member require hospitalization?"
+"In the past month, have you and your household experienced any of the following: - a. Were you ever worried about whether your food would run out before you could get more?","In the past month, have you and your household experienced any of the following: - Were you ever worried about whether your food would run out before you could get more?"
+"In the past month, have you and your household experienced any of the following: - b. Needed food but couldn't afford to buy it or couldn't afford to get out to get it?","In the past month, have you and your household experienced any of the following: - Needed food but couldn't afford to buy it or couldn't afford to get out to get it?"
+"In the past month, have you and your household experienced any of the following: - c. Were without telephone service because you could not afford it?","In the past month, have you and your household experienced any of the following: - Were without telephone service because you could not afford it?"
+"In the past month, have you and your household experienced any of the following: - d. Didn't pay the full amount of the rent or mortgage because you could not afford it?","In the past month, have you and your household experienced any of the following: - Didn't pay the full amount of the rent or mortgage because you could not afford it?"
+"In the past month, have you and your household experienced any of the following: - e. Were evicted from your home for not paying the rent or mortgage?","In the past month, have you and your household experienced any of the following: - Were evicted from your home for not paying the rent or mortgage?"
+"In the past month, have you and your household experienced any of the following: - f. Had services turned off by the gas or electric company, or the oil company wouldn't deliver because payments were not made?","In the past month, have you and your household experienced any of the following: - Had services turned off by the gas or electric company, or the oil company wouldn't deliver oil because payments were not made?"
+"If you lost all of your current source(s) of household income (your paycheck, public assistance, or other forms of income), how long could you continue to live at your current address and standard of living?","If you lost all of your current source(s) of household income (your paycheck, public assistance, or other forms of income), how long could you continue to live at your current address and standard of living?"
+"Please indicate how much you agree or disagree with these statements: - a. I am worried that our family will experience racism or discrimination in relation to coronavirus","Please indicate how much you agree or disagree with these statements: - I am worried that our family will experience racism or discrimination in relation to coronavirus."
+"Please indicate how much you agree or disagree with these statements: - b. I have noticed increased conflict in our family since our area started worrying about coronavirus","Please indicate how much you agree or disagree with these statements: - I have noticed increased conflict in our family since our area started worrying about coronavirus."
+"UNIVERSITY OF PITTSBURGH
+
+
+BASELINE DEMOGRAPHIC / HISTORY FORM - Date of Birth (MM/DD/YY)","UNIVERSITY OF PITTSBURGH
+
+
+BASELINE DEMOGRAPHIC / HISTORY FORM - Date of Birth (MM/DD/YY)"
+"UNIVERSITY OF PITTSBURGH
+
+
+BASELINE DEMOGRAPHIC / HISTORY FORM - Age","UNIVERSITY OF PITTSBURGH
+
+
+BASELINE DEMOGRAPHIC / HISTORY FORM - Age"
+"UNIVERSITY OF PITTSBURGH
+
+
+BASELINE DEMOGRAPHIC / HISTORY FORM - Gender (M/F)","UNIVERSITY OF PITTSBURGH
+
+
+BASELINE DEMOGRAPHIC / HISTORY FORM - Gender (M/F)"
+"UNIVERSITY OF PITTSBURGH
+
+
+BASELINE DEMOGRAPHIC / HISTORY FORM - Date of Testing (MM/DD/YY)","UNIVERSITY OF PITTSBURGH
+
+
+BASELINE DEMOGRAPHIC / HISTORY FORM - Date of Testing (MM/DD/YY)"
+"ETHNICITY
+
+ 
+
+Do you consider yourself to be Hispanic or Latina? (See definition below.) Select one.
+
+ 
+
+Hispanic or Latino. A person of Mexican, Puerto Rican, Cuban, South or Central American, or other Spanish culture or origin, regardless of race. The term “Spanish origin”, can be used in addition to “Hispanic or Latino.”","ETHNICITY
+
+ 
+
+Do you consider yourself to be Hispanic or Latina? (See definition below.) Select one.
+
+ 
+
+Hispanic or Latino. A person of Mexican, Puerto Rican, Cuban, South or Central American, or other Spanish culture or origin, regardless of race. The term “Spanish origin”, can be used in addition to “Hispanic or Latino.”"
+"RACE
+
+
+
+What race do you consider yourself to be? Select one or more of the following. - AMERICAN INDIAN or ALASKA NATIVE. A person having origins in any of the original peoples of North, Central, or South America, and who maintains tribal affiliation or community attachment.","RACE
+
+
+
+What race do you consider yourself to be? Select one or more of the following. - AMERICAN INDIAN or ALASKA NATIVE. A person having origins in any of the original peoples of North, Central, or South America, and who maintains tribal affiliation or community attachment."
+"RACE
+
+
+
+What race do you consider yourself to be? Select one or more of the following. - ASIAN. A person having origins in any of the original peoples of the Far East, Southeast Asia, or the Indian subcontinent, including, for example, Cambodia, China, India, Japan, Korea, Malaysia, Pakistan, the Philippine Islands, Thailand, and Vietnam.","RACE
+
+
+
+What race do you consider yourself to be? Select one or more of the following. - ASIAN. A person having origins in any of the original peoples of the Far East, Southeast Asia, or the Indian subcontinent, including, for example, Cambodia, China, India, Japan, Korea, Malaysia, Pakistan, the Philippine Islands, Thailand, and Vietnam."
+"RACE
+
+
+
+What race do you consider yourself to be? Select one or more of the following. - BLACK or AFRICAN AMERICAN. A person having origins in any of the black racial groups of Africa. Terms such as “Haitian” can be used in addition to “Black” or African American.","RACE
+
+
+
+What race do you consider yourself to be? Select one or more of the following. - BLACK or AFRICAN AMERICAN. A person having origins in any of the black racial groups of Africa. Terms such as “Haitian” can be used in addition to “Black” or African American."
+"RACE
+
+
+
+What race do you consider yourself to be? Select one or more of the following. - NATIVE HAWAIIAN or OTHER PACIFIC ISLANDER. A person having origins in any of the original peoples of Hawaii, Guam, Samoa, or other Pacific Islands.","RACE
+
+
+
+What race do you consider yourself to be? Select one or more of the following. - NATIVE HAWAIIAN or OTHER PACIFIC ISLANDER. A person having origins in any of the original peoples of Hawaii, Guam, Samoa, or other Pacific Islands."
+"RACE
+
+
+
+What race do you consider yourself to be? Select one or more of the following. - WHITE. A person having origins in any of the original peoples of Europe, the Middle East, or North Africa.","RACE
+
+
+
+What race do you consider yourself to be? Select one or more of the following. - WHITE. A person having origins in any of the original peoples of Europe, the Middle East, or North Africa."
+"RACE
+
+
+
+What race do you consider yourself to be? Select one or more of the following. - Check here if you do NOT wish to provide some or all of the above information.","RACE
+
+
+
+What race do you consider yourself to be? Select one or more of the following. - Check here if you do NOT wish to provide some or all of the above information."
+"LANGUAGE","LANGUAGE"
+"Other language(s) spoken:","Other language(s) spoken:"
+"EDUCATION - Total number of years of full-time equivalent formal academic education completed (from first grade on; not including trade school):","EDUCATION - Total number of years of full-time equivalent formal academic education completed (from first grade on; not including trade school):"
+"HIGHEST LEVEL OF EDUCATION
+
+ 
+
+(Check ONE box corresponding to the highest level of education completed for yourself, each relative, and if applicable, for most recent spouse, even if separated/divorced/widowed) - Completed post-graduate training - You","HIGHEST LEVEL OF EDUCATION
+
+ 
+
+(Check ONE box corresponding to the highest level of education completed for yourself, each relative, and if applicable, for most recent spouse, even if separated/divorced/widowed) - Completed post-graduate training - You"
+"HIGHEST LEVEL OF EDUCATION
+
+ 
+
+(Check ONE box corresponding to the highest level of education completed for yourself, each relative, and if applicable, for most recent spouse, even if separated/divorced/widowed) - Completed post-graduate training - Mother","HIGHEST LEVEL OF EDUCATION
+
+ 
+
+(Check ONE box corresponding to the highest level of education completed for yourself, each relative, and if applicable, for most recent spouse, even if separated/divorced/widowed) - Completed post-graduate training - Mother"
+"HIGHEST LEVEL OF EDUCATION
+
+ 
+
+(Check ONE box corresponding to the highest level of education completed for yourself, each relative, and if applicable, for most recent spouse, even if separated/divorced/widowed) - Completed post-graduate training - Father","HIGHEST LEVEL OF EDUCATION
+
+ 
+
+(Check ONE box corresponding to the highest level of education completed for yourself, each relative, and if applicable, for most recent spouse, even if separated/divorced/widowed) - Completed post-graduate training - Father"
+"HIGHEST LEVEL OF EDUCATION
+
+ 
+
+(Check ONE box corresponding to the highest level of education completed for yourself, each relative, and if applicable, for most recent spouse, even if separated/divorced/widowed) - Completed post-graduate training - Spouse","HIGHEST LEVEL OF EDUCATION
+
+ 
+
+(Check ONE box corresponding to the highest level of education completed for yourself, each relative, and if applicable, for most recent spouse, even if separated/divorced/widowed) - Completed post-graduate training - Spouse"
+"HIGHEST LEVEL OF EDUCATION
+
+ 
+
+(Check ONE box corresponding to the highest level of education completed for yourself, each relative, and if applicable, for most recent spouse, even if separated/divorced/widowed) - Completed College, received four year academic degree - You","HIGHEST LEVEL OF EDUCATION
+
+ 
+
+(Check ONE box corresponding to the highest level of education completed for yourself, each relative, and if applicable, for most recent spouse, even if separated/divorced/widowed) - Completed College, received four year academic degree - You"
+"HIGHEST LEVEL OF EDUCATION
+
+ 
+
+(Check ONE box corresponding to the highest level of education completed for yourself, each relative, and if applicable, for most recent spouse, even if separated/divorced/widowed) - Completed College, received four year academic degree - Mother","HIGHEST LEVEL OF EDUCATION
+
+ 
+
+(Check ONE box corresponding to the highest level of education completed for yourself, each relative, and if applicable, for most recent spouse, even if separated/divorced/widowed) - Completed College, received four year academic degree - Mother"
+"HIGHEST LEVEL OF EDUCATION
+
+ 
+
+(Check ONE box corresponding to the highest level of education completed for yourself, each relative, and if applicable, for most recent spouse, even if separated/divorced/widowed) - Completed College, received four year academic degree - Father","HIGHEST LEVEL OF EDUCATION
+
+ 
+
+(Check ONE box corresponding to the highest level of education completed for yourself, each relative, and if applicable, for most recent spouse, even if separated/divorced/widowed) - Completed College, received four year academic degree - Father"
+"HIGHEST LEVEL OF EDUCATION
+
+ 
+
+(Check ONE box corresponding to the highest level of education completed for yourself, each relative, and if applicable, for most recent spouse, even if separated/divorced/widowed) - Completed College, received four year academic degree - Spouse","HIGHEST LEVEL OF EDUCATION
+
+ 
+
+(Check ONE box corresponding to the highest level of education completed for yourself, each relative, and if applicable, for most recent spouse, even if separated/divorced/widowed) - Completed College, received four year academic degree - Spouse"
+"HIGHEST LEVEL OF EDUCATION
+
+ 
+
+(Check ONE box corresponding to the highest level of education completed for yourself, each relative, and if applicable, for most recent spouse, even if separated/divorced/widowed) - Attended college, but did not receive four year academic degree - You","HIGHEST LEVEL OF EDUCATION
+
+ 
+
+(Check ONE box corresponding to the highest level of education completed for yourself, each relative, and if applicable, for most recent spouse, even if separated/divorced/widowed) - Attended college, but did not receive four year academic degree - You"
+"HIGHEST LEVEL OF EDUCATION
+
+ 
+
+(Check ONE box corresponding to the highest level of education completed for yourself, each relative, and if applicable, for most recent spouse, even if separated/divorced/widowed) - Attended college, but did not receive four year academic degree - Mother","HIGHEST LEVEL OF EDUCATION
+
+ 
+
+(Check ONE box corresponding to the highest level of education completed for yourself, each relative, and if applicable, for most recent spouse, even if separated/divorced/widowed) - Attended college, but did not receive four year academic degree - Mother"
+"HIGHEST LEVEL OF EDUCATION
+
+ 
+
+(Check ONE box corresponding to the highest level of education completed for yourself, each relative, and if applicable, for most recent spouse, even if separated/divorced/widowed) - Attended college, but did not receive four year academic degree - Father","HIGHEST LEVEL OF EDUCATION
+
+ 
+
+(Check ONE box corresponding to the highest level of education completed for yourself, each relative, and if applicable, for most recent spouse, even if separated/divorced/widowed) - Attended college, but did not receive four year academic degree - Father"
+"HIGHEST LEVEL OF EDUCATION
+
+ 
+
+(Check ONE box corresponding to the highest level of education completed for yourself, each relative, and if applicable, for most recent spouse, even if separated/divorced/widowed) - Attended college, but did not receive four year academic degree - Spouse","HIGHEST LEVEL OF EDUCATION
+
+ 
+
+(Check ONE box corresponding to the highest level of education completed for yourself, each relative, and if applicable, for most recent spouse, even if separated/divorced/widowed) - Attended college, but did not receive four year academic degree - Spouse"
+"HIGHEST LEVEL OF EDUCATION
+
+ 
+
+(Check ONE box corresponding to the highest level of education completed for yourself, each relative, and if applicable, for most recent spouse, even if separated/divorced/widowed) - Completed high school or trade school or other non-academic training requiring high-school completion for admission - You","HIGHEST LEVEL OF EDUCATION
+
+ 
+
+(Check ONE box corresponding to the highest level of education completed for yourself, each relative, and if applicable, for most recent spouse, even if separated/divorced/widowed) - Completed high school or trade school or other non-academic training requiring high-school completion for admission - You"
+"HIGHEST LEVEL OF EDUCATION
+
+ 
+
+(Check ONE box corresponding to the highest level of education completed for yourself, each relative, and if applicable, for most recent spouse, even if separated/divorced/widowed) - Completed high school or trade school or other non-academic training requiring high-school completion for admission - Mother","HIGHEST LEVEL OF EDUCATION
+
+ 
+
+(Check ONE box corresponding to the highest level of education completed for yourself, each relative, and if applicable, for most recent spouse, even if separated/divorced/widowed) - Completed high school or trade school or other non-academic training requiring high-school completion for admission - Mother"
+"HIGHEST LEVEL OF EDUCATION
+
+ 
+
+(Check ONE box corresponding to the highest level of education completed for yourself, each relative, and if applicable, for most recent spouse, even if separated/divorced/widowed) - Completed high school or trade school or other non-academic training requiring high-school completion for admission - Father","HIGHEST LEVEL OF EDUCATION
+
+ 
+
+(Check ONE box corresponding to the highest level of education completed for yourself, each relative, and if applicable, for most recent spouse, even if separated/divorced/widowed) - Completed high school or trade school or other non-academic training requiring high-school completion for admission - Father"
+"HIGHEST LEVEL OF EDUCATION
+
+ 
+
+(Check ONE box corresponding to the highest level of education completed for yourself, each relative, and if applicable, for most recent spouse, even if separated/divorced/widowed) - Completed high school or trade school or other non-academic training requiring high-school completion for admission - Spouse","HIGHEST LEVEL OF EDUCATION
+
+ 
+
+(Check ONE box corresponding to the highest level of education completed for yourself, each relative, and if applicable, for most recent spouse, even if separated/divorced/widowed) - Completed high school or trade school or other non-academic training requiring high-school completion for admission - Spouse"
+"HIGHEST LEVEL OF EDUCATION
+
+ 
+
+(Check ONE box corresponding to the highest level of education completed for yourself, each relative, and if applicable, for most recent spouse, even if separated/divorced/widowed) - Partial high school (10th or 11th grade) - You","HIGHEST LEVEL OF EDUCATION
+
+ 
+
+(Check ONE box corresponding to the highest level of education completed for yourself, each relative, and if applicable, for most recent spouse, even if separated/divorced/widowed) - Partial high school (10th or 11th grade) - You"
+"HIGHEST LEVEL OF EDUCATION
+
+ 
+
+(Check ONE box corresponding to the highest level of education completed for yourself, each relative, and if applicable, for most recent spouse, even if separated/divorced/widowed) - Partial high school (10th or 11th grade) - Mother","HIGHEST LEVEL OF EDUCATION
+
+ 
+
+(Check ONE box corresponding to the highest level of education completed for yourself, each relative, and if applicable, for most recent spouse, even if separated/divorced/widowed) - Partial high school (10th or 11th grade) - Mother"
+"HIGHEST LEVEL OF EDUCATION
+
+ 
+
+(Check ONE box corresponding to the highest level of education completed for yourself, each relative, and if applicable, for most recent spouse, even if separated/divorced/widowed) - Partial high school (10th or 11th grade) - Father","HIGHEST LEVEL OF EDUCATION
+
+ 
+
+(Check ONE box corresponding to the highest level of education completed for yourself, each relative, and if applicable, for most recent spouse, even if separated/divorced/widowed) - Partial high school (10th or 11th grade) - Father"
+"HIGHEST LEVEL OF EDUCATION
+
+ 
+
+(Check ONE box corresponding to the highest level of education completed for yourself, each relative, and if applicable, for most recent spouse, even if separated/divorced/widowed) - Partial high school (10th or 11th grade) - Spouse","HIGHEST LEVEL OF EDUCATION
+
+ 
+
+(Check ONE box corresponding to the highest level of education completed for yourself, each relative, and if applicable, for most recent spouse, even if separated/divorced/widowed) - Partial high school (10th or 11th grade) - Spouse"
+"HIGHEST LEVEL OF EDUCATION
+
+ 
+
+(Check ONE box corresponding to the highest level of education completed for yourself, each relative, and if applicable, for most recent spouse, even if separated/divorced/widowed) - Junior high school (7th, 8th, or 9th grade) - You","HIGHEST LEVEL OF EDUCATION
+
+ 
+
+(Check ONE box corresponding to the highest level of education completed for yourself, each relative, and if applicable, for most recent spouse, even if separated/divorced/widowed) - Junior high school (7th, 8th, or 9th grade) - You"
+"HIGHEST LEVEL OF EDUCATION
+
+ 
+
+(Check ONE box corresponding to the highest level of education completed for yourself, each relative, and if applicable, for most recent spouse, even if separated/divorced/widowed) - Junior high school (7th, 8th, or 9th grade) - Mother","HIGHEST LEVEL OF EDUCATION
+
+ 
+
+(Check ONE box corresponding to the highest level of education completed for yourself, each relative, and if applicable, for most recent spouse, even if separated/divorced/widowed) - Junior high school (7th, 8th, or 9th grade) - Mother"
+"HIGHEST LEVEL OF EDUCATION
+
+ 
+
+(Check ONE box corresponding to the highest level of education completed for yourself, each relative, and if applicable, for most recent spouse, even if separated/divorced/widowed) - Junior high school (7th, 8th, or 9th grade) - Father","HIGHEST LEVEL OF EDUCATION
+
+ 
+
+(Check ONE box corresponding to the highest level of education completed for yourself, each relative, and if applicable, for most recent spouse, even if separated/divorced/widowed) - Junior high school (7th, 8th, or 9th grade) - Father"
+"HIGHEST LEVEL OF EDUCATION
+
+ 
+
+(Check ONE box corresponding to the highest level of education completed for yourself, each relative, and if applicable, for most recent spouse, even if separated/divorced/widowed) - Junior high school (7th, 8th, or 9th grade) - Spouse","HIGHEST LEVEL OF EDUCATION
+
+ 
+
+(Check ONE box corresponding to the highest level of education completed for yourself, each relative, and if applicable, for most recent spouse, even if separated/divorced/widowed) - Junior high school (7th, 8th, or 9th grade) - Spouse"
+"HIGHEST LEVEL OF EDUCATION
+
+ 
+
+(Check ONE box corresponding to the highest level of education completed for yourself, each relative, and if applicable, for most recent spouse, even if separated/divorced/widowed) - Less than 7th grade - You","HIGHEST LEVEL OF EDUCATION
+
+ 
+
+(Check ONE box corresponding to the highest level of education completed for yourself, each relative, and if applicable, for most recent spouse, even if separated/divorced/widowed) - Less than 7th grade - You"
+"HIGHEST LEVEL OF EDUCATION
+
+ 
+
+(Check ONE box corresponding to the highest level of education completed for yourself, each relative, and if applicable, for most recent spouse, even if separated/divorced/widowed) - Less than 7th grade - Mother","HIGHEST LEVEL OF EDUCATION
+
+ 
+
+(Check ONE box corresponding to the highest level of education completed for yourself, each relative, and if applicable, for most recent spouse, even if separated/divorced/widowed) - Less than 7th grade - Mother"
+"HIGHEST LEVEL OF EDUCATION
+
+ 
+
+(Check ONE box corresponding to the highest level of education completed for yourself, each relative, and if applicable, for most recent spouse, even if separated/divorced/widowed) - Less than 7th grade - Father","HIGHEST LEVEL OF EDUCATION
+
+ 
+
+(Check ONE box corresponding to the highest level of education completed for yourself, each relative, and if applicable, for most recent spouse, even if separated/divorced/widowed) - Less than 7th grade - Father"
+"HIGHEST LEVEL OF EDUCATION
+
+ 
+
+(Check ONE box corresponding to the highest level of education completed for yourself, each relative, and if applicable, for most recent spouse, even if separated/divorced/widowed) - Less than 7th grade - Spouse","HIGHEST LEVEL OF EDUCATION
+
+ 
+
+(Check ONE box corresponding to the highest level of education completed for yourself, each relative, and if applicable, for most recent spouse, even if separated/divorced/widowed) - Less than 7th grade - Spouse"
+"HIGHEST LEVEL OF EDUCATION
+
+ 
+
+(Check ONE box corresponding to the highest level of education completed for yourself, each relative, and if applicable, for most recent spouse, even if separated/divorced/widowed) - Does not apply (i.e. dependent or no spouse) - You","HIGHEST LEVEL OF EDUCATION
+
+ 
+
+(Check ONE box corresponding to the highest level of education completed for yourself, each relative, and if applicable, for most recent spouse, even if separated/divorced/widowed) - Does not apply (i.e. dependent or no spouse) - You"
+"HIGHEST LEVEL OF EDUCATION
+
+ 
+
+(Check ONE box corresponding to the highest level of education completed for yourself, each relative, and if applicable, for most recent spouse, even if separated/divorced/widowed) - Does not apply (i.e. dependent or no spouse) - Mother","HIGHEST LEVEL OF EDUCATION
+
+ 
+
+(Check ONE box corresponding to the highest level of education completed for yourself, each relative, and if applicable, for most recent spouse, even if separated/divorced/widowed) - Does not apply (i.e. dependent or no spouse) - Mother"
+"HIGHEST LEVEL OF EDUCATION
+
+ 
+
+(Check ONE box corresponding to the highest level of education completed for yourself, each relative, and if applicable, for most recent spouse, even if separated/divorced/widowed) - Does not apply (i.e. dependent or no spouse) - Father","HIGHEST LEVEL OF EDUCATION
+
+ 
+
+(Check ONE box corresponding to the highest level of education completed for yourself, each relative, and if applicable, for most recent spouse, even if separated/divorced/widowed) - Does not apply (i.e. dependent or no spouse) - Father"
+"HIGHEST LEVEL OF EDUCATION
+
+ 
+
+(Check ONE box corresponding to the highest level of education completed for yourself, each relative, and if applicable, for most recent spouse, even if separated/divorced/widowed) - Does not apply (i.e. dependent or no spouse) - Spouse","HIGHEST LEVEL OF EDUCATION
+
+ 
+
+(Check ONE box corresponding to the highest level of education completed for yourself, each relative, and if applicable, for most recent spouse, even if separated/divorced/widowed) - Does not apply (i.e. dependent or no spouse) - Spouse"
+"HIGHEST LEVEL OF EDUCATION
+
+ 
+
+(Check ONE box corresponding to the highest level of education completed for yourself, each relative, and if applicable, for most recent spouse, even if separated/divorced/widowed) - Information not available - You","HIGHEST LEVEL OF EDUCATION
+
+ 
+
+(Check ONE box corresponding to the highest level of education completed for yourself, each relative, and if applicable, for most recent spouse, even if separated/divorced/widowed) - Information not available - You"
+"HIGHEST LEVEL OF EDUCATION
+
+ 
+
+(Check ONE box corresponding to the highest level of education completed for yourself, each relative, and if applicable, for most recent spouse, even if separated/divorced/widowed) - Information not available - Mother","HIGHEST LEVEL OF EDUCATION
+
+ 
+
+(Check ONE box corresponding to the highest level of education completed for yourself, each relative, and if applicable, for most recent spouse, even if separated/divorced/widowed) - Information not available - Mother"
+"HIGHEST LEVEL OF EDUCATION
+
+ 
+
+(Check ONE box corresponding to the highest level of education completed for yourself, each relative, and if applicable, for most recent spouse, even if separated/divorced/widowed) - Information not available - Father","HIGHEST LEVEL OF EDUCATION
+
+ 
+
+(Check ONE box corresponding to the highest level of education completed for yourself, each relative, and if applicable, for most recent spouse, even if separated/divorced/widowed) - Information not available - Father"
+"HIGHEST LEVEL OF EDUCATION
+
+ 
+
+(Check ONE box corresponding to the highest level of education completed for yourself, each relative, and if applicable, for most recent spouse, even if separated/divorced/widowed) - Information not available - Spouse","HIGHEST LEVEL OF EDUCATION
+
+ 
+
+(Check ONE box corresponding to the highest level of education completed for yourself, each relative, and if applicable, for most recent spouse, even if separated/divorced/widowed) - Information not available - Spouse"
+"If highest level of education is not available please specify why. - You","If highest level of education is not available please specify why. - You"
+"If highest level of education is not available please specify why. - Mother","If highest level of education is not available please specify why. - Mother"
+"If highest level of education is not available please specify why. - Father","If highest level of education is not available please specify why. - Father"
+"If highest level of education is not available please specify why. - Spouse","If highest level of education is not available please specify why. - Spouse"
+"OCCUPATION/FAMILY EMPLOYMENT:
+
+ 
+
+What is the highest level of occupation attainment achieved by you, your mother, father, and spouse? (Enter in actual occupation below) - Your Occupation","OCCUPATION/FAMILY EMPLOYMENT:
+
+ 
+
+What is the highest level of occupation attainment achieved by you, your mother, father, and spouse? (Enter in actual occupation below) - Your Occupation"
+"OCCUPATION/FAMILY EMPLOYMENT:
+
+ 
+
+What is the highest level of occupation attainment achieved by you, your mother, father, and spouse? (Enter in actual occupation below) - Mother's Occupation","OCCUPATION/FAMILY EMPLOYMENT:
+
+ 
+
+What is the highest level of occupation attainment achieved by you, your mother, father, and spouse? (Enter in actual occupation below) - Mother's Occupation"
+"OCCUPATION/FAMILY EMPLOYMENT:
+
+ 
+
+What is the highest level of occupation attainment achieved by you, your mother, father, and spouse? (Enter in actual occupation below) - Father's Occupation","OCCUPATION/FAMILY EMPLOYMENT:
+
+ 
+
+What is the highest level of occupation attainment achieved by you, your mother, father, and spouse? (Enter in actual occupation below) - Father's Occupation"
+"OCCUPATION/FAMILY EMPLOYMENT:
+
+ 
+
+What is the highest level of occupation attainment achieved by you, your mother, father, and spouse? (Enter in actual occupation below) - Spouse's Occupation (if not applicable, type ""NA"")","OCCUPATION/FAMILY EMPLOYMENT:
+
+ 
+
+What is the highest level of occupation attainment achieved by you, your mother, father, and spouse? (Enter in actual occupation below) - Spouse's Occupation (if not applicable, type ""NA"")"
+"HIGHEST LEVEL OF OCCUPATION BY INCOME
+
+ 
+
+(Check ONE box corresponding to the highest level of income for yourself, each relative, and if applicable for most recent spouse, even if separated/divorced/widowed) - > $250,001 - You","HIGHEST LEVEL OF OCCUPATION BY INCOME
+
+ 
+
+(Check ONE box corresponding to the highest level of income for yourself, each relative, and if applicable for most recent spouse, even if separated/divorced/widowed) - > $250,001 - You"
+"HIGHEST LEVEL OF OCCUPATION BY INCOME
+
+ 
+
+(Check ONE box corresponding to the highest level of income for yourself, each relative, and if applicable for most recent spouse, even if separated/divorced/widowed) - > $250,001 - Mother","HIGHEST LEVEL OF OCCUPATION BY INCOME
+
+ 
+
+(Check ONE box corresponding to the highest level of income for yourself, each relative, and if applicable for most recent spouse, even if separated/divorced/widowed) - > $250,001 - Mother"
+"HIGHEST LEVEL OF OCCUPATION BY INCOME
+
+ 
+
+(Check ONE box corresponding to the highest level of income for yourself, each relative, and if applicable for most recent spouse, even if separated/divorced/widowed) - > $250,001 - Father","HIGHEST LEVEL OF OCCUPATION BY INCOME
+
+ 
+
+(Check ONE box corresponding to the highest level of income for yourself, each relative, and if applicable for most recent spouse, even if separated/divorced/widowed) - > $250,001 - Father"
+"HIGHEST LEVEL OF OCCUPATION BY INCOME
+
+ 
+
+(Check ONE box corresponding to the highest level of income for yourself, each relative, and if applicable for most recent spouse, even if separated/divorced/widowed) - > $250,001 - Spouse","HIGHEST LEVEL OF OCCUPATION BY INCOME
+
+ 
+
+(Check ONE box corresponding to the highest level of income for yourself, each relative, and if applicable for most recent spouse, even if separated/divorced/widowed) - > $250,001 - Spouse"
+"HIGHEST LEVEL OF OCCUPATION BY INCOME
+
+ 
+
+(Check ONE box corresponding to the highest level of income for yourself, each relative, and if applicable for most recent spouse, even if separated/divorced/widowed) - $100,001 – $250,000 - You","HIGHEST LEVEL OF OCCUPATION BY INCOME
+
+ 
+
+(Check ONE box corresponding to the highest level of income for yourself, each relative, and if applicable for most recent spouse, even if separated/divorced/widowed) - $100,001 – $250,000 - You"
+"HIGHEST LEVEL OF OCCUPATION BY INCOME
+
+ 
+
+(Check ONE box corresponding to the highest level of income for yourself, each relative, and if applicable for most recent spouse, even if separated/divorced/widowed) - $100,001 – $250,000 - Mother","HIGHEST LEVEL OF OCCUPATION BY INCOME
+
+ 
+
+(Check ONE box corresponding to the highest level of income for yourself, each relative, and if applicable for most recent spouse, even if separated/divorced/widowed) - $100,001 – $250,000 - Mother"
+"HIGHEST LEVEL OF OCCUPATION BY INCOME
+
+ 
+
+(Check ONE box corresponding to the highest level of income for yourself, each relative, and if applicable for most recent spouse, even if separated/divorced/widowed) - $100,001 – $250,000 - Father","HIGHEST LEVEL OF OCCUPATION BY INCOME
+
+ 
+
+(Check ONE box corresponding to the highest level of income for yourself, each relative, and if applicable for most recent spouse, even if separated/divorced/widowed) - $100,001 – $250,000 - Father"
+"HIGHEST LEVEL OF OCCUPATION BY INCOME
+
+ 
+
+(Check ONE box corresponding to the highest level of income for yourself, each relative, and if applicable for most recent spouse, even if separated/divorced/widowed) - $100,001 – $250,000 - Spouse","HIGHEST LEVEL OF OCCUPATION BY INCOME
+
+ 
+
+(Check ONE box corresponding to the highest level of income for yourself, each relative, and if applicable for most recent spouse, even if separated/divorced/widowed) - $100,001 – $250,000 - Spouse"
+"HIGHEST LEVEL OF OCCUPATION BY INCOME
+
+ 
+
+(Check ONE box corresponding to the highest level of income for yourself, each relative, and if applicable for most recent spouse, even if separated/divorced/widowed) - $75,001 – $100,000 - You","HIGHEST LEVEL OF OCCUPATION BY INCOME
+
+ 
+
+(Check ONE box corresponding to the highest level of income for yourself, each relative, and if applicable for most recent spouse, even if separated/divorced/widowed) - $75,001 – $100,000 - You"
+"HIGHEST LEVEL OF OCCUPATION BY INCOME
+
+ 
+
+(Check ONE box corresponding to the highest level of income for yourself, each relative, and if applicable for most recent spouse, even if separated/divorced/widowed) - $75,001 – $100,000 - Mother","HIGHEST LEVEL OF OCCUPATION BY INCOME
+
+ 
+
+(Check ONE box corresponding to the highest level of income for yourself, each relative, and if applicable for most recent spouse, even if separated/divorced/widowed) - $75,001 – $100,000 - Mother"
+"HIGHEST LEVEL OF OCCUPATION BY INCOME
+
+ 
+
+(Check ONE box corresponding to the highest level of income for yourself, each relative, and if applicable for most recent spouse, even if separated/divorced/widowed) - $75,001 – $100,000 - Father","HIGHEST LEVEL OF OCCUPATION BY INCOME
+
+ 
+
+(Check ONE box corresponding to the highest level of income for yourself, each relative, and if applicable for most recent spouse, even if separated/divorced/widowed) - $75,001 – $100,000 - Father"
+"HIGHEST LEVEL OF OCCUPATION BY INCOME
+
+ 
+
+(Check ONE box corresponding to the highest level of income for yourself, each relative, and if applicable for most recent spouse, even if separated/divorced/widowed) - $75,001 – $100,000 - Spouse","HIGHEST LEVEL OF OCCUPATION BY INCOME
+
+ 
+
+(Check ONE box corresponding to the highest level of income for yourself, each relative, and if applicable for most recent spouse, even if separated/divorced/widowed) - $75,001 – $100,000 - Spouse"
+"HIGHEST LEVEL OF OCCUPATION BY INCOME
+
+ 
+
+(Check ONE box corresponding to the highest level of income for yourself, each relative, and if applicable for most recent spouse, even if separated/divorced/widowed) - $50,001 – $75,000 - You","HIGHEST LEVEL OF OCCUPATION BY INCOME
+
+ 
+
+(Check ONE box corresponding to the highest level of income for yourself, each relative, and if applicable for most recent spouse, even if separated/divorced/widowed) - $50,001 – $75,000 - You"
+"HIGHEST LEVEL OF OCCUPATION BY INCOME
+
+ 
+
+(Check ONE box corresponding to the highest level of income for yourself, each relative, and if applicable for most recent spouse, even if separated/divorced/widowed) - $50,001 – $75,000 - Mother","HIGHEST LEVEL OF OCCUPATION BY INCOME
+
+ 
+
+(Check ONE box corresponding to the highest level of income for yourself, each relative, and if applicable for most recent spouse, even if separated/divorced/widowed) - $50,001 – $75,000 - Mother"
+"HIGHEST LEVEL OF OCCUPATION BY INCOME
+
+ 
+
+(Check ONE box corresponding to the highest level of income for yourself, each relative, and if applicable for most recent spouse, even if separated/divorced/widowed) - $50,001 – $75,000 - Father","HIGHEST LEVEL OF OCCUPATION BY INCOME
+
+ 
+
+(Check ONE box corresponding to the highest level of income for yourself, each relative, and if applicable for most recent spouse, even if separated/divorced/widowed) - $50,001 – $75,000 - Father"
+"HIGHEST LEVEL OF OCCUPATION BY INCOME
+
+ 
+
+(Check ONE box corresponding to the highest level of income for yourself, each relative, and if applicable for most recent spouse, even if separated/divorced/widowed) - $50,001 – $75,000 - Spouse","HIGHEST LEVEL OF OCCUPATION BY INCOME
+
+ 
+
+(Check ONE box corresponding to the highest level of income for yourself, each relative, and if applicable for most recent spouse, even if separated/divorced/widowed) - $50,001 – $75,000 - Spouse"
+"HIGHEST LEVEL OF OCCUPATION BY INCOME
+
+ 
+
+(Check ONE box corresponding to the highest level of income for yourself, each relative, and if applicable for most recent spouse, even if separated/divorced/widowed) - $25,001 – $50,000 - You","HIGHEST LEVEL OF OCCUPATION BY INCOME
+
+ 
+
+(Check ONE box corresponding to the highest level of income for yourself, each relative, and if applicable for most recent spouse, even if separated/divorced/widowed) - $25,001 – $50,000 - You"
+"HIGHEST LEVEL OF OCCUPATION BY INCOME
+
+ 
+
+(Check ONE box corresponding to the highest level of income for yourself, each relative, and if applicable for most recent spouse, even if separated/divorced/widowed) - $25,001 – $50,000 - Mother","HIGHEST LEVEL OF OCCUPATION BY INCOME
+
+ 
+
+(Check ONE box corresponding to the highest level of income for yourself, each relative, and if applicable for most recent spouse, even if separated/divorced/widowed) - $25,001 – $50,000 - Mother"
+"HIGHEST LEVEL OF OCCUPATION BY INCOME
+
+ 
+
+(Check ONE box corresponding to the highest level of income for yourself, each relative, and if applicable for most recent spouse, even if separated/divorced/widowed) - $25,001 – $50,000 - Father","HIGHEST LEVEL OF OCCUPATION BY INCOME
+
+ 
+
+(Check ONE box corresponding to the highest level of income for yourself, each relative, and if applicable for most recent spouse, even if separated/divorced/widowed) - $25,001 – $50,000 - Father"
+"HIGHEST LEVEL OF OCCUPATION BY INCOME
+
+ 
+
+(Check ONE box corresponding to the highest level of income for yourself, each relative, and if applicable for most recent spouse, even if separated/divorced/widowed) - $25,001 – $50,000 - Spouse","HIGHEST LEVEL OF OCCUPATION BY INCOME
+
+ 
+
+(Check ONE box corresponding to the highest level of income for yourself, each relative, and if applicable for most recent spouse, even if separated/divorced/widowed) - $25,001 – $50,000 - Spouse"
+"HIGHEST LEVEL OF OCCUPATION BY INCOME
+
+ 
+
+(Check ONE box corresponding to the highest level of income for yourself, each relative, and if applicable for most recent spouse, even if separated/divorced/widowed) - < $25,000 - You","HIGHEST LEVEL OF OCCUPATION BY INCOME
+
+ 
+
+(Check ONE box corresponding to the highest level of income for yourself, each relative, and if applicable for most recent spouse, even if separated/divorced/widowed) - < $25,000 - You"
+"HIGHEST LEVEL OF OCCUPATION BY INCOME
+
+ 
+
+(Check ONE box corresponding to the highest level of income for yourself, each relative, and if applicable for most recent spouse, even if separated/divorced/widowed) - < $25,000 - Mother","HIGHEST LEVEL OF OCCUPATION BY INCOME
+
+ 
+
+(Check ONE box corresponding to the highest level of income for yourself, each relative, and if applicable for most recent spouse, even if separated/divorced/widowed) - < $25,000 - Mother"
+"HIGHEST LEVEL OF OCCUPATION BY INCOME
+
+ 
+
+(Check ONE box corresponding to the highest level of income for yourself, each relative, and if applicable for most recent spouse, even if separated/divorced/widowed) - < $25,000 - Father","HIGHEST LEVEL OF OCCUPATION BY INCOME
+
+ 
+
+(Check ONE box corresponding to the highest level of income for yourself, each relative, and if applicable for most recent spouse, even if separated/divorced/widowed) - < $25,000 - Father"
+"HIGHEST LEVEL OF OCCUPATION BY INCOME
+
+ 
+
+(Check ONE box corresponding to the highest level of income for yourself, each relative, and if applicable for most recent spouse, even if separated/divorced/widowed) - < $25,000 - Spouse","HIGHEST LEVEL OF OCCUPATION BY INCOME
+
+ 
+
+(Check ONE box corresponding to the highest level of income for yourself, each relative, and if applicable for most recent spouse, even if separated/divorced/widowed) - < $25,000 - Spouse"
+"HIGHEST LEVEL OF OCCUPATION BY INCOME
+
+ 
+
+(Check ONE box corresponding to the highest level of income for yourself, each relative, and if applicable for most recent spouse, even if separated/divorced/widowed) - Does not apply (i.e. dependent or no spouse) - You","HIGHEST LEVEL OF OCCUPATION BY INCOME
+
+ 
+
+(Check ONE box corresponding to the highest level of income for yourself, each relative, and if applicable for most recent spouse, even if separated/divorced/widowed) - Does not apply (i.e. dependent or no spouse) - You"
+"HIGHEST LEVEL OF OCCUPATION BY INCOME
+
+ 
+
+(Check ONE box corresponding to the highest level of income for yourself, each relative, and if applicable for most recent spouse, even if separated/divorced/widowed) - Does not apply (i.e. dependent or no spouse) - Mother","HIGHEST LEVEL OF OCCUPATION BY INCOME
+
+ 
+
+(Check ONE box corresponding to the highest level of income for yourself, each relative, and if applicable for most recent spouse, even if separated/divorced/widowed) - Does not apply (i.e. dependent or no spouse) - Mother"
+"HIGHEST LEVEL OF OCCUPATION BY INCOME
+
+ 
+
+(Check ONE box corresponding to the highest level of income for yourself, each relative, and if applicable for most recent spouse, even if separated/divorced/widowed) - Does not apply (i.e. dependent or no spouse) - Father","HIGHEST LEVEL OF OCCUPATION BY INCOME
+
+ 
+
+(Check ONE box corresponding to the highest level of income for yourself, each relative, and if applicable for most recent spouse, even if separated/divorced/widowed) - Does not apply (i.e. dependent or no spouse) - Father"
+"HIGHEST LEVEL OF OCCUPATION BY INCOME
+
+ 
+
+(Check ONE box corresponding to the highest level of income for yourself, each relative, and if applicable for most recent spouse, even if separated/divorced/widowed) - Does not apply (i.e. dependent or no spouse) - Spouse","HIGHEST LEVEL OF OCCUPATION BY INCOME
+
+ 
+
+(Check ONE box corresponding to the highest level of income for yourself, each relative, and if applicable for most recent spouse, even if separated/divorced/widowed) - Does not apply (i.e. dependent or no spouse) - Spouse"
+"HIGHEST LEVEL OF OCCUPATION BY INCOME
+
+ 
+
+(Check ONE box corresponding to the highest level of income for yourself, each relative, and if applicable for most recent spouse, even if separated/divorced/widowed) - Information not available (Please specify why below) - You","HIGHEST LEVEL OF OCCUPATION BY INCOME
+
+ 
+
+(Check ONE box corresponding to the highest level of income for yourself, each relative, and if applicable for most recent spouse, even if separated/divorced/widowed) - Information not available (Please specify why below) - You"
+"HIGHEST LEVEL OF OCCUPATION BY INCOME
+
+ 
+
+(Check ONE box corresponding to the highest level of income for yourself, each relative, and if applicable for most recent spouse, even if separated/divorced/widowed) - Information not available (Please specify why below) - Mother","HIGHEST LEVEL OF OCCUPATION BY INCOME
+
+ 
+
+(Check ONE box corresponding to the highest level of income for yourself, each relative, and if applicable for most recent spouse, even if separated/divorced/widowed) - Information not available (Please specify why below) - Mother"
+"HIGHEST LEVEL OF OCCUPATION BY INCOME
+
+ 
+
+(Check ONE box corresponding to the highest level of income for yourself, each relative, and if applicable for most recent spouse, even if separated/divorced/widowed) - Information not available (Please specify why below) - Father","HIGHEST LEVEL OF OCCUPATION BY INCOME
+
+ 
+
+(Check ONE box corresponding to the highest level of income for yourself, each relative, and if applicable for most recent spouse, even if separated/divorced/widowed) - Information not available (Please specify why below) - Father"
+"HIGHEST LEVEL OF OCCUPATION BY INCOME
+
+ 
+
+(Check ONE box corresponding to the highest level of income for yourself, each relative, and if applicable for most recent spouse, even if separated/divorced/widowed) - Information not available (Please specify why below) - Spouse","HIGHEST LEVEL OF OCCUPATION BY INCOME
+
+ 
+
+(Check ONE box corresponding to the highest level of income for yourself, each relative, and if applicable for most recent spouse, even if separated/divorced/widowed) - Information not available (Please specify why below) - Spouse"
+"If highest level of occupation is not available please specify why. - You","If highest level of occupation is not available please specify why. - You"
+"If highest level of occupation is not available please specify why. - Mother","If highest level of occupation is not available please specify why. - Mother"
+"If highest level of occupation is not available please specify why. - Father","If highest level of occupation is not available please specify why. - Father"
+"If highest level of occupation is not available please specify why. - Spouse","If highest level of occupation is not available please specify why. - Spouse"
+"ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Mother - What is your mother’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies she is from (if known). - Anglo-Saxon - Yes","ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Mother - What is your mother’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies she is from (if known). - Anglo-Saxon - Yes"
+"ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Mother - What is your mother’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies she is from (if known). - Anglo-Saxon - Country","ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Mother - What is your mother’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies she is from (if known). - Anglo-Saxon - Country"
+"ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Mother - What is your mother’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies she is from (if known). - Northern European - Yes","ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Mother - What is your mother’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies she is from (if known). - Northern European - Yes"
+"ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Mother - What is your mother’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies she is from (if known). - Northern European - Country","ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Mother - What is your mother’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies she is from (if known). - Northern European - Country"
+"ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Mother - What is your mother’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies she is from (if known). - Western European - Yes","ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Mother - What is your mother’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies she is from (if known). - Western European - Yes"
+"ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Mother - What is your mother’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies she is from (if known). - Western European - Country","ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Mother - What is your mother’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies she is from (if known). - Western European - Country"
+"ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Mother - What is your mother’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies she is from (if known). - East European, Slavic - Yes","ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Mother - What is your mother’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies she is from (if known). - East European, Slavic - Yes"
+"ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Mother - What is your mother’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies she is from (if known). - East European, Slavic - Country","ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Mother - What is your mother’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies she is from (if known). - East European, Slavic - Country"
+"ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Mother - What is your mother’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies she is from (if known). - Russian - Yes","ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Mother - What is your mother’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies she is from (if known). - Russian - Yes"
+"ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Mother - What is your mother’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies she is from (if known). - Russian - Country","ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Mother - What is your mother’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies she is from (if known). - Russian - Country"
+"ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Mother - What is your mother’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies she is from (if known). - Mediterranean - Yes","ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Mother - What is your mother’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies she is from (if known). - Mediterranean - Yes"
+"ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Mother - What is your mother’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies she is from (if known). - Mediterranean - Country","ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Mother - What is your mother’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies she is from (if known). - Mediterranean - Country"
+"ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Mother - What is your mother’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies she is from (if known). - African, sub-Saharan – incl. African American, Afro-Caribbean, Sub-Saharan... - African, sub-Saharan – incl. African American, Afro-Caribbean, Sub-Saharan African - Yes","ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Mother - What is your mother’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies she is from (if known). - African, sub-Saharan – incl. African American, Afro-Caribbean, Sub-Saharan... - African, sub-Saharan – incl. African American, Afro-Caribbean, Sub-Saharan African - Yes"
+"ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Mother - What is your mother’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies she is from (if known). - African, sub-Saharan – incl. African American, Afro-Caribbean, Sub-Saharan... - African, sub-Saharan – incl. African American, Afro-Caribbean, Sub-Saharan African - Country","ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Mother - What is your mother’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies she is from (if known). - African, sub-Saharan – incl. African American, Afro-Caribbean, Sub-Saharan... - African, sub-Saharan – incl. African American, Afro-Caribbean, Sub-Saharan African - Country"
+"ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Mother - What is your mother’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies she is from (if known). - African, northeastern – Mediterranean and Saharan African (incl. Algerian,... - African, northeastern – Mediterranean and Saharan African (incl. Algerian, Egyptian, North Sudanese, Libyan, Morrocan and Tunisian) - Yes","ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Mother - What is your mother’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies she is from (if known). - African, northeastern – Mediterranean and Saharan African (incl. Algerian,... - African, northeastern – Mediterranean and Saharan African (incl. Algerian, Egyptian, North Sudanese, Libyan, Morrocan and Tunisian) - Yes"
+"ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Mother - What is your mother’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies she is from (if known). - African, northeastern – Mediterranean and Saharan African (incl. Algerian,... - African, northeastern – Mediterranean and Saharan African (incl. Algerian, Egyptian, North Sudanese, Libyan, Morrocan and Tunisian) - Country","ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Mother - What is your mother’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies she is from (if known). - African, northeastern – Mediterranean and Saharan African (incl. Algerian,... - African, northeastern – Mediterranean and Saharan African (incl. Algerian, Egyptian, North Sudanese, Libyan, Morrocan and Tunisian) - Country"
+"ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Mother - What is your mother’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies she is from (if known). - Southeast Asia – Malaysian, Balinese, Viet Hmong, Thai, South Chinese, Indo... - Southeast Asia – Malaysian, Balinese, Viet Hmong, Thai, South Chinese, Indonesian, and Philippine - Yes","ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Mother - What is your mother’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies she is from (if known). - Southeast Asia – Malaysian, Balinese, Viet Hmong, Thai, South Chinese, Indo... - Southeast Asia – Malaysian, Balinese, Viet Hmong, Thai, South Chinese, Indonesian, and Philippine - Yes"
+"ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Mother - What is your mother’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies she is from (if known). - Southeast Asia – Malaysian, Balinese, Viet Hmong, Thai, South Chinese, Indo... - Southeast Asia – Malaysian, Balinese, Viet Hmong, Thai, South Chinese, Indonesian, and Philippine - Country","ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Mother - What is your mother’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies she is from (if known). - Southeast Asia – Malaysian, Balinese, Viet Hmong, Thai, South Chinese, Indo... - Southeast Asia – Malaysian, Balinese, Viet Hmong, Thai, South Chinese, Indonesian, and Philippine - Country"
+"ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Mother - What is your mother’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies she is from (if known). - All Other Asian – North Chinese, Indian, Koran, Japanese, Turkish, Armenian - Yes","ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Mother - What is your mother’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies she is from (if known). - All Other Asian – North Chinese, Indian, Koran, Japanese, Turkish, Armenian - Yes"
+"ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Mother - What is your mother’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies she is from (if known). - All Other Asian – North Chinese, Indian, Koran, Japanese, Turkish, Armenian - Country","ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Mother - What is your mother’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies she is from (if known). - All Other Asian – North Chinese, Indian, Koran, Japanese, Turkish, Armenian - Country"
+"ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Mother - What is your mother’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies she is from (if known). - Native American – North, Central and South America - Yes","ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Mother - What is your mother’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies she is from (if known). - Native American – North, Central and South America - Yes"
+"ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Mother - What is your mother’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies she is from (if known). - Native American – North, Central and South America - Country","ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Mother - What is your mother’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies she is from (if known). - Native American – North, Central and South America - Country"
+"ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Mother - What is your mother’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies she is from (if known). - Hispanic (not Puerto Rican or Mexican) - Yes","ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Mother - What is your mother’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies she is from (if known). - Hispanic (not Puerto Rican or Mexican) - Yes"
+"ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Mother - What is your mother’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies she is from (if known). - Hispanic (not Puerto Rican or Mexican) - Country","ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Mother - What is your mother’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies she is from (if known). - Hispanic (not Puerto Rican or Mexican) - Country"
+"ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Mother - What is your mother’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies she is from (if known). - Puerto Rican Hispanic - Yes","ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Mother - What is your mother’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies she is from (if known). - Puerto Rican Hispanic - Yes"
+"ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Mother - What is your mother’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies she is from (if known). - Puerto Rican Hispanic - Country","ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Mother - What is your mother’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies she is from (if known). - Puerto Rican Hispanic - Country"
+"ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Mother - What is your mother’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies she is from (if known). - Mexican Hispanic - Yes","ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Mother - What is your mother’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies she is from (if known). - Mexican Hispanic - Yes"
+"ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Mother - What is your mother’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies she is from (if known). - Mexican Hispanic - Country","ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Mother - What is your mother’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies she is from (if known). - Mexican Hispanic - Country"
+"ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Mother - What is your mother’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies she is from (if known). - Ashkenazi Jewish - Yes","ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Mother - What is your mother’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies she is from (if known). - Ashkenazi Jewish - Yes"
+"ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Mother - What is your mother’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies she is from (if known). - Ashkenazi Jewish - Country","ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Mother - What is your mother’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies she is from (if known). - Ashkenazi Jewish - Country"
+"ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Mother - What is your mother’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies she is from (if known). - Sephardic Jewish - Yes","ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Mother - What is your mother’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies she is from (if known). - Sephardic Jewish - Yes"
+"ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Mother - What is your mother’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies she is from (if known). - Sephardic Jewish - Country","ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Mother - What is your mother’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies she is from (if known). - Sephardic Jewish - Country"
+"ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Mother - What is your mother’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies she is from (if known). - Unknown - Yes","ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Mother - What is your mother’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies she is from (if known). - Unknown - Yes"
+"ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Mother - What is your mother’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies she is from (if known). - Unknown - Country","ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Mother - What is your mother’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies she is from (if known). - Unknown - Country"
+"ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Mother - What is your mother’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies she is from (if known). - Other (specify) - Yes","ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Mother - What is your mother’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies she is from (if known). - Other (specify) - Yes"
+"ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Mother - What is your mother’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies she is from (if known). - Other (specify) - Country","ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Mother - What is your mother’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies she is from (if known). - Other (specify) - Country"
+"ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Father - What is your father’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies he is from (if known). - Anglo-Saxon - Yes","ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Father - What is your father’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies he is from (if known). - Anglo-Saxon - Yes"
+"ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Father - What is your father’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies he is from (if known). - Anglo-Saxon - Country","ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Father - What is your father’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies he is from (if known). - Anglo-Saxon - Country"
+"ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Father - What is your father’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies he is from (if known). - Northern European - Yes","ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Father - What is your father’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies he is from (if known). - Northern European - Yes"
+"ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Father - What is your father’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies he is from (if known). - Northern European - Country","ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Father - What is your father’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies he is from (if known). - Northern European - Country"
+"ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Father - What is your father’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies he is from (if known). - Western European - Yes","ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Father - What is your father’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies he is from (if known). - Western European - Yes"
+"ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Father - What is your father’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies he is from (if known). - Western European - Country","ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Father - What is your father’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies he is from (if known). - Western European - Country"
+"ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Father - What is your father’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies he is from (if known). - East European, Slavic - Yes","ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Father - What is your father’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies he is from (if known). - East European, Slavic - Yes"
+"ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Father - What is your father’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies he is from (if known). - East European, Slavic - Country","ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Father - What is your father’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies he is from (if known). - East European, Slavic - Country"
+"ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Father - What is your father’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies he is from (if known). - Russian - Yes","ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Father - What is your father’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies he is from (if known). - Russian - Yes"
+"ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Father - What is your father’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies he is from (if known). - Russian - Country","ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Father - What is your father’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies he is from (if known). - Russian - Country"
+"ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Father - What is your father’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies he is from (if known). - Mediterranean - Yes","ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Father - What is your father’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies he is from (if known). - Mediterranean - Yes"
+"ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Father - What is your father’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies he is from (if known). - Mediterranean - Country","ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Father - What is your father’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies he is from (if known). - Mediterranean - Country"
+"ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Father - What is your father’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies he is from (if known). - African, sub-Saharan – incl. African American, Afro-Caribbean, Sub-Saharan... - African, sub-Saharan – incl. African American, Afro-Caribbean, Sub-Saharan African - Yes","ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Father - What is your father’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies he is from (if known). - African, sub-Saharan – incl. African American, Afro-Caribbean, Sub-Saharan... - African, sub-Saharan – incl. African American, Afro-Caribbean, Sub-Saharan African - Yes"
+"ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Father - What is your father’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies he is from (if known). - African, sub-Saharan – incl. African American, Afro-Caribbean, Sub-Saharan... - African, sub-Saharan – incl. African American, Afro-Caribbean, Sub-Saharan African - Country","ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Father - What is your father’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies he is from (if known). - African, sub-Saharan – incl. African American, Afro-Caribbean, Sub-Saharan... - African, sub-Saharan – incl. African American, Afro-Caribbean, Sub-Saharan African - Country"
+"ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Father - What is your father’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies he is from (if known). - African, northeastern – Mediterranean and Saharan African (incl. Algerian,... - African, northeastern – Mediterranean and Saharan African (incl. Algerian, Egyptian, North Sudanese, Libyan, Morrocan and Tunisian) - Yes","ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Father - What is your father’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies he is from (if known). - African, northeastern – Mediterranean and Saharan African (incl. Algerian,... - African, northeastern – Mediterranean and Saharan African (incl. Algerian, Egyptian, North Sudanese, Libyan, Morrocan and Tunisian) - Yes"
+"ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Father - What is your father’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies he is from (if known). - African, northeastern – Mediterranean and Saharan African (incl. Algerian,... - African, northeastern – Mediterranean and Saharan African (incl. Algerian, Egyptian, North Sudanese, Libyan, Morrocan and Tunisian) - Country","ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Father - What is your father’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies he is from (if known). - African, northeastern – Mediterranean and Saharan African (incl. Algerian,... - African, northeastern – Mediterranean and Saharan African (incl. Algerian, Egyptian, North Sudanese, Libyan, Morrocan and Tunisian) - Country"
+"ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Father - What is your father’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies he is from (if known). - Southeast Asia – Malaysian, Balinese, Viet Hmong, Thai, South Chinese, Indo... - Southeast Asia – Malaysian, Balinese, Viet Hmong, Thai, South Chinese, Indonesian, and Philippine - Yes","ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Father - What is your father’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies he is from (if known). - Southeast Asia – Malaysian, Balinese, Viet Hmong, Thai, South Chinese, Indo... - Southeast Asia – Malaysian, Balinese, Viet Hmong, Thai, South Chinese, Indonesian, and Philippine - Yes"
+"ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Father - What is your father’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies he is from (if known). - Southeast Asia – Malaysian, Balinese, Viet Hmong, Thai, South Chinese, Indo... - Southeast Asia – Malaysian, Balinese, Viet Hmong, Thai, South Chinese, Indonesian, and Philippine - Country","ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Father - What is your father’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies he is from (if known). - Southeast Asia – Malaysian, Balinese, Viet Hmong, Thai, South Chinese, Indo... - Southeast Asia – Malaysian, Balinese, Viet Hmong, Thai, South Chinese, Indonesian, and Philippine - Country"
+"ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Father - What is your father’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies he is from (if known). - All Other Asian – North Chinese, Indian, Koran, Japanese, Turkish, Armenian - Yes","ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Father - What is your father’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies he is from (if known). - All Other Asian – North Chinese, Indian, Koran, Japanese, Turkish, Armenian - Yes"
+"ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Father - What is your father’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies he is from (if known). - All Other Asian – North Chinese, Indian, Koran, Japanese, Turkish, Armenian - Country","ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Father - What is your father’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies he is from (if known). - All Other Asian – North Chinese, Indian, Koran, Japanese, Turkish, Armenian - Country"
+"ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Father - What is your father’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies he is from (if known). - Native American – North, Central and South America - Yes","ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Father - What is your father’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies he is from (if known). - Native American – North, Central and South America - Yes"
+"ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Father - What is your father’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies he is from (if known). - Native American – North, Central and South America - Country","ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Father - What is your father’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies he is from (if known). - Native American – North, Central and South America - Country"
+"ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Father - What is your father’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies he is from (if known). - Hispanic (not Puerto Rican or Mexican) - Yes","ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Father - What is your father’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies he is from (if known). - Hispanic (not Puerto Rican or Mexican) - Yes"
+"ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Father - What is your father’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies he is from (if known). - Hispanic (not Puerto Rican or Mexican) - Country","ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Father - What is your father’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies he is from (if known). - Hispanic (not Puerto Rican or Mexican) - Country"
+"ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Father - What is your father’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies he is from (if known). - Puerto Rican Hispanic - Yes","ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Father - What is your father’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies he is from (if known). - Puerto Rican Hispanic - Yes"
+"ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Father - What is your father’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies he is from (if known). - Puerto Rican Hispanic - Country","ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Father - What is your father’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies he is from (if known). - Puerto Rican Hispanic - Country"
+"ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Father - What is your father’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies he is from (if known). - Mexican Hispanic - Yes","ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Father - What is your father’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies he is from (if known). - Mexican Hispanic - Yes"
+"ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Father - What is your father’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies he is from (if known). - Mexican Hispanic - Country","ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Father - What is your father’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies he is from (if known). - Mexican Hispanic - Country"
+"ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Father - What is your father’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies he is from (if known). - Ashkenazi Jewish - Yes","ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Father - What is your father’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies he is from (if known). - Ashkenazi Jewish - Yes"
+"ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Father - What is your father’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies he is from (if known). - Ashkenazi Jewish - Country","ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Father - What is your father’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies he is from (if known). - Ashkenazi Jewish - Country"
+"ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Father - What is your father’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies he is from (if known). - Sephardic Jewish - Yes","ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Father - What is your father’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies he is from (if known). - Sephardic Jewish - Yes"
+"ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Father - What is your father’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies he is from (if known). - Sephardic Jewish - Country","ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Father - What is your father’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies he is from (if known). - Sephardic Jewish - Country"
+"ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Father - What is your father’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies he is from (if known). - Unknown - Yes","ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Father - What is your father’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies he is from (if known). - Unknown - Yes"
+"ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Father - What is your father’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies he is from (if known). - Unknown - Country","ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Father - What is your father’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies he is from (if known). - Unknown - Country"
+"ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Father - What is your father’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies he is from (if known). - Other (specify) - Yes","ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Father - What is your father’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies he is from (if known). - Other (specify) - Yes"
+"ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Father - What is your father’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies he is from (if known). - Other (specify) - Country","ETHNIC BACKGROUND OF PARENTS
+
+ 
+
+Father - What is your father’s ethnicity? In the first column, please type ""Yes"" in all categories that apply.  For all categories that apply, please use the second column to indicate which country/ies he is from (if known). - Other (specify) - Country"
