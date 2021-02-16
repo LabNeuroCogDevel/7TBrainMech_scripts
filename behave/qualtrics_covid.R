@@ -26,10 +26,13 @@ names(adults) <- LNCDR::qualtrics_labels(adults)
 names(kids)   <- LNCDR::qualtrics_labels(kids)
 
 # INTERACTIVE: match questions between the two
+# but only if we haven't already.
+# if match file already exists, reuse it instead of interactive matching
 matches_csv <- 'txt/covid_battery_name_matches.csv'
 if(file.exists(matches_csv)){
     matches <- read.csv(matches_csv)
 } else {
+    if (!exists('txt')) dir.create('txt')
     na <- names(adults)
     nk <- names(kids)
     matches <- LNCDR::interactive_label_match(na, nk, accept_single=T, diffprint=F)
