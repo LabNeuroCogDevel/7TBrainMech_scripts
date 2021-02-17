@@ -18,9 +18,10 @@ suppressPackageStartupMessages({
 
 # get questionnaires
 covids <- LNCDR::qualtrics_surveys('Batt.*Covid')
-# TODO: dont hardcode indexes
-adults <- covids[[1]]
-kids <- covids[[2]]
+# surveys may come in any order. (ingially adults was first)
+snames <- names(covids)
+adults <- covids[[grep('Adult',snames)]]
+kids <- covids[[grep('Parent',snames)]]
 
 names(adults) <- LNCDR::qualtrics_labels(adults)
 names(kids)   <- LNCDR::qualtrics_labels(kids)
@@ -48,4 +49,16 @@ names(k) <- names(a)
 all_covid_battery <- rbind(a, k)
 
 # save
+write.csv(all_covid_battery, 'txt/covid_battery_sharedonly.csv', row.names=F)
+# all_covid_battery <- read.csv('txt/covid_battery_sharedonly.csv') %>%
+#  rename(`External Data Reference`=External.Data.Reference)
+
+# add adult only questions
+missing_cols <- ! names(adults) %in% matches[,1]
+id_col <- grepl("External.Data.Reference", names(adults))
+adult_only <- adults[, missing_cols | id_col ]
+all_covid_battery_and_adult <-
+    merge(all_covid_battery,
+          adult_only,
+          by="External Data Reference", all.x=TRUE)
 write.csv(all_covid_battery, 'txt/covid_battery.csv', row.names=F)
