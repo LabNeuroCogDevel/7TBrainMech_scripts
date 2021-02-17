@@ -17,19 +17,23 @@ suppressPackageStartupMessages({
 })
 
 # get questionnaires
-covids <- LNCDR::qualtrics_surveys('Batt.*Covid')
+covids <- LNCDR::qualtrics_surveys('Batt.*Covid|Covid19_Youth')
+# allsurveys <- qualtRics::all_surveys()
+
 # surveys may come in any order. (ingially adults was first)
 snames <- names(covids)
 adults <- covids[[grep('Adult',snames)]]
-kids <- covids[[grep('Parent',snames)]]
+parent <- covids[[grep('Parent',snames)]]
+kids <- covids[[grep('Covid19_Youth',snames)]]
 
 names(adults) <- LNCDR::qualtrics_labels(adults)
+names(parent) <- LNCDR::qualtrics_labels(parent)
 names(kids)   <- LNCDR::qualtrics_labels(kids)
 
 # INTERACTIVE: match questions between the two
 # but only if we haven't already.
 # if match file already exists, reuse it instead of interactive matching
-matches_csv <- 'txt/covid_battery_name_matches.csv'
+matches_csv <- 'txt/covid_battery_name_matches_adult-kid.csv'
 if(file.exists(matches_csv)){
     matches <- read.csv(matches_csv)
 } else {
