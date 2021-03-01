@@ -59,6 +59,8 @@ idxs <- list(
            info$ndcm %in% c(192),
   MGS= grepl("bold.*(TASK|MGS|tacq2s-180).*", info$protocol) &
              info$ndcm %in% c(9216,192), # 20191220 -  allow new mosaic 192
+  MGSshort = grepl("bold.*MGS-run[1-3]-p[12]", info$protocol) &
+             info$ndcm %in% c(100), # 20210301 - into parts to tax scanner less
   rest= grepl("bold.*(REST|tacq2s-180).*", info$protocol) &
              info$ndcm %in% c(10560,220), # 20191220 -  allow mosaic 220
   # e.g. ../../BIDS/rawlinks/11667_20180629/0035_mtgre-yesMT_44
@@ -115,6 +117,16 @@ suspect %>% select(luna,vdate) %>% mutate(process='MGS') %>% unique %>% inner_jo
    select(luna,vdate,item,seqno,protocol) %>%
    print.data.frame(row.names=F)
 
+# 20210301 MGS short
+# like sub-xxxx_task-mgsshort[12]_run-0[12]_bold.nii.gz
+mgssidx <- !is.na(proc$process) & proc$process=='MGSshort'  
+mgssname <- gsub('.*MGS-run(\\d)-p(\\d).*',
+                 '_task-mgsshort\\2_run-0\\1_bold',
+                 proc$protocol[mgssidx])
+# add sub-xxxx
+mgssname <- paste0(gsub("_.*", '', proc$name[mgssidx]), mgssname)
+proc$name[mgssidx] <- mgssname
+
 # rename file for anat
 t1idx <- proc$type=="anat"
 proc$name[t1idx] <- gsub("_task.*", "_T1w", proc$name[t1idx])
@@ -134,7 +146,10 @@ proc$file <- sprintf("%s/%s.nii.gz", proc$outdir, proc$name)
 proc$cmd <- sprintf("dcm2niix -o %s -f %s %s",
                     proc$outdir, proc$name, proc$indir)
 
-print.data.frame(proc)
+#print.data.frame(proc)
+print.data.frame(proc[!file.exists(proc$file),])
+if(Sys.getenv('DRYRUN')!="") quit(save="no")
+
 # create directories and nifti files
 discard <-
   lapply(proc$outdir, function(x) dir.exists(x) || dir.create(x, recursive=T) )
