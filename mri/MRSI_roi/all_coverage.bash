@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 # 20200619WF - quick ROI coverage re. BTC during MP journal club presentation
 # 20210602WF - use coverage for ones that were 'picked'
+
+# picked_coords is a link from 040_spec2subjdir.bash
+#  can inspect with ./check_speccoord $ld8
 picked="$(for f in /Volumes/Hera/Projects/7TBrainMech/subjs/1*_2*/slice_PFC/MRSI_roi/LCModel/v2idxfix/13MP20200207_picked_coords.txt; do
   ls $(dirname $(readlink -f $f))/cmsphere-mni.nii.gz
 done)"
