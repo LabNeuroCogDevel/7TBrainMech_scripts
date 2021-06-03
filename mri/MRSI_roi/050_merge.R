@@ -84,6 +84,7 @@ da <-
    merge(visitnum, sep, all=T) %>%
    merge(r, ., by="id", all=T) %>%
    mutate(age=round(as.numeric(vdate-dob)/365.25, 2)) %>%
-   select(-id, -dob, -vdate)
+   select(-id, -dob, -vdate) %>%
+   arrange(ld8, roi, x, y) # sort so version control of output csv is easier
 
 write.csv(da, "txt/13MP20200207_LCMv2fixidx.csv", row.names=F)
