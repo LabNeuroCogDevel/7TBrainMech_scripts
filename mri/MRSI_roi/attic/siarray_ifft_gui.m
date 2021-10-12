@@ -25,7 +25,9 @@ function [f, coords] = siarray_ifft_gui(ld8)
   %  slice_roi_MPOR20190425_CM_11323_20180316_16.txt
   %  slice_roi_MPOR20190425_CM_11323_20180316_16_737541.477512_OR.txt
   %  slice_roi_MPOR20190425_CM_11323_20180316_16_737541.477513_WF.txt
-  coords_file_patt=sprintf('%s/slice_roi_%s_CM_%s_*.txt',rdir,'MPOR20190425',ld8);
+  roi_mask_name='MPOR20190425';  % Apr 30  2019
+  % roi_mask_name='13MP20200207'; % 20211012 -- but use mkspectrum.m/mkspectrum_roi.m instead!
+  coords_file_patt=sprintf('%s/slice_roi_%s_CM_%s_*.txt',rdir,roi_mask_name,ld8);
   cf_list=dir(coords_file_patt);
   if isempty(cf_list)
      error('cannot find coord file like "%s"; run: ./000_setupdirs.bash %s', coords_file_patt, ld8)
@@ -34,9 +36,12 @@ function [f, coords] = siarray_ifft_gui(ld8)
   fprintf('using cordinate file: %s\n', coords_file)
 
   coords = load(coords_file);
+  disp('expect 3 columns: Idx Col Row')
+  disp(coords)
   coords = coords(coords(:,1)~=0,:); % remove roi 0
   if length(coords) ~= n_rois
      warning('expected %d rois, have %d in %s', n_rois, length(coords), coords_file)
+     disp(coords)
      % replace missing rois with 0s
      coords_new = zeros(n_rois,3); 
      coords_new(:,1) = 1:n_rois;
