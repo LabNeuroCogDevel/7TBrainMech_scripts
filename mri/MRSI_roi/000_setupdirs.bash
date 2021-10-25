@@ -42,6 +42,13 @@ if [ $1 == "all" ]; then
     #xargs -n1 echo $0
    exit 0
 fi
+if [ $1 == "alldb" ]; then
+   selld8 l |grep Scan.*Brain |
+    perl -lne 'print $& if m/\d{5}_\d{8}/' |
+    xargs -n1 $0
+    #xargs -n1 echo $0
+   exit 0
+fi
 
 # only preproc what the sheet says we have
 if [ $1 == "have" ]; then
@@ -60,7 +67,11 @@ ld8="$1"
 
 ## get mrid from id lookup (from id_list.bash)
 MRID="$(grep "$ld8" ../MRSI/txt/ids.txt|cut -d' ' -f2)"
-[ -z "$MRID" ] && echo "cannot find MRID for '$ld8'; try ../MRSI/id_list.bash" && exit 1
+[ -z "$MRID" ] && MRID="$(lncddb "
+ select m.id from enroll m join enroll e
+    on e.etype like 'LunaID' and m.etype like '%MR%' and m.pid=e.pid
+    where e.id like '$ld8'")"
+[ -z "$MRID" ] && echo "cannot find MRID for '$ld8'; update db or try: ../MRSI/id_list.bash" && exit 1
 
 # need slices
 [ ! -d /Volumes/Hera/Projects/7TBrainMech/subjs/$ld8/slice_PFC/ ] &&
@@ -105,8 +116,9 @@ done
 # NB. when we get hipocampus, will cause issues
 rawdir="/Volumes/Hera/Raw/MRprojects/7TBrainMech/$MRID"
 boxsiarray="/Volumes/Hera/Raw/MRprojects/7TBrainMech/MRSI_BrainMechR01/PFC_siarray/$MRID"
+# 20211015 - update maxdepth to 2 so we can find '$ID/Recon/
 SIARRAY="$(
-  find -L $rawdir -maxdepth 1 -type d,l -iname '*CSI*' -not -ipath '*CSIHc*' -print0 |
+  find -L $rawdir -maxdepth 2 -type d,l -iname '*CSI*' -not -ipath '*CSIHc*' -print0 |
    xargs -I{} -r0n1 find -L "{}" -maxdepth 1 -type f,l -iname 'siarray.*' -print -quit |
    sed 1q |
    xargs -r dirname
@@ -119,8 +131,13 @@ SIARRAY="$(
      xargs -r dirname
   )"
 
+# 20201203 - for 11790_20190916. victors updated dirctory
+no_more_mrrc=/Volumes/Hera/Raw/MRprojects/7TBrainMech/Processed_Victor/$MRID/CSIPFC/
+[ -z "$SIARRAY" -o ! -d "$SIARRAY" ] &&
+   SIARRAY=$(find $no_more_mrrc -iname siarray.1.1|sed 1q|xargs -r dirname)
+
 if [ -z "$SIARRAY" -o ! -d "$SIARRAY" ]; then
-   echo "cannot find siarray files in $rawdir or $boxsiarray; Victor may need to reconstruct (synced from 7tlinux shim [20200304]; prev ../001_rsync_MRSI_from_box.bash)!"
+   echo "cannot find siarray files in $rawdir or $boxsiarray or $no_more_mrrc; Victor may need to reconstruct (synced from 7tlinux shim [20200304]; prev ../001_rsync_MRSI_from_box.bash)!"
    # if we can use q to query the csv file w/sql, use it
    which q >/dev/null && [ -r "$statusfile" ] &&
       q -d, -H "select csipfc_raw from - where ld8 like '$ld8'" < $statusfile |
