@@ -131,19 +131,28 @@ d$`pfc_recieved`  <- nfiles(file.path('/Volumes/Hera/Projects/7TBrainMech/subjs/
 
 
 # find all spreadsheet files and merge back into d
+# 20201103 - does not correctly pull out
+# /Volumes/Hera/Raw/MRprojects/7TBrainMech/MRSI_BrainMechR01/20200420_13MP20200207specs_processed/11770_20190722-20190722Luna/spectrum.96.70.dir/spreadsheet.csv
+pfcfiles_list <-  system(
+"find /Volumes/Hera/Raw/MRprojects/7TBrainMech/MRSI_BrainMechR01/ \\
+ -not -ipath '*/BAD_rowcol/*' \\
+ -not -ipath '*_H[cC]/' \\
+ -iname spreadsheet.csv",
+ intern=T)
+
 pfcfiles <- 
-   system("find /Volumes/Hera/Raw/MRprojects/7TBrainMech/MRSI_BrainMechR01/ -not -ipath '*/BAD_rowcol/*' -iname spreadsheet.csv",
-          intern=T) %>% 
-   data.frame(fname=., stringsAsFactors=F) %>% 
-   mutate(mrid=str_extract(fname, '(?<=/)20\\d{6}[^/]+'),
+   data.frame(fname=pfcfiles_list, stringsAsFactors=F) %>% 
+   mutate(mrid=str_extract(fname, '(?<=[/_-])20\\d{6}L[^/]+'),
           pfc_csv=ctime(fname)) %>%
-   filter(!duplicated(mrid), !is.na(mrid))
+   filter(!is.na(mrid)) %>%
+   group_by(mrid) %>%
+   summarise(pfc_csv=max(pfc_csv), npfc_csv=n())
 
 d.order <- names(d)
 d <- 
-   pfcfiles %>% select(-fname) %>%
+   pfcfiles %>% 
    merge(d, ., by='mrid', all.x=T, all.y=F, suffixes=c('.x',''))
-d <- d[,unique(c(d.order,'pfc_csv'))]
+d <- d[,unique(c(d.order,'pfc_csv', 'npfc_csv'))]
 
 # blank out NA notes
 names(d)
