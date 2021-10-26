@@ -23,7 +23,7 @@ fi
 # setup sane bash
 set -euo pipefail
 trap 'e=$?; [ $e -ne 0 ] && echo "$0 exited in error"' EXIT
-cd $(dirname $0)
+cd $(dirname $(readlink -f $0))
 
 
 
@@ -126,8 +126,21 @@ for sraw in ${list[@]}; do
    "11811_20200124/0023_B0Scout33Slice_66" # 4 choices. this is only mag img in cor orientation
    # 20200604
    "11668_20180723/0003_B0Scout41Slice_82" # only one. looks like PFC scout 
+   "11754_20190304/0019_B0Scout33Slice_66" # 20200713 - this was corectly chosen, but FOV is bad?
+                                           # hard code here just for this note
+   # 20200715
+   "11323_20191101/0038_B0Scout33Slice_66" # have 34 and 38. pick later. 47 is hc. 2 and 8 are 82dcms
    # 11681_20181012 # no csi
    # 11668_20180723 # no csi
+   "11793_20210426/0016_B0Scout33Slice_66" # failed scan. comming back later. check PFC
+
+   #"11756_20190325/0025_B0Scout33Slice_66" # have an early 82dcm
+   "11756_20190325/0024_B0Scout33Slice_66" # linked from 20190325Luna1/scouts/s024_B0Scout33Slice
+   # 20200901 - T1 at end
+   "11713_20200821/0017_B0Scout33Slice_66"
+   "11681_20200731/0019_B0Scout33Slice_66"
+   # 20201105 - 2 Hc scouts. first good 66 is PFC
+   "11790_20190916/0024_B0Scout33Slice_66"
    # FF scans
    "20180824FF2/0023_B0Scout33Slice_66"
    )
