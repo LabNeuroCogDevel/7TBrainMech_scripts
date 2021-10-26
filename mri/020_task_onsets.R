@@ -8,6 +8,8 @@ library(LNCDR)
 MGSDUR <- 2 # how long is mgs on for (before fixation ITI starts)
 OUTDIR <- "1d/trial_hasimg_lr/"
 
+setwd('/Volumes/Hera/Projects/7TBrainMech/scripts/mri/')
+
 recall_files <-
    Sys.glob("/Volumes/L/bea_res/Data/Tasks/MGSEncMem/7T/*/*/*recall*[0-9].csv")
 
