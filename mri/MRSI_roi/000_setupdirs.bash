@@ -24,6 +24,7 @@ if [ $# -le 0 ]; then
    USAGE:
     $0 lunaid_date   # specify single subject
     $0 all           # all subjects (print errors for missing)
+    $0 alldb         # search db (print errors for missing)
     $0 have          # only what spreadsheet says we have
     SHOWFINISH="" $0 all # disable some messages, show only missing/failing
     # run the suggestsions 
@@ -70,7 +71,8 @@ MRID="$(grep "$ld8" ../MRSI/txt/ids.txt|cut -d' ' -f2)"
 [ -z "$MRID" ] && MRID="$(lncddb "
  select m.id from enroll m join enroll e
     on e.etype like 'LunaID' and m.etype like '%MR%' and m.pid=e.pid
-    where e.id like '$ld8'")"
+    and e.id like '${ld8%%_*}' and m.id like '${ld8##*_}%'")"
+
 [ -z "$MRID" ] && echo "cannot find MRID for '$ld8'; update db or try: ../MRSI/id_list.bash" && exit 1
 
 # need slices
