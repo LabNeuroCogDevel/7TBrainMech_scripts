@@ -39,7 +39,8 @@ usage(){ echo "USAGE: $0 new OR $0 20yy-mm-dd OR $0 ld8list.txt" && exit 1; }
 if [[ "$1" == "new" ]]; then
    # didn't start creating 13 ROI spectrum files until after feb 24
    # will also check already recieved files
-   findspecs(){ _findspecs newer 2020-04-20;}
+   #findspecs(){ _findspecs newer 2020-04-20;}
+   findspecs(){ _findspecs newer 2020-07-05;}
 elif [[ "$1" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
    cmpdate="$1"
    findspecs(){ _findspecs newer $cmpdate;}
