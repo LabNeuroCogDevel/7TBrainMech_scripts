@@ -12,6 +12,7 @@ read_ages <- function(){
   ages <- read.table(file.path(TXTDIR,"all_demo.tsv"), sep="\t")
 }
 
+z <- function(x) scale(x, center=T, scale=T)
 
 # 1. Read in
 # TODO/NOTE: age2 is centered but invage is not
@@ -27,7 +28,10 @@ read_mrs <- function() {
         mutate(x=216+1-x,
                y=216+1-y,
                invage = 1/age,
-               age2   = (age-mean(age))^2)
+               age2   = (age-mean(age))^2,
+               # 20210126 - zscore here, before filter, so ages stay the same across models
+               zscore_invage  = z(invage),
+               zscore_gm      = z(GMrat)))
 
 }
 

@@ -5,7 +5,7 @@ function f = hc_populate(subj, f)
 
   hc_rawdir=['/Volumes/Hera/Projects/7TBrainMech/scripts/mri/Hc/spectrum/' subj '/' ];
   if ~exist(hc_rawdir,'dir')
-     error('cannot read subject raw dir "%s"! Do we have files from victor?', rdir)
+     error('cannot read subject raw dir "%s"! Do we have files from victor? Also see ./01_reorg_for_matlab_gui.bash', rdir)
   end
 
   figdir='/home/ni_tools/matlab_toolboxes/MRRC/SVR1HFinal';
@@ -13,10 +13,12 @@ function f = hc_populate(subj, f)
      error('cannot find hippocampus fig dur "%s"', figdir)
   end
 
-  addpath(figdir);
-  %olddir=pwd;
-  %cd(figdir);
-  %pwd
+  %% works well when in fig dir. not otherwise: findpeaks cannot be found? fscout is not defined?
+  %% output files are saved in the same dir as the siarray.1.1,seg.7, and/or anat.mat file
+  % addpath(figdir);
+  olddir=pwd;
+  cd(figdir);
+  pwd
 
 
   %% 3 ways to get the figure: passed in, its open, or we need to load it

@@ -6,6 +6,21 @@ all: mri/txt/status.csv
 .make:
 	mkdir .make
 
+.make/task_csv.ls: alwaysrun |.make
+	mkls $@ "/Volumes/L/bea_res/Data/Tasks/MGSEncMem/7T/*/*/*view.csv"
+.make/recall_csv.ls: alwaysrun |.make
+	mkls $@ "/Volumes/L/bea_res/Data/Tasks/MGSEncMem/7T/*/*/*recall.csv"
+
+# 20200714 - task 1d files generated from ormas dir: /Volumes/Zeus/Orma/7T_MGS/scripts/
+.make/task_1d.ls: .make/task_csv.ls 
+	mri/Orma_MGS/01_make_timing.R
+	mkls $@ "/Volumes/Zeus/Orma/7T_MGS/data/1*_2*/*_cue.1D"
+
+# 20200714 - initially as an example. uses recall/no recall as well as task onset
+.make/task_1d_notused.ls: .make/task_csv.ls .make/recall_csv.ls
+	mri/020_task_onsets.R
+	mkls $@ "mri/1d/trial_hasimg_lr/*"
+
 mri/txt/ld8_age_sex.tsv:
 	./all_age_sex.bash
 mri/txt/rest_fd.csv:

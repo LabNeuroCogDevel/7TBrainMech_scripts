@@ -8,7 +8,7 @@ hfixfile <- '/Volumes/Hera/Projects/7TBrainMech/scripts/mri/BIDS/hardcode.txt'
 hardcode_fix <- read.table(hfixfile,comment.char='#', header=T) %>%
    mutate(folder=gsub('/Volumes/Hera/Raw/BIDS/7TBrainMech/rawlinks/','', folder) %>%
                  gsub('_','/',.) %>% gsub('/$','',.)) %>%
-   tidyr::separate(folder, c('luna','vdate','seqno','protocol','count'), sep='/',extra="drop") 
+   tidyr::separate(folder, c('luna','vdate','seqno','protocol','count'), sep='/',extra="drop")
 
 # make niftis in BIDS dir format
 # expect raw dicoms like rawlinks/subj_date/seqno_protcol_ndcm
@@ -48,7 +48,8 @@ info <-
          }) %>%
    bind_rows %>%
    mutate(indir=dirlist) %>%
-   select(-raw)
+   select(-raw) %>%
+   filter(!grepl('SliceFirst',protocol))
 
 # -- identify the things we want to keep
 idxs <- list(
@@ -69,10 +70,10 @@ idxs <- list(
 )
 
 if (!any(lapply(idxs, any)))
-   stop("no matching protocols in input!\n",
+   stop("no matching protocols in input!\n\t",
         info %>%
-         filter(grepl("MP2RAGE|bold", protocol)) %>%
-         print.data.frame(max=99) %>%
+         #filter(grepl("MP2RAGE|bold", protocol)) %>%
+         print.data.frame(max=99, row.names=F) %>%
          capture.output %>%
          paste(collapse="\n\t"))
 

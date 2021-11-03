@@ -1,7 +1,7 @@
 %function score_eog(subj)
 
 if ismac
-    addpath('~/Documents/MATLAB/fieldtrip-20180926/')
+    addpath('~/Documents/MATLAB/fieldtrip-20200928/')
 else
     addpath('/home/ni_tools/matlab_toolboxes/fieldtrip-20180926/');
     addpath('/Volumes/Zeus/Finn/matlab/export_fig-master/'); % for export_fig
@@ -51,7 +51,7 @@ for subji = 1:length(allSubjs)
     fprintf(1, '\nProcessing subject %s (%d/%d), %s %s\n', subj, subji, length(allSubjs), subjid, scandate);
 
     subjdatafile = sprintf('trial_data/%s_%s.mat', subjid, scandate);
-    if exist(subjdatafile, 'file')
+    if 0 %exist(subjdatafile, 'file')
         load(subjdatafile);
         data = [data; thisdata];
         fprintf(1, 'Using existing data for %s %s (%s)\n', subjid, scandate, subjdatafile);
@@ -73,7 +73,7 @@ for subji = 1:length(allSubjs)
     
     
 
-    if 1%~exist('cal','var') || ~strcmp(d(1).id, cal.id)
+    if 1 %~exist('cal','var') || ~strcmp(d(1).id, cal.id)
         try
             %fprintf(1, 'Running calibration for %s\n', subj);
             cal = make_cal(subj, VERBOSE, MAKEFIGS);
@@ -93,6 +93,9 @@ for subji = 1:length(allSubjs)
         clear newd;
     end
 
+    % saccade thresh
+    saccade_VperSample = 30 * abs(cal.slope) / d.Fs; 
+    
     % Get left - right
     eyeDiff = d.eye_l - d.eye_r;
 
@@ -178,6 +181,9 @@ for subji = 1:length(allSubjs)
         isiInd = intInds(find(intCodes>=150 & intCodes<200 & intInds>cueInd, 1, 'first'));
         mgsInd = intInds(find(intCodes>=201 & intCodes<250 & intInds>cueInd, 1, 'first'));
         itiInd = intInds(find(intCodes==254 & intInds>cueInd, 1, 'first'));
+
+        delayDuration = round((mgsInd - isiInd)/d.Fs);
+
         if isempty(itiInd)
             itiInd = length(eogSm)-1;
         end
@@ -195,7 +201,7 @@ for subji = 1:length(allSubjs)
         % get median velocity distribution between cue and vgs
     %    fixVel = median(abs(vel(cueInd:vgsInd)));
         fixVel = median(abs(vel(vgsInd:mgsInd)));
-        velThresh = fixVel*12;
+        velThresh = 30 * abs(cal.slope) / d.Fs; %fixVel*12;
 
         % ------------ VGS ------------
 
@@ -244,7 +250,18 @@ for subji = 1:length(allSubjs)
         % get integral of saccade vel
         vgsVelDisplacement = sum(vgsVel(preZero:postZero));
 
+        % delay saccades
+        if length(saccades) > returnSaccadeIdx
+            delaySaccades = saccades(find(saccades(returnSaccadeIdx+1:end) > (isiInd - vgsInd)));
+            numDelaySaccades = length(delaySaccades);
+        else
+            delaySaccades = 0;
+        end
+        
         if MAKEFIGS
+            if length(delaySaccades) >= 1
+                plot(delaySaccades/d.Fs, vgsVel(delaySaccades), '.b');
+            end
             plot(saccades(1)/d.Fs, vgsVel(saccades(1)), 'og');
             plot(saccades(returnSaccadeIdx)/d.Fs, vgsVel(saccades(returnSaccadeIdx)), 'ob');
             plot(preZero/d.Fs, vgsVel(preZero), 'ok');
@@ -269,6 +286,7 @@ for subji = 1:length(allSubjs)
             plot((saccades(1):saccades(returnSaccadeIdx))/d.Fs, vgsVelDisplacement*ones(1, saccades(returnSaccadeIdx)-saccades(1)+1), '--r')
             ylabel('VGS EOG');
         end
+
 
         % ------------ MGS ------------
 
@@ -322,7 +340,7 @@ for subji = 1:length(allSubjs)
             continue;
         else
             saccadeSign = sign(mgsVel(saccades));
-            returnSaccadeIdx = find(saccadeSign==-1*saccadeSign(1), 1, 'first');
+            returnSaccadeIdx = find(saccadeSign==-1*saccadeSign(1), 1, 'last');
             if isempty(returnSaccadeIdx)
                 saccades(2) = length(mgsVel);
                 returnSaccadeIdx = 2;
@@ -339,7 +357,16 @@ for subji = 1:length(allSubjs)
 
         
         if MAKEFIGS
+            %velScale = d.Fs / abs(cal.slope);
+            t = (1:length(vel_fix))/d.Fs;
+            h(1) = plot((1:length(vel_fix))/d.Fs, vel_fix, 'k');
+            hold on
+            h(2) = plot((1:length(vel_sac))/d.Fs, vel_sac, 'r');
+
             plot(saccades(1)/d.Fs, mgsVel(saccades(1)), 'og');
+            if length(saccades) > 2
+                plot(saccades(2:returnSaccadeIdx-1)/d.Fs, mgsVel(saccades(2:returnSaccadeIdx-1)), 'ok');
+            end
             plot(saccades(returnSaccadeIdx)/d.Fs, mgsVel(saccades(returnSaccadeIdx)), 'ob');
             plot(preZero/d.Fs, mgsVel(preZero), 'ok');
             plot(postZero/d.Fs, mgsVel(postZero), 'ok');
@@ -349,7 +376,16 @@ for subji = 1:length(allSubjs)
 
         mgsLatency = (saccades(1)-Gd/2) / d.Fs;
         mgsDuration = ((saccades(returnSaccadeIdx) - saccades(1))-Gd/2) / d.Fs;
-        meanMGSEOG = mean(mgsEogSm(saccades(1):saccades(returnSaccadeIdx)));
+        meanMGSEOG = mean(mgsEogSm(saccades(1):saccades(returnSaccadeIdx)).*(vel_sac(saccades(1):saccades(returnSaccadeIdx))==0));
+        
+        % get position for EVERY saccade
+        allMGSEOG = [];
+        for saccadei = 1:returnSaccadeIdx-1
+        	allMGSEOG(saccadei) = mean(mgsEogSm(saccades(saccadei):saccades(saccadei+1)).*(vel_sac(saccades(saccadei):saccades(saccadei+1))==0));
+        end
+        [~, minidx] = min(abs(allMGSEOG - meanVGSEOG));
+        bestMGSEOG = allMGSEOG(minidx);
+        
 
         if MAKEFIGS
             %subplot(2,1,2)
@@ -359,6 +395,7 @@ for subji = 1:length(allSubjs)
             hold on
             h(2) = plot((saccades(1):saccades(returnSaccadeIdx))/d.Fs, meanMGSEOG*ones(1, saccades(returnSaccadeIdx)-saccades(1)+1), '-r');
             h(3) = plot((saccades(1):saccades(returnSaccadeIdx))/d.Fs, mgsVelDisplacement*ones(1, saccades(returnSaccadeIdx)-saccades(1)+1), '--r');
+            h(4) = plot((saccades(minidx):saccades(minidx+1))/d.Fs, bestMGSEOG*ones(1, saccades(minidx+1)-saccades(minidx)+1), '--g');
             legend(h, {'EOG smoothed','mean EOG','EOG displacement'}, 'Location', 'NorthEast');
             ylabel('MGS EOG');
 
@@ -372,7 +409,11 @@ for subji = 1:length(allSubjs)
             saccadeDists = [vgsVelDisplacement mgsVelDisplacement mgsVelDisplacement-vgsVelDisplacement]/cal.slope
         end
 
-        thisdata(end+1,:) = [str2double(subjid) str2double(scandate) triali ((meanMGSEOG)-(meanVGSEOG))/cal.slope (mgsVelDisplacement-vgsVelDisplacement)/cal.slope vgsLatency mgsLatency cal.r2];
+        thisdata(end+1,:) = [str2double(subjid) str2double(scandate) triali delayDuration numDelaySaccades ...
+                            ((meanMGSEOG)-(meanVGSEOG))/cal.slope ...
+                            (mgsVelDisplacement-vgsVelDisplacement)/cal.slope ...
+                            ((bestMGSEOG)-(meanVGSEOG))/cal.slope ...
+                            vgsLatency mgsLatency cal.r2];
         
         if MAKEFIGS
             if SAVEFIGS
@@ -399,9 +440,11 @@ end
 
 
 datatable = array2table(data);
-datatable.Properties.VariableNames = {'LunaID','ScanDate','Trial','PositionError','DisplacementError','vgsLatency','mgsLatency','calR2'};
+datatable.Properties.VariableNames = {'LunaID','ScanDate','Trial','Delay','DelaySaccades', 'PositionError','DisplacementError','BestError','vgsLatency','mgsLatency','calR2'};
 
 save(sprintf('eeg_data_%s.mat',datestr(now, 'YYYYmmdd')), 'datatable');
+writetable(datatable, sprintf('eeg_data_%s.csv',datestr(now, 'YYYYmmdd')));
+
 
 rmpath(genpath('~/Documents/MATLAB/fieldtrip-20180926/'))
 

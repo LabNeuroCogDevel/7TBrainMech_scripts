@@ -63,6 +63,7 @@ getld8_hardcoded(){
    [ $patname == '20171009Luna'  ] && ld8="Cat_20171009"
    [ $patname == '20170929Luna'  ] && ld8="David_20170929"
    [ $patname == '20190506Luna1'  ] && ld8="incompleteNoReturn_20190506"
+   [ $patname == '20201030Luna1'  ] && ld8="11818_20201030"
    
    # hardcoded fix
    [ $patname == '20180614Luna1' ] && ld8="11659_20180614"  # was later dropped
@@ -70,7 +71,8 @@ getld8_hardcoded(){
    [ $patname == '20181112Luna1' ] && ld8="11708_20181112"  # added 20181219, no info in dicom
    [ $patname == '20180628Luna1' ] && ld8="11665_20180628"  # added 20181219, no info in dicom
    [ $patname == '20180921Luna1' ] && ld8="11681_20180921"  # came in twice 09-21 and 10-12
-   [ $patname == '20190719Luna2' ] && ld8="11735_20190719"  # not in db as of 20190823 (FIXME)
+   [ $patname == '20190719Luna1' ] && ld8="11735_20190719"  # ERROR had set to Luna2 but is Luna1! (corrected 20200714)
+   [ $patname == '20190719Luna2' ] && ld8="11772_20190719"  # added to correct error above (20200714)
    [ $patname == '20190401Luna1' ] && ld8="11748_20190401"  # has 2 lunaids 11748 (7T ID) or 11515 (PET ID)
 
    # luna1 noshowed, script cannot find causes error
@@ -95,6 +97,19 @@ getld8_hardcoded(){
    
    [ $patname == "20200103Luna11" ] && ld8="11675_20200103"
    [ $patname == "20200103Luna2"  ] && ld8="10202_20200103" # 10202 tp1
+   [ $patname == "20200731Luna1"  ] && ld8="11681_20200731" # 10202 tp1
+
+   # 20210301: 11700_20201113 and  11753_20201009 incorrectly assigned as Luna1!
+   [ $patname == "20201009Luna1"  ] && ld8="11707_20201009" # incomplete
+   [ $patname == "20201009Luna2"  ] && ld8="11753_20201009" # 15:30
+   [ $patname == "20201023Luna1"  ] && ld8="11750_20201023" # 10:30
+   [ $patname == "20201023Luna2"  ] && ld8="11718_20201023" # 15:30
+   [ $patname == "20201113_LUNA1" ] && ld8="11707_20201113" # finished 10-09
+   [ $patname == "20201113Luna2"  ] && ld8="11700_20201113" # 15:30
+   [ $patname == "20210220Luna1"  ] && ld8="11864_20210220" # no dob in sheet
+   [ $patname == "20210419Luna"   ] && ld8="11668_20210419" # dirname is Luna2, but only visit for day
+
+   [ $patname == "20210426Luna"   ] && ld8="11793_20210426" # dirname is Luna2, but only visit for day
    
    
    #[[ $patname == '20180521Luna1' ]] && patname=xxxxx_20180521
@@ -114,7 +129,7 @@ getld8(){
    if [ -z "$ld8" -a -z "$ld8db" ]; then
       echo "$0:${FUNCNAME}:ERROR: $d has no luna in dcm or db?! run again with VERBOSE=1">&2
       #local dt=$(basename $(dirname $d))
-      [[ $d =~ [0-9]{8}Luna ]] || search="??" && search=${BASH_REMATCH:0:8}
+      [[ $d =~ [0-9]{8}Luna ]] && search=${BASH_REMATCH:0:8} || search="??" 
       #echo $dt >&2;
       echo -e "psql -h arnold.wpic.upmc.edu lncddb lncd -c \"select id,vtype,study,vtimestamp from visit natural join person natural join visit_study natural join enroll where to_char(vtimestamp,'YYYYmmdd') like '$search%' and etype like 'LunaID'\"" >&2
       return 1

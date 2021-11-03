@@ -12,12 +12,18 @@ library(data.table)
 library(missMDA)
 library(FactoMineR)
 
+### input files
+MRS_csv <- "/Volumes/Hera/Projects/7TBrainMech/scripts/mri/MRSI_roi/txt/13MP20200207_LCMv2fixidx.csv"
+#  "~/Desktop/Lab/Projects/2020_MRSMGS/13MP20200207_LCMv2fixidx.csv"
+LCM_xlsx <- "/Volumes/Hera/Projects/7TBrainMech/scripts/mri/MRSI_roi/txt/lcm.xlsx"
+#  "~/Desktop/Lab/Projects/2020_MRSMGS/lcm.xlsx"
+
 #### Get data and remove bad quality data ####
-MRS <- read.csv("/Users/mariaperica/Desktop/Lab/Projects/2020_MRSMGS/13MP20200207_LCMv2fixidx.csv")
+MRS <- read.csv(MRS_csv)
 
 # Step 1 Outlier Detection - visual inspection of LCModel fits/spectra
 # create a list of who to remove and remove them
-lcm <- read_excel("/Users/mariaperica/Desktop/Lab/Projects/2020_MRSMGS/lcm.xlsx", col_names = FALSE)
+lcm <- read_excel(LCM_xlsx, col_names = FALSE)
 lcm <- separate(lcm, "...1", c("ld8", "junk","y","x"),extra="merge", sep = "[-.]")
 lcm <- select(lcm, -junk)
 lcm$bad <- TRUE

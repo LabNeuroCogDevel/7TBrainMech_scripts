@@ -34,6 +34,7 @@ eeg <-
 # combine behave and eeg 
 bXeeg <- merge(behave, eeg, by=c('Subject','Trial'))
 bXeeg$logabsPositionError <- log1p(abs(bXeeg$PositionError))
+bXeeg$log1pTrialPower <- log1p(bXeeg$Trial_Power)
 
 # make longer.
 #  {mgs,vgs}Latency and {Position,Displacemnt}Error INTO b_measure->value
@@ -50,11 +51,12 @@ write.csv(bXe_long, 'bXe_long.csv', row.names=F, quote=F)
 #    stat_smooth(method="lm") +
 #    facet_grid(b_measure~band, scales="free")
 
-# summarise and andd outliers detection
+# summarise and and outliers detection
+## this is where you define what you want p to be (which eeg measure)
 subj_smry <- bXe_long %>%
    group_by(Subject, b_measure, band) %>%
    summarise(b_mean=mean(b_value),
-             p_mean=mean(Trial_Power)) %>%
+             p_mean=mean(Event_Duration)) %>%
    # regroup to go accross subjects
    group_by(band, b_measure) %>%
    # get outliers
@@ -84,9 +86,13 @@ all_models <- subj_smry %>%
 # fancy way for doing below for each split
 #  coef(summary(all_models[[1]]))[2,'Pr(>|t|)']
 
+# where to find the pvalue we want in the model summary's coef matrix
+slope_i <- 2
+pr_name <- "Pr(>|t|)"
+
 slope_pvals <-
    all_models %>%
-   sapply(function(.) summary(.) %>% coef %>% `[`(2, 'Pr(>|t|)'))
+   sapply(function(.) summary(.) %>% coef %>% `[`(slope_i, pr_name))
 
 # pull out only those that are better than prob threshold
 p_thres <- .01

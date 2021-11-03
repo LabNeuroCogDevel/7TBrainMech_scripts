@@ -31,7 +31,7 @@ link_master_folder() {
 
    # get id
    id=$(getld8 "$dcmroot" || echo -n "")
-   [ -z "$id" ] && echo "no id from $dcmroot ( $(ls -d $dcmroot/*/ |wc -l) protocol directoires, expect ~ 44)" >&2 && return 1
+   [ -z "$id" ] && echo "no id from $dcmroot, set in func.bash ( $(ls -d $dcmroot/*/ |wc -l) protocol directoires, expect ~ 44)" >&2 && return 1
 
    linktoroot=/Volumes/Hera/Raw/BIDS/7TBrainMech/rawlinks/$id/
    [ ! -d $linktoroot ] && mkdir $linktoroot

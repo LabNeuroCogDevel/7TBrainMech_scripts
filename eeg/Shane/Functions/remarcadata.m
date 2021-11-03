@@ -3,7 +3,7 @@ function [EEG] = remarcadata(dryrun)
 % should we actually run, or just say what we'd do (dry run)
 % defaut to just printing, not actually running
 if nargin < 1
-    dryrun=1;
+    dryrun=0;
 end
 eeglab
 

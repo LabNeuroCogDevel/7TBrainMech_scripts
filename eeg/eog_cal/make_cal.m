@@ -134,7 +134,7 @@ if MAKEFIGS
         subplot(7,7,triali)
         ax = get(gca);
         xr = diff(ax.XLim); yr = diff(ax.YLim);
-        text(ax.XLim(1)+.6*xr, ax.YLim(1)+.75*yr, sprintf('res = %.3g\nz=%.3f\nw = %.3f', fitData(triali,3), z(triali), w(triali)), 'FontSize', 10);
+%        text(ax.XLim(1)+.6*xr, ax.YLim(1)+.75*yr, sprintf('res = %.3g\nz=%.3f\nw = %.3f', fitData(triali,3), z(triali), w(triali)), 'FontSize', 10);
     end
     
     export_fig(sprintf('fits/calFits_%s.png', subj), '-r100');
