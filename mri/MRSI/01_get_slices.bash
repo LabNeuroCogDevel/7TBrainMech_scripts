@@ -141,6 +141,9 @@ for sraw in ${list[@]}; do
    "11681_20200731/0019_B0Scout33Slice_66"
    # 20201105 - 2 Hc scouts. first good 66 is PFC
    "11790_20190916/0024_B0Scout33Slice_66"
+   # 20211103
+   "11803_20210816/0015_B0Scout33Slice_66"
+   "11725_20200724/0017_B0Scout33Slice_66" # log says 15, but 17 is right after
    # FF scans
    "20180824FF2/0023_B0Scout33Slice_66"
    )
@@ -167,12 +170,25 @@ for sraw in ${list[@]}; do
    elif [ $n -eq 2 ]; then
       slice_dcm_dir=$(lsscout "$sraw" |sed 1q)
    else
-      echo "# $ld8: bad slice raw dir num ($n ${sraw}*{82,66}*, expect 2)" >&2
+      echo "# $ld8: bad slice raw dir num ($n of expect 2)" >&2
       # if no matches. point to raw directory
       [ $n -eq 0 ] && echo "search for missing link in '$(dirname $(readlink -f $(ls -d $sraw/*|sed 1q)))';
         also ../BIDS/000_dcmfolder_201906fmt.bash" && continue
       echo "# 1. pick best from: ../MRSI_roi/examine_prospect_slices $sraw/*{82,66}*" >&2
-      echo "# 2. hardcode best protocol directory within 'force_dir' in $0"
+      echo "     and see  /Volumes/L/bea_res/7T/fMRI/7T_fMRI_Scan_Log.xlsx" >&2
+      ls -d ${sraw}/*{82,66}* |sed 's/^/\t/' >&2
+      echo "# 2. hardcode best protocol directory within 'force_dir' in $0" >&2
+      echo "### for what it's worth. database thinks the right slice number is:" >&2
+      lncddb "select id, vtimestamp, measures->'PFC_Spectroscopy', measures->'Notes'
+              from visit_task
+              natural join visit
+              join enroll on visit.pid = enroll.pid and etype like 'LunaID'
+              where task like 'ScanLog' and
+              id like '${ld8%_*}' and
+              to_char(vtimestamp,'YYYYMMDD') like '${ld8#*_}' and
+              vtype like '%Scan%';" >&2
+
+
       continue
    fi
 

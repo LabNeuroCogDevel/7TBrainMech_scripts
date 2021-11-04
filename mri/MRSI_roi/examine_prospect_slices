@@ -12,43 +12,86 @@ from docopt import docopt
 from glob import glob
 # import nibabel.nicom.dicomwrappers as dcmw
 import matplotlib.pyplot as plt
+import matplotlib.image as im
 import numpy as np
 import pydicom.filereader as dcmr
 import os
 
-opts = docopt(__doc__)
 
+def mid(d, ax=0):
+    sp = d.shape
+    if ax == 0:
+        return d[int(sp[0]/2),:,:]
+    elif ax == 1:
+        return d[:, int(sp[1]/2),:]
+    elif ax == 2:
+        return d[:,:,int(sp[2]/2)]
+    else:
+        raise Exception("index out of bounds")
+
+def read_dicoms(g):
+    """
+    read dicoms. pull only the first echo time frames
+    and order by slice location
+    """
+    ds = [dcmr.read_file(f) for f in g]
+    ds = sorted(ds, key=lambda i: float(i.SliceLocation))
+    ds = [i for i in ds if i.EchoTime == ds[0].EchoTime]
+    return(ds)
 
 def dcm_center(folder):
+    # each dcm is an axial slice
+    # want sag, cor, ax
+    #      0     1   2
     gstr = '%s/*.IMA' % folder
     g = glob(gstr)
-    print("# read %d dcms in %s" % (len(g), folder))
-    d = [dcmr.read_file(f).pixel_array for f in g]
-    x = np.stack(d, 2)
-    return (x, dcmr.read_file(g[0]))
+    ds = read_dicoms(g)
+    allpx = [ i.pixel_array for i in ds]
+    encdir = ds[0].InPlanePhaseEncodingDirection
+    print(f"# read {len(ds)}/{len(g)} {encdir} dcms in {folder}")
+
+    if encdir == 'COL':
+        # axial bottom to top
+        img3d = np.stack(allpx, 2)
+    else: # ROW
+        img3d = np.stack(allpx, 2)
+
+    middle = np.rot90(mid(img3d,1))
+    return (img3d, ds[0], middle)
 
 
-imgs = [dcm_center(f) for f in opts.get('<slicedir>')]
-print('# init plots')
-fg, ax = plt.subplots(len(imgs), 1)
+def main(opts):
+    idealimg = im.imread('ideal_pfc_slice.png')
 
-# if only one, subplot wont give an array. force array
-if len(imgs) == 1:
-    ax = [ax]
-for i, xd in enumerate(imgs):
-    x = xd[0]
-    d = xd[1]
-    dirname = os.path.basename(opts.get('<slicedir>')[i])
-    title = "%d %s %s %s" % (i, d.ProtocolName, dirname, d.AcquisitionTime)
-    print("# add %s" % title)
-    imslice = np.rot90(x[:, int(x.shape[1]/2), :])
-    ax[i].imshow(imslice, cmap=plt.cm.bone)
-    ax[i].set_title(title)
-    ax[i].axis('off')
+    imgs = [dcm_center(f) for f in opts.get('<slicedir>')]
+    print('# init plots')
+    fg, ax = plt.subplots(len(imgs)+1, 1)
 
-# show or save
-imgname = opts.get('--save')
-if imgname:
-    plt.savefig(imgname)
-else:
-    plt.show()
+    # show ideal image
+    ax[0].imshow(idealimg)
+    ax[0].set_title("ideal")
+    ax[0].axis('off')
+
+    # if only one, subplot wont give an array. force array
+    for i, xd in enumerate(imgs):
+        x = xd[0]
+        d = xd[1]
+        imslice = xd[2]
+        dirname = os.path.basename(opts.get('<slicedir>')[i])
+        title = "%d %s %s %s %s" % \
+                (i, d.ProtocolName, dirname, d.AcquisitionTime, d.InPlanePhaseEncodingDirection)
+        print("# add %s" % title)
+        ax[i+1].imshow(imslice, cmap=plt.cm.bone)
+        ax[i+1].set_title(title)
+        ax[i+1].axis('off')
+
+    # show or save
+    imgname = opts.get('--save')
+    if imgname:
+        plt.savefig(imgname)
+    else:
+        plt.show()
+
+if __name__ == "__main__":
+    opts = docopt(__doc__)
+    main(opts)
