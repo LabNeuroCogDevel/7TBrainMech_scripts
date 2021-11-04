@@ -144,6 +144,23 @@ for sraw in ${list[@]}; do
    # 20211103
    "11803_20210816/0015_B0Scout33Slice_66"
    "11725_20200724/0017_B0Scout33Slice_66" # log says 15, but 17 is right after
+   "11630_20210717/0016_B0Scout33Slice_66" # log says 13, but 16 is only avail
+   "11813_20210625/0018_B0Scout33Slice_66" # log says 20, but 18 is only
+   "11799_20210621/0017_B0Scout33Slice_66" # reshiming threw off count. scanlog says "13"
+   "11732_20210619/0014_B0Scout33Slice_66" # sheet has 17, but dne
+   "11689_20210605/0017_B0Scout33Slice_66" # sheet has 14, but only 17 exists
+   "11824_20210522/0020_B0Scout33Slice_66" # sheet=17
+   "11821_20210521/0024_B0Scout33Slice_66" # sheet=15 only 2, ended early
+   "11865_20210517/0019_B0Scout33Slice_66" # sheet=14, only 2
+   "11790_20210430/0016_B0Scout33Slice_66" # only 2
+   "11864_20210220/0026_B0Scout33Slice-RSI_66" # no notes. lots of extra scans. 27 looks like phase
+   "11822_20210218/0027_B0Scout33Slice_66" # sheet=27, also have 37 and 44. go wtih sheet value 
+   "11515_20201109/0016_B0Scout33Slice_66" # only 2
+   "11751_20201105/0016_B0Scout33Slice_66" # only 2, sheet=23 (but that's BOLD)
+   "11734_20201029/0029_B0Scout33Slice_66" # 2 start shims. only pfc/no hc
+   "11750_20201023/0023_B0Scout33Slice_66" # 2 shims at start. only pfc/no hco
+   "11632_20191017/0030_B0Map33Slice_165"  # scouts dont have 2 echos?
+
    # FF scans
    "20180824FF2/0023_B0Scout33Slice_66"
    )
@@ -174,11 +191,13 @@ for sraw in ${list[@]}; do
       # if no matches. point to raw directory
       [ $n -eq 0 ] && echo "search for missing link in '$(dirname $(readlink -f $(ls -d $sraw/*|sed 1q)))';
         also ../BIDS/000_dcmfolder_201906fmt.bash" && continue
-      echo "# 1. pick best from: ../MRSI_roi/examine_prospect_slices $sraw/*{82,66}*" >&2
-      echo "     and see  /Volumes/L/bea_res/7T/fMRI/7T_fMRI_Scan_Log.xlsx" >&2
-      ls -d ${sraw}/*{82,66}* |sed 's/^/\t/' >&2
+      echo "# 1. pick best using " >&2
+      echo "  ../MRSI_roi/examine_prospect_slices $sraw/*{82,66}*" >&2
+      echo " " >&2
+      (ls -d ${sraw}/*{82,66}*||:) |sed 's/^/\t/' >&2
       echo "# 2. hardcode best protocol directory within 'force_dir' in $0" >&2
-      echo "### for what it's worth. database thinks the right slice number is:" >&2
+      echo "### for what it's worth" >&2
+      echo "    from /Volumes/L/bea_res/7T/fMRI/7T_fMRI_Scan_Log.xlsx has this seq number+note:" >&2
       lncddb "select id, vtimestamp, measures->'PFC_Spectroscopy', measures->'Notes'
               from visit_task
               natural join visit
