@@ -22,8 +22,10 @@ afni \
    -com "SWITCH_UNDERLAY mprage_in_slice.nii.gz" \
    -com "SET_FUNCTION csi_rois_slice_${ld8}_216x216.nii.gz" \
    -dset \
-   /Volumes/Hera/Projects/7TBrainMech/subjs/$ld8/slice_PFC/MRSI/parc_group/rorig.nii \
    /Volumes/Hera/Projects/7TBrainMech/subjs/$ld8/slice_PFC/{mprage_in_slice.nii.gz,slice_pfc.nii.gz} \
+   /Volumes/Hera/Projects/7TBrainMech/subjs/$ld8/slice_PFC/ppt1/mprage_warp_linear.nii.gz \
+   /Volumes/Hera/Projects/7TBrainMech/subjs/$ld8/slice_PFC/MRSI/parc_group/rorig.nii \
+   /Volumes/Hera/Projects/7TBrainMech/subjs/$ld8/slice_PFC/ppt1/mprage_bet.nii.gz \
    /Volumes/Hera/Projects/7TBrainMech/subjs/$ld8/slice_PFC/MRSI_roi/raw/csi_rois_slice_$ld8*.nii.gz \
    /opt/ni_tools/standard/mni_icbm152_nlin_asym_09c/mni_icbm152_t1_tal_nlin_asym_09c.nii \
    /Volumes/Hera/Projects/7TBrainMech/scripts/mri/MRSI_roi/csi_rois_mni_MPRO_20190425.nii.gz \
