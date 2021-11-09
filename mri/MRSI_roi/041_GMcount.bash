@@ -4,6 +4,9 @@ trap 'e=$?; [ $e -ne 0 ] && echo "$0 exited in error"' EXIT
 #
 #  generate txt file with GM counts
 #
+[ -v DRYRUN ] && DRYRUN=echo || DRYRUN=
+writeto() { [ -z "$DRYRUN" ] && cat > $@ || echo "# would write to $@"; }
+
 atlas=13MP20200207
 roi_gmpctout=roi_percent_cnt_$atlas.txt
 nroi=$(3dBrickStat -max roi_locations/ROI_mni_$atlas.nii.gz | sed 's/[ \t]*//g')
@@ -28,6 +31,7 @@ for coords_mprage in ${all_mprage[@]}; do
    cd $(dirname $coords_mprage)
 
    [ -r $doneflag ] && echo "finished $(pwd) $(cat $doneflag)" &&  continue
+   [ -r $roi_gmpctout ] && echo "ERROR $(pwd): have $doneflag but not $roi_gmpctout!? inspect dir and remove done flag" && continue
    # generate gm mask, put in dim's of mprage
    resampled_gm=fs_gmmask_mprage.nii.gz
    if [ ! -r $resampled_gm ]; then
@@ -35,11 +39,13 @@ for coords_mprage in ${all_mprage[@]}; do
        mri_binarize --i $aparcaseg --gm --o gmmask.mgz;
        mri_convert gmmask.mgz fs_gmmask.nii.gz;
        rm gmmask.mgz"
-      eval "$cmd"
-      3dNotes -h "$cmd" fs_gmmask.nii.gz
+      $DRYRUN eval "$cmd"
+      $DRYRUN 3dNotes -h "$cmd" fs_gmmask.nii.gz
       AFNI_NIFTI_TYPE_WARN=NO \
-         3dresample -inset fs_gmmask.nii.gz  -master $coords_mprage -prefix fs_gmmask_mprage.nii.gz -overwrite
+         $DRYRUN 3dresample -inset fs_gmmask.nii.gz  -master $coords_mprage -prefix fs_gmmask_mprage.nii.gz -overwrite
    fi
+
+   [ ! -r $resampled_gm -a -n "$DRYRUN" ] && echo "# DRYRUN: cannot write $roi_gmpctout w/o making $resampled_gm" && continue
 
    if [ $(3dinfo -ad3 -n4 $coords_mprage $(pwd)/fs_gmmask_mprage.nii.gz |sort -u |wc -l) -ne 1 ]; then
       echo "wrong dims?! $(pwd)/fs_gmmask_mprage.nii.gz doesn't match, redone as $resampled_gm"
@@ -51,11 +57,11 @@ for coords_mprage in ${all_mprage[@]}; do
      sed 1d|
      paste - -|
      cat -n|
-     sed "s/^/$ld8 $atlas /" > $roi_gmpctout
+     sed "s/^/$ld8 $atlas /" |writeto $roi_gmpctout
 
    awksize="$(awk 'END{print NR,NF }' $roi_gmpctout)"
    [ "$awksize" == "$nroi 5" ] &&
-      echo "$(date) $0" > $doneflag ||
+      echo "$(date) $0" |writeto $doneflag ||
       echo "BAD ROI file: '$awksize' != '$nroi 5'; $(pwd)/$roi_gmpctout!"
 
 done
