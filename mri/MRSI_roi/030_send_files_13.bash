@@ -14,14 +14,13 @@ env |grep -q "^DRYRUN=" && DRYRUN="echo" || DRYRUN=""
 
 nspecfiles=13  # number of coords
 atlas=13MP20200207
-INPICKONLY=1   # only copy if in pick_coords.txt?, ="" to disable
+INPICKONLY="" # 1   # only copy if in pick_coords.txt?, ="" to disable, =1 enable
 
 subj_root=$(cd $(pwd)/../../../subjs/; pwd)
 # change me - outputfoldername version
 # version=20200224      # init
 # version=20200311      # second pass
 version=$(date +%Y%m%d) 
-rawversion="-v2idxfix" # 20200413 - fix bad coords!
 
 _findspecs(){
    # default to "newer" find
@@ -29,9 +28,9 @@ _findspecs(){
    local id="*"
    [ "$1" == "id" ] && id="$2" && newer=""
    # pre 2020-04-13 - when coord_mover didn't also mkspectrum
-   #find $subj_root/$id/slice_PFC/MRSI_roi/raw$rawversion/ -iname '*spectrum.[0-9]*' $newer -exec stat -c "%y %n" {} \+ 
+   #find $subj_root/$id/slice_PFC/MRSI_roi/raw-v2idxfix/ -iname '*spectrum.[0-9]*' $newer -exec stat -c "%y %n" {} \+ 
    # now coord mover makes it's own spectrum files
-   find $subj_root/$id/slice_PFC/MRSI_roi/$atlas/ -iname '*spectrum.[0-9]*' $newer -exec stat -c "%y %n" {} \+ 
+   find "$subj_root/$id/slice_PFC/MRSI_roi/$atlas/" -iname '*spectrum.[0-9]*' $newer -exec stat -c "%y %n" {} \+
 }
 usage(){ echo "USAGE: $0 new OR $0 20yy-mm-dd OR $0 ld8list.txt" && exit 1; }
 
