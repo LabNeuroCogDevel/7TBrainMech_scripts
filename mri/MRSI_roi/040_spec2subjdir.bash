@@ -19,7 +19,10 @@ unzipfolder="/Volumes/Hera/Raw/MRprojects/7TBrainMech/MRSI_BrainMechR01/202*_$at
 #  - position rois ./coord_builder.bash build rois
 #  - generate spectrum ./020_mkspectrum_ifftgui.bash
 #  - sent to victor ./030_send_files_13.bash
-#  - rsync pulled nightly and unziped (e.g. /Volumes/Hera/Raw/MRprojects/7TBrainMech/MRSI_BrainMechR01/20200224_13specs_processed.zip)
+#  xx rsync pulled nightly and unziped (e.g. /Volumes/Hera/Raw/MRprojects/7TBrainMech/MRSI_BrainMechR01/20200224_13specs_processed.zip)
+#  - 0401_unzip.bash -- unzipped lcmodel files returned from MRRC (usually by email)
+#    usage like  ./040_spec2subjdir.bash /Volumes/Hera/Raw/MRprojects/7TBrainMech/Processed_Victor/20220118_13MP20200207specs/spectrum_out/20220118_13MP20200207specs/1*
+#
 #  20200310WF  init
 #  20211109WF  add usage and for 'all' or directory/glob via FILES
 
