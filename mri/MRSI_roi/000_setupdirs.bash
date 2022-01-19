@@ -65,6 +65,10 @@ fi
 ## input is subject id
 ld8="$1"
 
+# known to not have PFC (so stop complaining)
+[[ "$ld8" =~ 11681_20181012|11793_20210726 ]] && echo "# $ld8 is not a PFC session (hardcoded skip in $0)" && exit 0
+[[ "$ld8" =~ 11467_20180608|11645_20180518 ]]  && echo "# $ld8 is known MIA (hardcoded skip in $0)" && exit 0
+
 
 ## get mrid from id lookup (from id_list.bash)
 MRID="$(grep "$ld8" ../MRSI/txt/ids.txt|cut -d' ' -f2)"
@@ -93,7 +97,7 @@ slice_num=$(basename $MPRAGE | cut -f1 -d_)
 # afni needs zero based count
 slice_num_0=$((($slice_num - 1)))
 [ $slice_num_0 != 16 -a $slice_num_0 != 20 ] &&
-   echo "unexpected slice number zero-based slice index '$slice_num' ($slice_num_0 != 16 or 20), from $MPRAGE" && exit 1
+   echo "WARNING: unexpected slice number '$slice_num' (0-based idx $slice_num_0 != 16 or 20), from $MPRAGE" #&& exit 1
 
 ## check final output -- no need to run if we already have it
 sdir=/Volumes/Hera/Projects/7TBrainMech/subjs/$ld8/slice_PFC/MRSI_roi/raw
