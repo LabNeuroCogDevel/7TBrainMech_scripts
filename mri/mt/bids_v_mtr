@@ -1,0 +1,23 @@
+#!/usr/bin/env perl
+use strict; use warnings; use v5.28;
+
+# 20220221 - used by Makefile. could be used by ./mt_warp.bash too
+# go between BIDS input and expected output
+# /Volumes/Hera/Raw/BIDS/7TBrainMech/sub-xxxxx/yyyymmdd/mt/sub-xxxxx_MT_acq-no.nii.gz
+# /Volumes/Hera/Projects/7TBrainMech/subjs/xxxxx/yyyymmdd/mt/MTR1.nii.gz
+
+# output to raw OR raw to output
+# different enough that we can try both
+# no match (for either) than no output
+sub parse {
+  chomp;
+  say $_ if
+  s:/Volumes/Hera/Projects/7TBrainMech/subjs/(\d{5})_(\d{8})/mt/MTR1.nii.gz:/Volumes/Hera/Raw/BIDS/7TBrainMech/sub-$1/$2/mt/sub-$1_MT_acq-no.nii.gz:
+  or
+  s:/Volumes/Hera/Raw/BIDS/7TBrainMech/sub-(\d{5})/(\d{8})/mt/.*:/Volumes/Hera/Projects/7TBrainMech/subjs/$1_$2/mt/MTR1.nii.gz: 
+}
+# inputs as argumewnts
+parse while($_=pop @ARGV);
+# and inputs as pipe
+if( ! -t STDIN) {parse while(<>) }
+

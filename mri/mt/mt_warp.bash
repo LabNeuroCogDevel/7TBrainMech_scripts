@@ -7,7 +7,7 @@ trap 'e=$?; [ $e -ne 0 ] && echo "$0 exited in error $e"' EXIT
 #
 # 20191121WF - copied from /Volumes/Phillips/mMR_PETDA/scripts/MT/04_warpMTs+pdiff.bash
 # 20220221WF - revisit. put into 7T subject folder
-
+warn(){ echo "$@" >&2; }
 shot(){
  f=$1
  [ -z "$f" -o ! -r "$f" ] && warn "shots given bad input file" && return 1
@@ -38,6 +38,7 @@ align() {
    #-cost lpc+ZZ 
 
   out=${infix}${suffix}+orig.HEAD
+  # make nifit so we can use slicer in shot
   3dcopy "$out" "${final}"
   shot "$final"
 }
@@ -83,20 +84,26 @@ _mtr(){
   done
 
   # using afni +orig b/c lazy. "align" function expects "+orig." names
-  3dcopy "$yes" MT1+orig.
-  3dcopy "$no" MT2+orig.
-  test ! -r $(basename "$anat") && ln -s "$anat" $_
+  test -r MT1+orig.HEAD   || 3dcopy "$yes" $_
+  test -r noMT1+orig.HEAD || 3dcopy "$no" $_
+  ! test -r $(basename "$anat") && ln -s "$anat" $_
 
+  # makes  MT1_al2anat1+orig (and symlinks to MT1al+orig)
   align MT1+orig. "$anat" _al2anat1 -giant_move  
-  align MT2+orig. MT1_al2anat1+orig. _al2M1anat -giant_move  
-  convert img/MT[12]al.png img/noMT[12]al.png img/all.gif
-  calcmtr MT1al.nii.gz noMT1al.nii.gz anat+orig MTR1.nii.gz
+
+  # noMTs
+  # makes  noMT1_al2MT1+orig (and noMT1al.nii.gz)
+  align noMT1+orig. MT1_al2anat1+orig. _al2MT1 -giant_move
+
+  #convert img/MT[12]al.png img/noMT[12]al.png img/all.gif
+  calcmtr MT1al.nii.gz noMT1al.nii.gz "$anat" MTR1.nii.gz
 }
 bids_id() { perl -plne 's/.*?sub-//; s/_.*//;s:/:_:g' <<< "$@";}
 
 # bids session folder with 'mt' folder
 if [[ "$(caller)" =~ ^0\ * ]]; then
-   [ $# -ne 1 ] && echo "USAGE: $0 bid_subj_dir" && exit 1
+   [ $# -ne 1 ] && echo "USAGE: $0 bid_subj_dir
+$0  /Volumes/Hera/Raw/BIDS/7TBrainMech/sub-10129/20180917/" && exit 1
 
    # want absolute path that exists and has mt directory
    subdir="$1"; shift
