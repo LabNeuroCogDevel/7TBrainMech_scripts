@@ -23,3 +23,6 @@ roi_locations/ROI_mni_13MP20200207.nii.gz: | roi_locations/20200207_rmsome.bash
 .make/slice_roi.ls: .make/FS_scout_registration.ls atlas_roi
 	SHOWFINISH="" ./000_setupdirs.bash all
 	@mkls $@ '/Volumes/Hera/Projects/7TBrainMech/subjs/*/slice_PFC/MRSI_roi/raw/slice_roi*.txt'
+
+txt/13MP20200207_LCMv2fixidx.csv: $(wildcard /Volumes/Hera/Projects/7TBrainMech/subjs/1*_2*/slice_PFC/MRSI_roi/LCModel/v2idxfix/)
+	./050_merge.R
