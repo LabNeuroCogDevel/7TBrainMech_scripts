@@ -1,3 +1,8 @@
+*.nii.gz
+*.nii
+*HEAD
+*BRIK
+*BRIK.gz
 .Rproj.user
 .Rhistory
 .RData

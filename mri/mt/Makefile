@@ -13,10 +13,12 @@ all: ${MTR}
 # help from 
 # https://stackoverflow.com/questions/3745177/multi-wildcard-pattern-rules-of-gnu-make
 # $$shell and $$< are evaluated on second pass. variable 'mtr' defined/set by foreach loop (?)
+# "-" is continue if failed. one missing:
+#    /Volumes/Hera/Raw/BIDS/7TBrainMech/sub-11689/20210605/mt/*_MT_acq-yes.nii.gz
 # input to mt_warp should be bids session directory
 define MT2MTR
 $(mtr): $(shell ./bids_v_mtr $(mtr))
-	./mt_warp.bash $$(shell sed s/mt.*// <<< $$<)
+	-./mt_warp.bash $$(shell sed s/mt.*// <<< $$<)
 endef
 
 $(foreach mtr,$(MTR),$(eval $(call MT2MTR,mtr)))

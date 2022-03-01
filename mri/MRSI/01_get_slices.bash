@@ -66,23 +66,8 @@ case $1 in
 esac
 
 
-for sraw in ${list[@]}; do
-   # maybe we gave a lunaid_date instead of a directoyr?
-   [ ! -d $sraw ] && sraw=$RAW_PATH/$sraw
-   [ ! -d $sraw ] && echo "# bad input: no directory like $sraw" >&2 && continue
 
-   # is this a luna_date
-   if [[ $STUDY_PATH =~ 7TBrainMech ]]; then
-      ! [[ $(basename $sraw) =~ [0-9]{5}_[0-9]{8} ]] && echo "# no lunadate in '$sraw'" >&2 && continue
-      ld8=$BASH_REMATCH
-   else
-      # Fabio subject
-      ld8=$(basename $sraw)
-   fi
-
-
-
-   force_dir=( \
+force_dir=( \
    "10195_20180129/0023_B0Scout33Slice_66"
    "11451_20180216/0024_B0Scout41Slice_82"
    "11685_20180907/0031_B0Scout33Slice_66"
@@ -160,6 +145,8 @@ for sraw in ${list[@]}; do
    "11734_20201029/0029_B0Scout33Slice_66" # 2 start shims. only pfc/no hc
    "11750_20201023/0023_B0Scout33Slice_66" # 2 shims at start. only pfc/no hco
    "11632_20191017/0030_B0Map33Slice_165"  # scouts dont have 2 echos?
+   # 20211123
+   11683_20211106/0017_B0Scout33Slice_66   # only 1 exists. incomplete scan maybe okay. would be discared anway
 
    # FF scans
    "20180824FF2/0023_B0Scout33Slice_66"
@@ -167,6 +154,36 @@ for sraw in ${list[@]}; do
    # 11668_20180728 # DNE
    # 11661_20180720 # run twice. only picked up second runn. maybe okay to use only one
    # 11760_20190311/002[468] # whicch?
+
+skiplist=( "11793_20210726 2ndsession no PFC"
+"11695_20200904 cancelled"
+"11722_20200713 cancelled"
+"11716_20200904 cancelled"
+"11748_20201109 same subject as 11515_20201109 -- double lunaid")
+
+for sraw in ${list[@]}; do
+
+   # is this a luna_date
+   if [[ $STUDY_PATH =~ 7TBrainMech ]]; then
+      ! [[ $(basename $sraw) =~ [0-9]{5}_[0-9]{8} ]] && echo "# no lunadate in '$sraw'" >&2 && continue
+      ld8=$BASH_REMATCH
+   else
+      # Fabio subject
+      ld8=$(basename $sraw)
+   fi
+
+   # skip known bad/missing
+   for skip in "${skiplist[@]}"; do
+      [[  "$skip" =~ ^$ld8 ]] || continue
+      echo "# $skip"
+      continue 2
+   done
+
+   # maybe we gave a lunaid_date instead of a directoyr?
+   [ ! -d $sraw ] && sraw=$RAW_PATH/$sraw
+   [ ! -d $sraw ] && echo "# bad input: no directory like $sraw" >&2 && continue
+
+
    # missing dicoms!
    #elif [ $ld8 == "11543_20180804" ]; then
    #   slice_dcm_dir="$sraw/"
@@ -254,14 +271,16 @@ for sraw in ${list[@]}; do
    #[ ! -r slice_pfc_native.nii.gz -o ! -r slice_pfc_to_native.mat ] && 
 
    [ ! -r mprage_in_slice.nii.gz -o ! -r mprage_to_slice.mat ] && 
-     flirt -ref slice_pfc.nii.gz -in ppt1/mprage.nii.gz -o mprage_in_slice.nii.gz -omat mprage_to_slice.mat ||
+     niinote mprage_in_slice.nii.gz flirt -ref slice_pfc.nii.gz -in ppt1/mprage.nii.gz -o mprage_in_slice.nii.gz -omat mprage_to_slice.mat ||
         echo "# $ld8: have $(pwd)/slice_pfc_native.nii.gz" >&2
 
    # 3dcalc -a slice_pfc.nii.gz -expr 'equals(k,17) * a' -prefix spfc_17.nii.gz -overwrite
    # provide roi in mprage and slice space. former to check if latter is bad
    if [ ! -r roi_slice.nii.gz ]; then
-      applywarp -i $mni_atlas -o roi_mprage.nii.gz -r ppt1/mprage.nii.gz     -w ppt1/template_to_subject_warpcoef.nii.gz --interp=nn
-      applywarp -i $mni_atlas -o roi_slice.nii.gz  -r slice_pfc.nii.gz  -w ppt1/template_to_subject_warpcoef.nii.gz --postmat=mprage_to_slice.mat --interp=nn
+      niinote roi_mprage.nii.gz \
+         applywarp -i $mni_atlas -o roi_mprage.nii.gz -r ppt1/mprage.nii.gz     -w ppt1/template_to_subject_warpcoef.nii.gz --interp=nn
+      niinote roi_slice.nii.gz \
+         applywarp -i $mni_atlas -o roi_slice.nii.gz  -r slice_pfc.nii.gz  -w ppt1/template_to_subject_warpcoef.nii.gz --postmat=mprage_to_slice.mat --interp=nn
       echo "# made $(pwd)/roi_slice.nii.gz"
    fi
 

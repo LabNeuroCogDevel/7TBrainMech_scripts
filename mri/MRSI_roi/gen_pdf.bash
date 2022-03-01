@@ -5,10 +5,16 @@ cd $(dirname $0)
 
 #
 # 20200402WF - init - make pdfs of first page
-#
+# 20220221WF - require specify newer than date
 
 pg=1
-newer=2020-04-19
+[ $# -ne 1 ] && echo "USAGE: $0 yyyy-mm-dd
+create giant pdf from page $pg of csi.ps newer than provided date for visual QC
+" >&2 && exit 1
+#newer=2020-04-19
+newer="$1"
+[[ ! $newer =~ ^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]$ ]] && echo "BAD DATE '$newer'. want yyyy-mm-dd" >&2 && exit 1
+
 tmpdir=$(mktemp -d /tmp/mrsi-pdfs-XXXX)
 test -d $tmpdir || mkdir $_
 #find /Volumes/Hera/Raw/MRprojects/7TBrainMech/MRSI_BrainMechR01/HPC/ProcessedHc20200422/20*/spectrum*.dir -type f -name csi.ps -newermt $newer | while read f; do

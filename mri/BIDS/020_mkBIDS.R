@@ -27,6 +27,7 @@ if(length(args)>0L) {
    matchesrawlink <- grepl('rawlinks/',args)
    if(!all(matchesrawlink)) stop('inputs must be rawlink directories!\n Bad inputs:', paste("\n\t", args[!matchesrawlink]))
    dirlist <- lapply(args,function(x) gsub('^.*rawlinks/', 'rawlinks/', x) %>% gsub("/$", "", .) %>% paste0('/*/') %>% Sys.glob) %>% unlist
+   cat("# given: ",paste(collapse=", ",dirlist), "\n")
 } else {
    dirlist <- Sys.glob("rawlinks/1*_2*/*/")
 }
@@ -57,7 +58,7 @@ idxs <- list(
   t1 = grepl("^MP2RAGEPTX.TR6000.*.UNI.DEN$", info$protocol, perl=T) &
            info$ndcm %in% c(256, 192),
   t1low = grepl("^MPRAGE.*GRAPPA1mm", info$protocol, perl=T) &
-           info$ndcm %in% c(192),
+           info$ndcm %in% c(192, 144),
   MGS= grepl("bold.*(TASK|MGS|tacq2s-180).*", info$protocol) &
              info$ndcm %in% c(9216,192), # 20191220 -  allow new mosaic 192
   MGSshort = grepl("bold.*MGS-run[1-3]-p[12]", info$protocol) &

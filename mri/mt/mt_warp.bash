@@ -9,13 +9,15 @@ trap 'e=$?; [ $e -ne 0 ] && echo "$0 exited in error $e"' EXIT
 # 20220221WF - revisit. put into 7T subject folder
 warn(){ echo "$@" >&2; }
 shot(){
- f=$1
+ underlay=""
+ f"=$1"; shift
+ [ $# -eq 1 ] && underaly="$1" && shift
  [ -z "$f" -o ! -r "$f" ] && warn "shots given bad input file" && return 1
  [ ! -d img ] && mkdir img
  output=img/$(basename $f .nii.gz).png
  [ -r $output ] && return 0
 
- slicer $f -a >( convert - -background white label:$(basename $f .nii.gz) -gravity center -append $output)
+ slicer $underlay "$f" -a >( convert - -background white label:"$(basename "$f" .nii.gz)" -gravity center -append "$output")
 }
 align() {
   infix=$(basename "$1" +orig.)

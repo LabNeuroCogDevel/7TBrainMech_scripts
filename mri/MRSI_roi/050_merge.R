@@ -67,8 +67,11 @@ query <-
           from person
           natural join enroll
           where id in (%s)", .)
-
-r <- LNCDR::db_query(query)
+#cat("#",query,"\n")
+# 20220119 - DB id down. wrote file from backup db
+read_backup_dob<-function(){read.table('txt/id_sex_dob.txt', sep="\t",header=T) %>% mutate(dob=lubridate::ymd(dob));}
+#r <- tryCatch(stop("testing"), error=function(e) {print(e); read_backup_dob()})
+r <- tryCatch(LNCDR::db_query(query), error=function(e) {print(e); read_backup_dob();})
 
 sep <-
    d %>% tidyr::separate(ld8, c("id", "vdate"), remove=F) %>%

@@ -89,6 +89,7 @@ if [ $# -eq 0 ]; then
 USAGE: 
   $0 all
   $0 /Volumes/Hera/Raw/MRprojects/7TBrainMech/20180607Luna1/20180607LUNA1DCMALL/
+  $0 /Volumes/Hera/Raw/MRprojects/7TBrainMech/20211*/DICOM
 HD
 fi
 # if no input, look at inputdirs.txt
