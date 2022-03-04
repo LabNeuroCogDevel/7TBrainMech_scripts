@@ -10,6 +10,18 @@ txt/all_hc.csv:  .make/specturm.ls
 	# N.B. probably need to manually unzip HPC data
 	mkls $@ /Volumes/Hera/Raw/MRprojects/7TBrainMech/MRSI_BrainMechR01/HPC/*/
 
+.make/anat_mat.ls: .make/specturm.ls
+	./01.1_reorg_for_matlab_gui.bash
+	mkls $@ "spectrum/*/anat.mat"
+
+.make/FS.ls: always | .make
+	# for more FS, rerun /Volumes/Hera/Projects/7TBrainMech/scripts/mri/FS/001_runlocal.bash
+	mkls $@ "/Volumes/Hera/preproc/7TBrainMech_rest/FS/1*_2*/mri/aseg.mgz"
+
+.make/FS_warped.ls: .make/anat_mat.ls .make/FS.ls
+	./01.2_FS_to_HcScout.bash all
+	mkls $@ "spectrum/*/FS_warp"
+
 .make:
 	@-mkdir $@
 
