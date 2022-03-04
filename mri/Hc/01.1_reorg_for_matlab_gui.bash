@@ -8,6 +8,7 @@ trap 'e=$?; [ $e -ne 0 ] && echo "$0 exited in error"' EXIT
 #  20210825WF  init
 
 # most coreg and siarray are in Recon. but a few are in Shim
+# 20220303 201[89] organized differently
 for rdir in /Volumes/Hera/Raw/MRprojects/7TBrainMech/202*/Recon \
    $(ls /Volumes/Hera/Raw/MRprojects/7TBrainMech/202*/Shim/CoregH[cC] | xargs dirname); do
    [[ $rdir =~ 20[0-9]{6}Luna[1-9] ]] || continue

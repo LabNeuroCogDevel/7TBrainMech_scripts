@@ -24,7 +24,7 @@ build_anat(){
 [[ $# -eq 0 || "$*" =~ "-h" ]] && echo "USAGE: $0 [all|7TMRID]" && exit 1
 case "$1" in
    all) 
-    mapfile -t ANATS < <(find "$(pwd)"/spectrum/* -name anat.mat -maxdepth 1 -type f,l);;
+    mapfile -t ANATS < <(find "$(pwd)"/spectrum/* -maxdepth 1 -name anat.mat -type f,l);;
  *) mapfile -t ANATS < <(build_anat "$@")
 esac
 
@@ -55,7 +55,14 @@ for anat in "${ANATS[@]}"; do
    luna=$(getluna "$id"); ld8=${luna}_$yyymmdd
    [ -z "$luna" ] && echo "# ERROR: $id: cannot find luna id! maybe not in database yet? Will needs to update!" && continue
    FS=/Volumes/Hera/preproc/7TBrainMech_rest/FS/$ld8/mri/aseg.mgz
-   [ ! -r "$FS" ] && echo "# ERROR: $id/$ld8: cannot find '$FS'! run /Volumes/Hera/Projects/7TBrainMech/scripts/mri/FS/001_runlocal.bash" && continue
+   # 20220304 - okay to use low res if no original
+   [ ! -r "$FS" ] &&
+     FS="/Volumes/Hera/preproc/7TBrainMech_rest/FS_lowres/$ld8/mri/aseg.mgz"
+   [ ! -r "$FS" ] &&
+      echo "# ERROR: $id/$ld8: cannot find '$FS' or ${FS/_lowres\//\/}! \
+         see /Volumes/Hera/Raw/BIDS/7TBrainMech/sub-${ld8/_*/}/${ld8/*_/}/anat \
+         run /Volumes/Hera/Projects/7TBrainMech/scripts/mri/FS/001_runlocal.bash" &&
+      continue
 
    final_file=$outdir/${ld8}_aseg-HcScout_HcOnly.nii.gz
    [ -r "$final_file" ] && echo "# have $final_file" && continue
