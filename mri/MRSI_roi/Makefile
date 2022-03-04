@@ -26,3 +26,5 @@ roi_locations/ROI_mni_13MP20200207.nii.gz: | roi_locations/20200207_rmsome.bash
 
 txt/13MP20200207_LCMv2fixidx.csv: $(wildcard /Volumes/Hera/Projects/7TBrainMech/subjs/1*_2*/slice_PFC/MRSI_roi/LCModel/v2idxfix/)
 	./050_merge.R
+txt/met_long.csv: txt/13MP20200207_LCMv2fixidx.csv
+	Rscript -e "source('funcs.R'); write.csv(make_long(),'txt/met_long.csv')"

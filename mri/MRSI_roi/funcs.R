@@ -76,3 +76,28 @@ plot_all <-function(d) {
         facet_grid(m ~ roi) +
         theme_cowplot()
 }
+
+make_long <- function(wide_metabolite='txt/13MP20200207_LCMv2fixidx.csv'){
+   require(dplyr)
+   require(tidyr)
+   # get long verfsion of wide metabolite info
+   # only pull out Cr and SD values for each metabolite+roi pair
+   # ignore CrCH Chol NAAG adn Gln rations
+   # includes scanyear visitnum age and fd
+   age_breaks <- c(0,15,19,23,Inf)
+   long <- 
+       read.csv(wide_metabolite) %>%
+       filter(!is.na(roi)) %>%
+       select(ld8,visitnum, ld8, age, fd=fd_mean, roi=label, matches('\\.Cr$|\\.SD$')) %>%
+       pivot_longer(cols=matches('Cr$|SD$')) %>%
+       # met is metabolite, mtype is '.Cr' ratio or '.SD' crlb value
+       separate(name,c('met','mtype'),extra="merge") %>%
+       # repeats in pivot wider when these are included
+       # dont care about eg CrCH.SD
+       filter(!grepl('CrCH|Cho|NAAG|Gln',mtype)) %>%
+       # use first just incase we still have some repeat values
+       pivot_wider(names_from="mtype", values_fn=first) %>%
+       # add some nice-to-have derivative columns
+       mutate(agegrp=cut(age, breaks=age_breaks),
+             scanyear=stringr::str_extract(ld8,'(?<=_)\\d{4}'))
+}
