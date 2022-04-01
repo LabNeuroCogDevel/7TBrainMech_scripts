@@ -22,6 +22,10 @@ txt/all_hc.csv:  .make/specturm.ls
 	./01.2_FS_to_HcScout.bash all
 	mkls $@ "spectrum/*/FS_warp"
 
+qc/hc_placement.pdf: .make/anat_mat.ls
+	./view_placements.jl
+	pdftk  /tmp/Hc_loc_202*pdf cat output $@
+
 .make:
 	@-mkdir $@
 
