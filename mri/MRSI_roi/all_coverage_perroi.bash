@@ -53,6 +53,7 @@ _all_coverage_perroi() {
 if ! [[ "$(caller)" != "0 "* ]]; then
   set -euo pipefail
   trap 'e=$?; [ $e -ne 0 ] && echo "$0 exited in error $e"' EXIT
+  cd $(dirname $(readlink -f $0))
   _all_coverage_perroi "$@"
   exit $?
 fi

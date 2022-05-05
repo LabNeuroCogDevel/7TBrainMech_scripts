@@ -1,0 +1,1 @@
+../all_coverage_perroi.bash
