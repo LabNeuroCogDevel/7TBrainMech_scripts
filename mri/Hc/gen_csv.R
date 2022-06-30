@@ -23,11 +23,13 @@ read_mrsisheet <- function(f)
       mutate(roi =str_extract(f, '(?<=spectrum.)([0-9LR.]+)(?=.dir)'),
              mrid=extract_7tmrid(f),
              dname=basename(dirname(f)),
+             set=str_extract(f,'Processed[^/]*') %>% gsub('Processed(Hc)?_?','',.),
              # if we weren't able to extract roi then we'll have to derive it from Row/Col
              # annotate that incase we do the derivation wrong
              # as of 20220304 there are  191 files that don't match the roi filename pattern
              #                      and 1557 that do
-             roinumberfrom=ifelse(is.na(roi),"derived","filename")),
+             roinumberfrom=ifelse(is.na(roi),"derived","filename")) %>%
+      rename_with(function(.) str_replace_all(., 'Cr$', 'Cre')),
     error=function(e) {cat(f,"error reading:", e$message, "\n"); NULL})
 
 
@@ -57,6 +59,11 @@ ids <- read.table('../MRSI/txt/ids.txt') %>%
  mutate(mrid=gsub("LUNA","Luna",mrid) %>%
              gsub("_1$","",.) %>%
              gsub("20190722Luna","20190722Luna1",.))
-d_id <- merge(d, ids, all.x=T)
+d_id <- merge(d, ids, all.x=T) %>% unique
+
+# remove duplicates for 20190729Luna1 and 20190830Luna1
+# still have dups of 20190405Luna1 in 20200520_2019-Mar2020
+d_newest <- d_id %>% group_by(mrid,roinum,Side) %>% mutate(r=rank(set)) %>%
+   filter(set!='103019_fixed_ln') %>% filter(r==max(r)) %>% select(-r)
 
 write.csv(d_id, "txt/all_hc.csv", row.names=F, quote=F)
