@@ -1,4 +1,13 @@
 #!/usr/bin/env julia
+# include("view_placements.jl")
+# fname="/Volumes/Hera/Projects/7TBrainMech/scripts/mri/Hc/spectrum/20210830Luna1/anat.mat";
+# viewPlacement.plot_anat_loc(fname)
+# anat_orig = viewPlacement.read_anat(fname); orient = viewPlacement.Orient(fname);
+# anat=reverse(viewPlacement.rotate_anat(anat_orig, orient.rotm),dims=(1));
+# anat[isnan.(anat)] .= 0; Plots.plot(Gray.(anat),xaxis=nothing, yaxis=nothing)
+# locs = viewPlacements.get_placements(fname)
+#
+
 module viewPlacement
 # using Pkg; Pkg.add(["Winston","ColorSchemes","Glob","ReTest","CSV","Colors","Plots"])
 using Winston, ColorSchemes, Glob, ReTest, CSV, Plots, Colors
@@ -18,8 +27,11 @@ function nameToLoc(s)
 end
 function get_placements(fname)
 
-  loc_files = Glob.glob(dirname(fname)*"/spectrum.[0-9]*[0-9]");
-  length(loc_files) == 0 && return nothing
+  loc_files = Glob.glob("spectrum.[0-9]*[0-9]",dirname(fname));
+  if length(loc_files) == 0
+      println("MISSING: no spectrum.xxx.yyy files for "*fname) 
+      return nothing
+  end
   locs = map(nameToLoc, loc_files);
   locs = reduce(hcat, locs) |> transpose;
     
@@ -50,18 +62,24 @@ struct Orient
     function Orient(fname)
         # as saved by SVR1HFinal/WritePositions.m
         orient_file = dirname(fname)*"/orient.txt"
-        ! isfile(orient_file) && return nothing
+        if ! isfile(orient_file) 
+            println("MISSING: no orient.txt for "*fname) 
+            return nothing
+        end
         orient = CSV.File(orient_file, header=true, transpose=true, normalizenames=true) 
         angle = orient.angle[1]*3.14159/180;
         vo = orient.vert[1];
         ho = orient.horz[1];
 
         # /ssh:rhea:/opt/ni_tools/matlab_toolboxes/MRRC/SVR1HFinal/TransRotTest.m
-        rotm = [ cos(angle)  sin(angle) 0 -vo;
-                -sin(angle)  cos(angle) 0 -ho;
+        rotm = [ cos(angle)  sin(angle) 0 vo;
+                -sin(angle)  cos(angle) 0 ho;
                           0          0  1  0;];
 
-        any(ismissing.(rotm)) && return nothing
+        if any(ismissing.(rotm)) 
+            println("ERROR: missing rotm values for " * fname * ". MISSING orient.txt values?") 
+            return nothing
+        end
         new(angle, vo, ho, rotm);
     end
 end
@@ -100,7 +118,7 @@ function rotate_anat(anat, rotm)
   scoutarray = reshape(anat',1,res*res);
   scoutarray2=zeros(res,res);
   for aa=1:res*res
-      if xx[1,aa]>=1 &&  xx[2,aa]>=1
+      if xx[1,aa]>=1 &&  xx[2,aa]>=1 &&  xx[2,aa]<=216 && xx[1,aa]<=216
           scoutarray2[xx[1,aa],xx[2,aa]] = scoutarray[aa];
       end
   end
@@ -151,7 +169,8 @@ function plot_anat_loc(fname)
    # arrange like we see in matlab gui
    # flipud (dim=1) and fliplr (dim=2)
    anat = reverse(anat, dims=(1));
-   locs = abs.(locs .- [216, 0]');
+   #locs = abs.(locs .- [216, 0]');
+   locs = abs.([0, 216]' .- locs );
    #plot_placment(anat, locs);
    plot = plotjl_placment(anat, locs);
    return plot
@@ -202,7 +221,10 @@ function plot_all()
        println("fname=\""*fname*"\"")
        #p = plot_anat_loc(fname)
        p = plot_rot_loc(fname)
-       isnothing(p) && continue
+       if isnothing(p)
+           println("no plot for "*fname)
+           continue
+       end
        Plots.savefig(save_name(fname)) 
     end
 end
