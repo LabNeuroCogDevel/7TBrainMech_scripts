@@ -20,7 +20,11 @@ all_daw.csv: daw.R .make/task_txt.ls
 	./daw.R
 
 .make/qualtrics.ls: alwaysrun |.make
+	# ./000_getQualtrics.R
 	mkls $@ '/Volumes/L/bea_res/Data/Temporary*Raw*Data/7T/*/*_selfreport.csv'
 
 txt/upps_scored.csv: .make/qualtrics.ls
 	./UPPS.R
+
+txt/ders.csv: .make/qualtrics.ls
+	./DERS.R
