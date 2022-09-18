@@ -28,6 +28,8 @@ cat("\nignoring these\n")
 survey_cnt[survey_cnt<5] %>% data.frame(name=names(.), n=.) %>% arrange(-n) %>% print.data.frame(row.names=F)
 survey_cnt[survey_cnt>=5]
 
+# save all surveys
+save(svys,file='svys.RData')
 
 ####
 # save all batteries
@@ -35,7 +37,9 @@ bats <- names(survey_cnt[survey_cnt>5]) %>% grep(pattern="Battery",value=T)
 
 for (bname in bats) {
     s <- svys[[bname]]
-    ld8 <- paste(s$ExternalDataReference,format(s$StartDate,"%Y%m%d"),sep="_")
+    refcol <- "ExternalDatareference"
+    if(! refcol %in% names(s)) refcol <- "ExternalReference"
+    ld8 <- paste(s[[refcol]],format(s$StartDate,"%Y%m%d"),sep="_")
     sid <- survey_list$id[survey_list$name == bname]
     #qname <- sapply(names(s), function(n) paste0(collapse="-",unique(c(n,attr(s[[n]],'label'))))) %>% unname
     qname <- sapply(names(s), function(n) attr(s[[n]],'label')) %>% unname
@@ -84,7 +88,13 @@ qualtrics_to_visit_task <- function(s, taskname, vtype="behave") {
   # create vector of measures
   measures <- split(s_tojson, 1:nrow(s_tojson)) %>%
               unname %>% lapply(toJSON) %>% unlist
-  # create lncddb visit_task friendly dataframe
+
+
+  ## create lncddb visit_task friendly dataframe
+
+  # 20220803 - new surveys have exteranl without "Data" in the name
+  if(! "ExternalDataReference" %in% names(d) ) s$ExternalDataReference <- s$ExternalReference
+
   s <- s %>% select(ExternalDataReference, StartDate) %>%
      mutate(task=taskname, measures=measures,
             ExternalDataReference=as.character(ExternalDataReference))
