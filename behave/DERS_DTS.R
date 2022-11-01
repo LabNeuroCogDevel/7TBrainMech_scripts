@@ -94,8 +94,9 @@ read_dts <- function(d) {
   # turn all columns numeric
   # and put id back in
   data_row <- find_data_row(d)
-  d[data_row,] 
+  d[data_row,]  %>% mutate(ld8=ld8)
 }
+
 remove_empty <- function(d) {
    has_data <- apply(d, 1, function(x) sum(!is.na(x))) > 1
    d <- d[has_data,]
