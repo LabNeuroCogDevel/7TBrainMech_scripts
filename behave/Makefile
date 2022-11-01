@@ -23,8 +23,17 @@ all_daw.csv: daw.R .make/task_txt.ls
 	# ./000_getQualtrics.R
 	mkls $@ '/Volumes/L/bea_res/Data/Temporary*Raw*Data/7T/*/*_selfreport.csv'
 
+svys.RData: .make/qualtrics.ls
+	# ./000_getQualtrics.R
+	
+txt/asr_ysr.csv: svys.RData
+	./ASRYSR.R
+	
 txt/upps_scored.csv: .make/qualtrics.ls
 	./UPPS.R
 
 txt/ders.csv: .make/qualtrics.ls
-	./DERS.R
+	./DERS_DTS.R
+
+txt/dts.csv: txt/ders.csv
+	@echo dts.csv and ders.csv bouth from DERS_DTS.R
