@@ -1,5 +1,5 @@
 #!/usr/bin/env Rscript
-suppressPackageStartupMessages({library(dplyr); library(tidyr);})
+suppressPackageStartupMessages({library(dplyr); library(tidyr); library(glue)})
 
 # 20220804WF - init
 #   Difficulties in emotion regulation scale (DERS)
@@ -31,6 +31,19 @@ DERS_QUESTIONS <- c(
 "When I’m upset, it takes me a long time to feel better.",
 "When I’m upset, my emotions feel overwhelming.")
 
+DTS_QUESTIONS <- c(
+"Feeling distressed or upset is unbearable to me.",
+"When I feel distressed or upset, all I can think about is how bad I feel.", 
+"I can't handle feeling distressed or upset.", "My feelings of distress are so intense that they completely take over.", 
+"There's nothing worse than feeling distressed or upset.", "I can tolerate being distressed or upset as well as most people.", 
+"My feelings of distress or being upset are not acceptable.", 
+"I'll do anything to avoid feeling distressed or upset.", "Other people seem to be able to tolerate feeling distressed or upset better than I can.", 
+"Being distressed or upset is always a major ordeal for me.", 
+"I am ashamed of myself when I feel distressed or upset.", "My feelings of distress or being upset scare me.", 
+"I'll do anything to stop feeling distressed or upset.", "When I feel distressed or upset, I must do something about it immediately.", 
+"When I feel distressed or upset, I cannot help but concentrate on how bad the distress actually feels.")
+
+
 rm_q_prefix <- function(s) gsub('^.*?- |^-','', s)
 questions_subset <- function(d, Q=DERS_QUESTIONS)
    d[,which(rm_q_prefix(d[1,]) %in% Q)]
@@ -45,33 +58,56 @@ all_surveys <- function(glob="/Volumes/L/bea_res/Data/Temporary Raw Data/7T/1*_2
  d_all <-lapply(l, function(f) read.csv(f) %>% mutate(ld8=LNCDR::ld8from(f)))
 }
 
+find_data_row <- function(d) {
+  data_row <- nrow(d)
+  if(data_row>3) data_row<-2
+  if(data_row>=3 && sum(sapply(d[data_row,], function(x) x=="")) > 30) data_row<-2
+  return(data_row)
+}
+add_metadata <- function(d, msg) {
+  attr(d,'questions') <- names(d)
+  names(d) <- rm_q_prefix(unlist(unname(d[1,])))
+  comment(d) <- msg
+  return(d)
+}
+
 read_ders <- function(d) {
   ld8 <- d$ld8[1]
   # subset to only the ders questions
-  d <- questions_subset(d, DERS_QUESTIONS)
-
-  attr(d,'questions') <- names(d)
-  names(d) <- rm_q_prefix(unlist(unname(d[1,])))
-  comment(d) <- glue::glue("DERS: subset of {f}")
+  d <- questions_subset(d, DERS_QUESTIONS) %>%
+     add_metadata(msg=glue("DERS: subset for {ld8}"))
 
   # only care about the second row
   # turn all columns numeric
   # and put id back in
-  data_row <- nrow(d)
-  if(data_row>3) data_row<-2
-  if(data_row>=3 & sum(sapply(d[data_row,], function(x) x=="")) > 30) data_row<-2
+  data_row <- find_data_row(d)
   d[data_row,] %>%
      mutate(across(everything(),ders_numeric), ld8 = ld8)
 }
+read_dts <- function(d) {
+  ld8 <- d$ld8[1]
+  # subset to only the ders questions
+  d <- questions_subset(d, DTS_QUESTIONS) %>%
+     add_metadata(msg=glue("DTS: subset for {ld8}"))
 
-all_ders <- function(){
-   s <- all_surveys()
+  # only care about the second row
+  # turn all columns numeric
+  # and put id back in
+  data_row <- find_data_row(d)
+  d[data_row,] 
+}
+remove_empty <- function(d) {
+   has_data <- apply(d, 1, function(x) sum(!is.na(x))) > 1
+   d <- d[has_data,]
+}
+
+all_ders <- function(s=NULL){
+   if(is.null(s)) s <- all_surveys()
    d_list <- lapply(s, read_ders)
    d <- bind_rows(d_list)
 
    # subset to just those with DERS columns. all should have ld8 column.
-   has_data <- apply(d, 1, function(x) sum(!is.na(x))) > 1
-   d <- d[has_data,]
+   d <- remove_empty(d)
 
    ld8_missing <- setdiff(sapply(s, function(x) x$ld8[1]), d$ld8)
    if(length(ld8_missing)>0L) cat("# missing",length(ld8_missing), "DERS data. responses are precoded or missing? ", head(ld8_missing), "\n")
@@ -84,12 +120,25 @@ all_ders <- function(){
 
    return(d)
 }
+all_dts <- function(s){
+   d_list <- lapply(s, read_dts)
+   d <- bind_rows(d_list)
+   d <- remove_empty(d) # 20221101: 328/344 survive
+}
 
 # if running from command line
 # we'll lose 'questions' attribute
 if(sys.nframe()==0){
+
+   cat("# collecting all surveys @", Sys.time(),"\n")
+   s <- all_surveys()
    cat("# collecting DERS responses @", Sys.time(),"\n")
-   ders <- all_ders()
+   ders <- all_ders(s)
    cat("# saving data w/dims",dim(ders)," to txt/ders.csv @", Sys.time(),"\n")
    write.csv(file="txt/ders.csv", ders, row.names=FALSE)
+
+   cat("# collecting DTS responses @", Sys.time(),"\n")
+   dts <- all_dts(s)
+   cat("# saving data w/dims",dim(dts)," to txt/dts.csv @", Sys.time(),"\n")
+   write.csv(file="txt/dts.csv", dts, row.names=FALSE)
 }
