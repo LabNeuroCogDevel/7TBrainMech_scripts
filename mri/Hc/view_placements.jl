@@ -11,6 +11,7 @@
 module viewPlacement
 # using Pkg; Pkg.add(["Winston","ColorSchemes","Glob","ReTest","CSV","Colors","Plots"])
 using Winston, ColorSchemes, Glob, ReTest, CSV, Plots, Colors
+using DelimitedFiles
 
 function test_viewplacements()
   # this probably doesn't work
@@ -132,7 +133,7 @@ end
 end
 
 
-function recon_coords(points, a, vo, ho)
+function recon_coords(points, a, vo::Float64, ho::Float64)
     new_points = zeros(size(points))
     # directly from ReconCoordinates.m
     new_points[:,1] .= points[:,1].*cos(a) .+ points[:,2].*sin(a) .+vo;
@@ -180,14 +181,19 @@ struct Session
     anat
     orient
     locs
+    id
     function Session(fname)
         orient = Orient(fname);
         isnothing(orient) && return nothing
         locs = get_placements(fname);
         isnothing(locs) && return nothing
         anat = read_anat(fname);
-        new(anat, orient, locs);
+        id = match(r"\d{8}Luna\d*",fname).match;
+        new(anat, orient, locs, id);
     end
+end
+function recon_coords(s::Session) 
+    return recon_coords(s.locs, s.orient.angle, s.orient.vo, s.orient.ho );
 end
 
 function plot_rot_loc(fname)
@@ -229,10 +235,26 @@ function plot_all()
     end
 end
 
+function save_loc(s::Session)
+    l = recon_coords(s)
+    fname = "spectrum/$(s.id)/hc_loc_unrotated.1d"
+    writedlm(fname, l)
 end
 
+function save_all_locs()
+  for fname in find_anats()
+    println("fname=\""*fname*"\"")
+    s = viewPlacement.Session(fname)
+    isnothing(s) && continue 
+    save_loc(s)
+  end
+end
+
+end # module
+
 if abspath(PROGRAM_FILE) == @__FILE__
-    viewPlacement.plot_all()
+    #viewPlacement.plot_all()
+    viewPlacement.save_all_locs()
 else
     cd("/Volumes/Hera/Projects/7TBrainMech/scripts/mri/Hc");
     fname="spectrum/20210225Luna1/anat.mat";
