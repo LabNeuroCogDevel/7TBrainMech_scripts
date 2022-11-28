@@ -10,8 +10,13 @@ OUTDIR <- "1d/trial_hasimg_lr/"
 
 setwd('/Volumes/Hera/Projects/7TBrainMech/scripts/mri/')
 
-recall_files <-
-   Sys.glob("/Volumes/L/bea_res/Data/Tasks/MGSEncMem/7T/*/*/*recall*[0-9].csv")
+recall_files_all <-
+   Sys.glob(c("/Volumes/L/bea_res/Data/Tasks/MGSEncMem/7T/1*_2*/*/*recall*[0-9].csv",
+              "/Volumes/L/bea_res/Data/Tasks/MGSEncMem/7T/1*_2*/0*/mri_mgs*/*recall*[0-9].csv"))
+cat("# expect there to be only 1 recall file per ld8\n")
+ld8from(recall_files_all) %>% sort %>% rle %>% with(data.frame(ld8=values,nfiles=lengths)) %>% filter(nfiles!=1) %>% print
+recall_files <- recall_files_all[ ! ld8from(recall_files_all) %>% duplicated]
+
 
 # mgs_recall.py -- but not for all subjects
 # ---- scores ----
@@ -63,17 +68,24 @@ score_keys <- function(kc, kp, dc, dp) {
 
 skv <- Vectorize(score_keys)
 
-recall <- data.frame(stringsAsFactors =F,
+add_imgset <- function(d) {
+   # extract imgset from imagefile when we don't already have it
+   if(!any(is.na(d$imgset))) return(d$imgset)
+   d$imgfile[d$imgfile!=""] %>% first %>% str_extract("(?<=^img.)[A-Z]")
+}
+
+recall <- data.frame(stringsAsFactors=F,
             recall_f = recall_files,
             ld8      = str_extract(recall_files, "\\d{5}_\\d{8}"),
-            imgset   = str_extract(recall_files, "(?<=mri_)[AB]")) %>%
+            imgset   = str_extract(recall_files, "(?<=mri_)[A-Z]")) %>%
    mutate( contents=map(recall_f, read.csv)) %>%
    unnest %>%
    select(-recall_f) %>%
    mutate(corkeys=gsub("[)(']", "", corkeys)) %>%
    separate(corkeys, c("know_cor", "dir_cor")) %>%
    # redo score because some are missing it :(
-   mutate(score_r = skv(know_cor, know_key, dir_cor, dir_key))
+   mutate(score_r = skv(know_cor, know_key, dir_cor, dir_key)) %>%
+   group_by(ld8) %>% mutate(imgset=add_imgset(.data))
 
 # 20180705 -- check against score, all same
 if (recall %>% filter(!is.na(score), score!=score_r) %>% nrow > 0L)
@@ -81,23 +93,37 @@ if (recall %>% filter(!is.na(score), score!=score_r) %>% nrow > 0L)
 
 #### read task files
 
-tasklog <- Sys.glob("/Volumes/L/bea_res/Data/Tasks/MGSEncMem/7T/*/*/*view.csv")
+tasklog <- Sys.glob(c("/Volumes/L/bea_res/Data/Tasks/MGSEncMem/7T/*/*/*view.csv",
+                      "/Volumes/L/bea_res/Data/Tasks/MGSEncMem/7T/1*_2*/0*/mri_mgs*/*view.csv"))
+cat("# expect 3 onset 'view.csv' files per ld8\n")
+ld8from(tasklog) %>% sort %>% rle %>% with(data.frame(ld8=values,nfiles=lengths)) %>% filter(nfiles!=3) %>% print
+
 read_onsets <- function(f) read.csv(f) %>%
    mutate(block = gsub(".*_([1-4])_view.csv", "\\1", f),
           ld8   = str_extract(f, "\\d{5}_\\d{8}"),
           )
 onsets <- lapply(tasklog, read_onsets) %>% bind_rows
 
+cat("# expect summarised onsets to have 3 blocks of 24 trials\n")
+onsets %>% group_by(ld8) %>% summarise(blk_mx=max(trial),ntotal=n()) %>% group_by(blk_mx,ntotal) %>% tally %>% print
+
+
 ## merge data
 d <- merge(onsets, recall, by=c("ld8", "imgfile"), all.x=T) %>%
    arrange(ld8, block, cue)
 d$dur <- d$mgs - d$cue + MGSDUR
 
+cat("# expect merged onsets+recall to have same summary count\n")
+d %>% group_by(ld8) %>% summarise(blk_mx=max(trial),ntotal=n()) %>% group_by(blk_mx,ntotal) %>% tally %>% print
+
 ## write out 1d files
-d %>% mutate(coarse_side = gsub("Near", "", side),
-             hasimg      = ifelse(imgtype.x=="None", "noimg", "img"),
-             prefix      = paste(sep="_", ld8, hasimg, coarse_side),
-             fname = sprintf("%s/%s.1d", OUTDIR, prefix)) %>%
-   split(.$fname) %>%
+oned_ready <- d %>%
+   mutate(coarse_side = gsub("Near", "", side),
+          hasimg      = ifelse(imgtype.x=="None", "noimg", "img"),
+          prefix      = paste(sep="_", ld8, hasimg, coarse_side),
+          fname       = sprintf("%s/%s.1d", OUTDIR, prefix))
+write.csv(file="txt/onset_and_recall_trialinfo.csv", oned_ready, row.names=FALSE)
+
+split(oned_ready$fname) %>%
    lapply(function(x)
           save1D(x, colname="cue", dur="dur", nblocks=3, fname=first(x$fname)))

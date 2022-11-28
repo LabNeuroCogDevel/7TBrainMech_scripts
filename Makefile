@@ -91,3 +91,9 @@ readme.dwiki:
 	# curl -d "u=<username>&p=<password>" --cookie-jar .doku_cjar http://arnold.wpic.upmc.edu/dokuwiki/doku.php?do=login
 	curl --cookie .doku_cjar --cookie-jar .doku_cjar "http://arnold.wpic.upmc.edu/dokuwiki/doku.php?id=studies:7t:processingpipelines&do=export_raw" > $@
 
+site/sitemap.xml: $(wildcard docs/*md)
+	# pip install mkdocs mkdocs-material mkdocsstrings
+	mkdocs gh-deploy
+
+mri/txt/onset_and_recall_trialinfo.csv:
+	cd mri && ./020_task_onsets.R
