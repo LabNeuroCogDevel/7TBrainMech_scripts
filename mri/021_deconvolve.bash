@@ -23,9 +23,16 @@ for predir in /Volumes/Hera/Projects/7TBrainMech/pipelines/MHTask_nost/1*_2*/; d
    subj_task_dir=$SUBJDIR/$ld8/MGSEncMem
    [ ! -d $subj_task_dir ] && mkdir -p $subj_task_dir
    cd $subj_task_dir
+
+   # check if we have an output
+   [ -r LR_img_deconvolve.nii.gz ] && echo "Output file ($(pwd)/LR_img_deconvolve.nii.gz) exists, SKIPPING" && continue
+
    pwd
+   tr=$(perl -slane 'BEGIN{$ld8=~s:_:/:;} print $F[1] and exit if /$ld8/' -- -ld8="$ld8" < txt/task_trs.txt)
+   [ -z "$tr" -o "$tr" == "0" ] && warn "# no tr for $ld8" && continue
    # run
-   echo 3dDeconvolve  \
+   3dDeconvolve  \
+    -tr "$tr" \
     -prefix LR_img_deconvolve.nii.gz \
     -input $predir/0[1-4]/nfswdkm_func_4.nii.gz \
     -num_stimts 4 \
@@ -37,5 +44,8 @@ for predir in /Volumes/Hera/Projects/7TBrainMech/pipelines/MHTask_nost/1*_2*/; d
     -stim_label 3 noimg_left \
     -stim_times_AM1  4 $oned_dir/${ld8}_noimg_Right.1d 'dmBLOCK'\
     -stim_label 4 noimg_right \
+    -errts ${ld8}_task_errts.nii.gz \
     -x1D X.xmat.1D
+
+exit 1
 done
