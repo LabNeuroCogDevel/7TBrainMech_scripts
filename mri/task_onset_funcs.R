@@ -64,6 +64,7 @@ add_imgset <- function(d) {
 task_globs <- function(ld8s, filepatt="*recall*[0-9].csv") {
   # filepatt="*view.csv" for view
   task_dir <- "/Volumes/L/bea_res/Data/Tasks/MGSEncMem/7T/"
+  #task_dir <- "~/scratch/7tmgs/1d/"
   # weirder bad copies (~40ish of these)
   # /Volumes/L/bea_res/Data/Tasks/MGSEncMem/7T/{11816_20200203,11735_20190719}/
   #  01_mri_A/01/mri_mgsenc-A_20200203/11816_20200203_mri_1_recall-A_20200203165706.csv
@@ -95,7 +96,7 @@ mk_recall <- function(ld8s=c("1*_2*")){
               ld8      = str_extract(recall_files, "\\d{5}_\\d{8}"),
               imgset   = str_extract(recall_files, "(?<=mri_)[A-Z]")) %>%
      mutate( contents=map(recall_f, read.csv)) %>%
-     unnest %>%
+     unnest(cols = c(contents)) %>%
      select(-recall_f) %>%
      mutate(corkeys=gsub("[)(']", "", corkeys)) %>%
      separate(corkeys, c("know_cor", "dir_cor")) %>%
@@ -145,8 +146,8 @@ onset_recall <- function(ld8s="1*_2*") {
 }
 
 # TODO: this should be reworked and put into LNCDR
-write_oned_by_fname <- function(oned_ready, redo=FALSE){
- if(!all(c("fname","cue","dur") %in% names(oned_ready)))
+write_oned_by_fname <- function(oned_ready, col_1d="cue", dur_col='dur', redo=FALSE){
+ if(!all(c("fname",col_1d,"dur") %in% names(oned_ready)))
     stop("missing column names")
  split(oned_ready, oned_ready$fname) %>%
     lapply(function(x) {
@@ -154,5 +155,5 @@ write_oned_by_fname <- function(oned_ready, redo=FALSE){
             if(file.exists(fname) && !redo) {cat("skip", fname,"\n"); return(fname)}
             dname <- dirname(fname)
             if(!dir.exists(dname)) dir.create(dname,recursive=TRUE)
-            save1D(x, colname="cue", dur="dur", nblocks=3, fname=fname)})
+            save1D(x, colname=col_1d, dur=dur_col, nblocks=3, fname=fname)})
 }
