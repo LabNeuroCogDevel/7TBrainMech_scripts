@@ -1,0 +1,91 @@
+#!/usr/bin/env bash
+#
+# model MGS task with TENT
+#
+# may need new 1d files. see 020_task_onsets.R and output name
+# see 'CHANGE ME' comments
+# 20221212WF - copy of 021a_deconvolve_block.bash but intended to model with tent instead of block
+
+# dryrun, iffmain defined in /opt/ni_tools/lncdtools/ (should be in path)
+source decon_functions.bash # decon_all_nost concat_indir fd_censor
+FD_THRES=0.5 # how much motion is acceptable?
+
+decon_one_tent(){
+   # remove this line to actually run. search CHANGE ME in this file
+   # see 'DRYRUN=1 ./021b_deconvolve_tent.bash /Volumes/Hera/Projects/7TBrainMech/pipelines/MHTask_nost/10173_20180802/' to test
+
+   # GLOBAL: likely set by 'decon_all_nost'
+   [[ ! "$SUBJDIR" =~ subjs/?$ ]] && echo "NO SUBJECT DIR?! ('$SUBJDIR')" && return 1
+
+   local predir="$1"; shift
+   # id should be in folder name. Extract and store
+   [[ ! $predir =~ 1[0-9]{4}_2[0-9]{7} ]] && echo "no id in $predir" && return
+   ld8="${BASH_REMATCH[0]}"
+
+   inputs4d=("$predir"/0[1-4]/nfs*dkm_func_4.nii.gz) # nfswdkm for warp, nfsdkm for nowarp
+
+   # check we have 1d files for each run and have at least 1 4d file
+   # (1d file has as many rows as number 4d files)
+   # CHANGE ME
+   local oned_dir_bydur=/Volumes/Hera/Projects/7TBrainMech/scripts/mri/1d_onsetOnly/trial_hasimg_lr/
+   local oned_dir_single=/Volumes/Hera/Projects/7TBrainMech/scripts/mri/1d_onsetOnly/trial_single/
+   ex1dfile=${oned_dir_bydur}/${ld8}_img_Left_cue.1d
+   check_inputs "$ex1dfile" "${inputs4d[@]}" || return
+
+   # create subject directory and go there
+   decon_dir="$(decon_dir "${inputs4d[0]}")"
+   subj_task_dir=$SUBJDIR/$ld8/${decon_dir:-MGSEncMem/unknown} # want sub-dir for tent? CHANGE ME
+   [ ! -d "$subj_task_dir" ] && mkdir -p "$subj_task_dir"
+   cd "$subj_task_dir"
+
+   mot_concat=$(concat_indir ./all_motion.par motion.par      "${inputs4d[@]}") || return
+   fd_concat=$(concat_indir ./all_fd.txt motion_info/fd.txt "${inputs4d[@]}") || return
+   fd_censor_file=$(fd_censor "$fd_concat" "$FD_THRES") || return
+
+   # check if we have an output
+   outfile=${ld8}_lrimg_deconvolve_tent.nii.gz
+   [ -r ${outfile} -a -z "${REDO:-}" ] &&
+      echo "Output file ($(pwd)/${outfile}) exists, SKIPPING" && return
+
+   # show what we're working on
+   pwd
+
+   tr=$(lookup_tr "$ld8")
+   check_tr "$tr" || return
+
+   # 'dryrun' echos if $DRYRUN set, otherwise actually runs
+#1d/trial_hasimg_lr/11867_20210424_img_Left_cue.1d
+   dryrun 3dDeconvolve  \
+    -force_TR "$tr" \
+    -overwrite \
+    -censor "$fd_censor_file" \
+    -ortvec "$mot_concat" motion \
+    -polort 3 \
+    -jobs 32 \
+    -prefix ${subj_task_dir}/${outfile} \
+    -input "${inputs4d[@]}" \
+    -num_stimts 9 \
+    -stim_times 1 "${oned_dir_bydur}/${ld8}_img_Left_cue.1d" 'GAM' -stim_label 1 cue_img_left \
+    -stim_times 2 "${oned_dir_bydur}/${ld8}_img_Right_cue.1d" 'GAM' -stim_label 2 cue_img_right \
+    -stim_times 3 "${oned_dir_bydur}/${ld8}_noimg_Left_cue.1d" 'GAM' -stim_label 3 cue_noimg_left \
+    -stim_times 4 "${oned_dir_bydur}/${ld8}_noimg_Right_cue.1d" 'GAM' -stim_label 4 cue_noimg_right \
+    -stim_times 5 "${oned_dir_bydur}/${ld8}_img_Left_mgs.1d" 'GAM' -stim_label 5 mgs_img_left \
+    -stim_times 6 "${oned_dir_bydur}/${ld8}_img_Right_mgs.1d" 'GAM' -stim_label 6 mgs_img_right \
+    -stim_times 7 "${oned_dir_bydur}/${ld8}_noimg_Left_mgs.1d" 'GAM' -stim_label 7 mgs_noimg_left \
+    -stim_times 8 "${oned_dir_bydur}/${ld8}_noimg_Right_mgs.1d" 'GAM' -stim_label 8 mgs_noimg_right \
+    -stim_times 9 "${oned_dir_single}/${ld8}_dly.1d" 'TENT(0,36,15)' -stim_label 9 dly_tent \
+    -iresp 9 "${ld8}_lrimg_hrf_delay" \
+    -num_glt 6 \
+    -gltsym 'SYM:.25*cue_img_left +.25*cue_noimg_left +.25*cue_img_right +.25*cue_noimg_right' -glt_label 1 cue_all \
+    -gltsym 'SYM:.25*cue_img_left +.25*cue_noimg_left -.25*cue_img_right -.25*cue_noimg_right' -glt_label 2 cue_LvR \
+    -gltsym 'SYM:.25*cue_img_left +.25*cue_img_right -.25*cue_noimg_left -.25*cue_noimg_right' -glt_label 3 cue_IMGvNOIMG \
+    -gltsym 'SYM:.25*mgs_img_left +.25*mgs_noimg_left +.25*mgs_img_right +.25*mgs_noimg_right' -glt_label 4 mgs_all \
+    -gltsym 'SYM:.25*mgs_img_left +.25*mgs_noimg_left -.25*mgs_img_right -.25*mgs_noimg_right' -glt_label 5 mgs_LvR \
+    -gltsym 'SYM:.25*mgs_img_left +.25*mgs_img_right -.25*mgs_noimg_left -.25*mgs_noimg_right' -glt_label 6 mgs_IMGvNOIMG \
+    -errts "${subj_task_dir}/${ld8}_lrimg_tent_task_errts.nii.gz" \
+    -x1D X.xmat.1D \
+    -rout \
+    -tout
+}
+
+eval "$(iffmain decon_all_nost decon_one_tent)"

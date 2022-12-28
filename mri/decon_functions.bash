@@ -47,7 +47,7 @@ check_inputs(){
    local inputs4d=("$@")
    
    [ ! -r "$ex1dfile" ] &&
-      warn "$ld8 ERROR: missing  1d files (no $ex1dfile)" && return 1
+      warn "$ld8 ERROR: missing  1d files (no $ex1dfile, see ./020_task_onsets.R and /Volumes/L/bea_res/Data/Tasks/MGSEncMem/7T/\$ld8)" && return 1
    nb1d=$(wc -l < "$ex1dfile") # line per run on 1d file
    nbts=${#inputs4d[@]}
    [ ! -r "${inputs4d[0]}" ] && warn "ERROR: no nii inputs '${inputs4d[*]}'" && return 1
@@ -64,6 +64,14 @@ check_tr(){
    return 0
 }
 
+decon_dir(){
+   case $1 in
+      */MHTask_nost_nowarp/*) echo MGSEncMem/nowarp;;
+      */MHTask_nost/*) echo MGSEncMem/mni;;
+      *) warn "don't know how to derive decon dir from '$1'"; return 1;;
+   esac
+}
+
 
 # run through all deconds
 decon_all_nost() {
@@ -75,30 +83,53 @@ decon_all_nost() {
   [ $# -lt 2 ] && decon_all_usage
   decon_func="$1"; shift
 
-  # all or just what's given
-  [ "$1" == "all" ] &&  
-    preproc_dirs=(/Volumes/Hera/Projects/7TBrainMech/pipelines/MHTask_nost/1*_2*/) ||
-    preproc_dirs=("$@")
+  # can give 'all', 'mni', 'nowarp', 'procdir' or work on explict preproc dirs what's given
+  # like /Volumes/Hera/Projects/7TBrainMech/pipelines/MHTask_nost_nowarp/10195_20191205/
+  case "$1" in
+     all) preproc_dirs=(/Volumes/Hera/Projects/7TBrainMech/pipelines/MHTask_nost{,_nowarp}/1*_2*/);;
+     nowarp) preproc_dirs=(/Volumes/Hera/Projects/7TBrainMech/pipelines/MHTask_nost_nowarp/1*_2*/);;
+     mni) preproc_dirs=(/Volumes/Hera/Projects/7TBrainMech/pipelines/MHTask_nost/1*_2*/);;
+     procdir) preproc_dirs=(/Volumes/Hera/Projects/7TBrainMech/pipelines/"$PROCDIR"/1*_2*/);;
+     *) preproc_dirs=("$@");;
+  esac
+    
 
-  oned_dir=$(pwd)/1d/trial_hasimg_lr/
   warn "# running for ${#preproc_dirs[@]} preproc dirs"
   for predir in "${preproc_dirs[@]}"; do
-    $decon_func "$oned_dir" "$predir" || continue
+    $decon_func "$predir" || continue
   done
 }
 
 decon_all_usage(){
 cat <<HEREDOC
-Usage: $0 [all|/Volumes/Hera/Projects/7TBrainMech/pipelines/MHTask_nost/10173_2*/]
- arguments:
-  "all" to run for all preproc dirs
-  otherwise give one or more preproc paths specifically
+USAGE:
+ $0 [all|mni|nowarp|/Volumes/Hera/Projects/7TBrainMech/pipelines/MHTask_nost/10173_2*/]
 
- globals (e.g. "DRYRUN=1 ./021_deconvolve.bash all"):
-    DRYRUN=1 to print decon command
-    REDO=1 to not skip if already have output
+SYNOPSIS:
+ Arguments
+   "all" to run for all preproc dirs (MHTask_nost, MHTask_nost_nowarp)
+   "mni" - just MHTask_nost
+   "nowarp" - just MHTask_nost_nowarp
+   "procdir" - use whatever \$PROCDIR is (e.g export PROCDIR=MHTask_nost)
+  otherwise give one or more preproc paths specifically, e.g.
+  /Volumes/Hera/Projects/7TBrainMech/pipelines/MHTask_nost/10173_2*/
 
- 20221209 TODO: motion censor and ortvec; single -stim_times_AM1 to model all task activity?
+ Globals
+    DRYRUN=1    print decon command(s) but do not actually run
+    REDO=1      run even if already have output (just print if DRYRUN)
+
+NOTES:
+ 20221228
+  - add MHTask_nost_nowarp and decon_dir to set output approprately. arg opts mni, nowarp, procdir
+  TODO: use regressors.txt instead of all_motion.par
+ 20221209
+  - see decon_functions.bash for supporting code
+  - added tr and concat censor/fd. TODO: other models, 'waitforjobs' for parallel processing
+
+EXAMPLES:
+ $0 all
+ DRYRUN=1 $0 /Volumes/Hera/Projects/7TBrainMech/pipelines/MHTask_nost/10173_2*/
+
 HEREDOC
 exit
 }
@@ -134,4 +165,12 @@ function concat_indir_test { #@test
 
   run perl -ne 'print $& if m/\d+/' all.txt
   [[  $output == 312 ]]
+}
+
+function decon_dir_test { #@test
+  run decon_dir /Volumes/Hera/Projects/7TBrainMech/pipelines/MHTask_nost/10173_20180802/
+  [[  $output == MGSEncMem/mni ]]
+
+  run decon_dir /Volumes/Hera/preproc/7TBrainMech_mgsencmem/MHTask_nost_nowarp/10173_20180802/
+  [[  $output == MGSEncMem/nowarp ]]
 }
