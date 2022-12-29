@@ -1,8 +1,10 @@
+suppressPackageStartupMessages({
 library(stringr)
 library(purrr)
 library(dplyr)
 library(tidyr)
 library(LNCDR)
+})
 
 # mgs_recall.py -- but not for all subjects
 # ---- scores ----
@@ -72,10 +74,17 @@ task_globs <- function(ld8s, filepatt="*recall*[0-9].csv") {
   task_subdir <- c("/*/",
                           "/0[0-5]/mri_mgsenc*/", 
                        "/1*/0[0-5]/mri_mgsenc*/",
+                           "/*mri*/mri_mgsenc*/",
                     "/*mri*/0[0-5]/mri_mgsenc*/")
   g <- expand_grid(task_dir, ld8s, task_subdir, filepatt)
   allcombos <- apply(g, 1, paste0, collapse="")
   taskfiles <- Sys.glob(allcombos) %>% unique
+
+  # use find if we found nothing. condition only seen when running for a single ld8 (or group that glob finds none)
+  #if(length(taskfiles)==0L)
+  #   taskfiles <-
+  #      sapply(Sys.glob(paste0(task_dir,ld8s)),
+  #             function(ld8dir) system(intern=T, glue::glue("find {ld8dir} -iname '{filepatt}'")))
 
   if(length(taskfiles)==0L)
      warning("no files matching: ", task_dir,
@@ -134,6 +143,7 @@ onset_recall <- function(ld8s="1*_2*") {
   d <- merge(onsets, recall, by=c("ld8", "imgfile"), all.x=T) %>%
      arrange(ld8, block, cue)
   d$dur <- d$mgs - d$cue + MGSDUR
+  d$dly_dur <- d$mgs - d$dly
   
   cat("# expect merged onsets+recall to have same summary count (ntotal=72)\n")
   d %>% group_by(ld8) %>% summarise(blk_mx=max(trial),ntotal=n()) %>% group_by(blk_mx,ntotal) %>% tally %>% print

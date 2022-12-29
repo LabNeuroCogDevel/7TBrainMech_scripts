@@ -7,31 +7,32 @@ source("task_onset_funcs.R") # onset_recall, write_oned_by_fname, library(dplyr)
 # how to organize different 1d breakdowns
 # will be grouped by fname, existing 'block' column will determine line number in 1D
 #####
+oned_base_dir <- function(onsetOnly) ifelse(onsetOnly, '1d_onsetOnly', '1d')
 lr_img_1d <- function(oned_ready, epoch="cue", onsetOnly=F){
-   ONED_DIR <- ifelse(onsetOnly, '1d_onsetOnly', '1d')
    oned_ready %>% mutate(
             prefix      = paste(sep="_", ld8, hasimg, coarse_side),
-            fname       = sprintf("%s/trial_hasimg_lr/%s_%s.1d", ONED_DIR, prefix, epoch))
+            fname       = sprintf("%s/trial_hasimg_lr/%s_%s.1d",
+                                  oned_base_dir(onsetOnly), prefix, epoch))
 }
 
 lr_img_dur_1d <- function(oned_ready, epoch="cue", onsetOnly=F){
-  ONED_DIR <- ifelse(onsetOnly, '1d_onsetOnly', '1d')
   oned_ready %>% mutate(
             prefix      = paste(sep="_", ld8, hasimg, coarse_side, dur),
-            fname       = sprintf("%s/trial_duration_hasimg_lr/%s_%s.1d", ONED_DIR, prefix, epoch))
+            fname       = sprintf("%s/trial_duration_hasimg_lr/%s_%s.1d",
+                                  oned_base_dir(onsetOnly), prefix, epoch))
 }
 
 trial_dur_1d <- function(oned_ready, epoch="cue", onsetOnly=F){
-  ONED_DIR <- ifelse(onsetOnly, '1d_onsetOnly', '1d')
   oned_ready %>% mutate(
             prefix      = paste(sep="_", ld8, paste0("dly-",dur)),
-            fname       = sprintf("%s/trial_duration/%s_%s.1d", ONED_DIR, prefix, epoch))
+            fname       = sprintf("%s/trial_duration/%s_%s.1d",
+                                  oned_base_dir(onsetOnly), prefix, epoch))
 }
 
 single_1d <- function(oned_ready, epoch="cue", onsetOnly=F){
-  ONED_DIR <- ifelse(onsetOnly, '1d_onsetOnly', '1d')
   oned_ready %>% mutate(
-    fname       = sprintf("%s/trial_single/%s_%s.1d", ONED_DIR, ld8, epoch))
+    fname       = sprintf("%s/trial_single/%s_%s.1d",
+                          oned_base_dir(onsetOnly), ld8, epoch))
 }
 ######
 
@@ -41,6 +42,14 @@ write_all_oned <- function(oned_read, REDO=FALSE) {
    ## WRITE 1D files
    # original left/right + img/noimage
    # if REDO, will rewrite 1d file. otherwise skip if already exists
+
+   # with duration as "married" paramemter: "onset:duration"
+   # output file used in 021a_deconvolve_block.bash like
+   # -stim_times_AM1 5 "${oned_dir_bydur}/${ld8}_img_Left_dly.1d" 'dmBLOCK' -stim_label 5 dly_img_left \
+   oned_ready %>% lr_img_1d(epoch='dly', onsetOnly=F) %>%
+      write_oned_by_fname(redo=REDO, col_1d='dly', dur_col='dly_dur')
+
+   # no duration parameter
    oned_ready %>% lr_img_1d(epoch='cue', onsetOnly=T) %>%
       write_oned_by_fname(redo=REDO, col_1d='cue', dur_col = NULL)
    oned_ready %>% lr_img_1d(epoch='dly', onsetOnly=T) %>%

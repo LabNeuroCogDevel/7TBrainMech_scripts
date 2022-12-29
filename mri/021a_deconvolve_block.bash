@@ -29,7 +29,7 @@ decon_one_dmblock(){
    # CHANGE ME
    local oned_dir_bydur=/Volumes/Hera/Projects/7TBrainMech/scripts/mri/1d/trial_hasimg_lr/
    local oned_dir_single=/Volumes/Hera/Projects/7TBrainMech/scripts/mri/1d_onsetOnly/trial_hasimg_lr/
-   ex1dfile=${oned_dir_bydur}/${ld8}_img_Left_cue.1d
+   ex1dfile=${oned_dir_bydur}/${ld8}_img_Left_dly.1d
    check_inputs "$ex1dfile" "${inputs4d[@]}" || return
 
    # create subject directory and go there
