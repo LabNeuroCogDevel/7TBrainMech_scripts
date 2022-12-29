@@ -17,14 +17,14 @@ lr_img_1d <- function(oned_ready, epoch="cue", onsetOnly=F){
 
 lr_img_dur_1d <- function(oned_ready, epoch="cue", onsetOnly=F){
   oned_ready %>% mutate(
-            prefix      = paste(sep="_", ld8, hasimg, coarse_side, dur),
+            prefix      = paste(sep="_", ld8, hasimg, coarse_side, trl_dur),
             fname       = sprintf("%s/trial_duration_hasimg_lr/%s_%s.1d",
                                   oned_base_dir(onsetOnly), prefix, epoch))
 }
 
 trial_dur_1d <- function(oned_ready, epoch="cue", onsetOnly=F){
   oned_ready %>% mutate(
-            prefix      = paste(sep="_", ld8, paste0("dly-",dur)),
+            prefix      = paste(sep="_", ld8, paste0("dly-",trl_dur)),
             fname       = sprintf("%s/trial_duration/%s_%s.1d",
                                   oned_base_dir(onsetOnly), prefix, epoch))
 }

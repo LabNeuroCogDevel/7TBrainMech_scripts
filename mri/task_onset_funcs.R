@@ -142,7 +142,7 @@ onset_recall <- function(ld8s="1*_2*") {
   onsets <- mk_onsets(ld8s)
   d <- merge(onsets, recall, by=c("ld8", "imgfile"), all.x=T) %>%
      arrange(ld8, block, cue)
-  d$dur <- d$mgs - d$cue + MGSDUR
+  d$trl_dur <- d$mgs - d$cue + MGSDUR
   d$dly_dur <- d$mgs - d$dly
   
   cat("# expect merged onsets+recall to have same summary count (ntotal=72)\n")
@@ -156,8 +156,8 @@ onset_recall <- function(ld8s="1*_2*") {
 }
 
 # TODO: this should be reworked and put into LNCDR
-write_oned_by_fname <- function(oned_ready, col_1d="cue", dur_col='dur', redo=FALSE){
- if(!all(c("fname",col_1d,"dur") %in% names(oned_ready)))
+write_oned_by_fname <- function(oned_ready, col_1d="cue", dur_col='trl_dur', redo=FALSE){
+ if(!all(c("fname",col_1d,dur_col) %in% names(oned_ready)))
     stop("missing column names")
  split(oned_ready, oned_ready$fname) %>%
     lapply(function(x) {
