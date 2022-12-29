@@ -1,10 +1,7 @@
 #!/usr/bin/env Rscript
-library(dplyr)
 setwd('/Volumes/Hera/Projects/7TBrainMech/scripts/mri')
 #setwd('~/scratch/7tmgs/')
-source("task_onset_funcs.R") # onset_recall, write_oned_by_fname
-
-REDO <- TRUE  # rewrite 1d files if they already exist?
+source("task_onset_funcs.R") # onset_recall, write_oned_by_fname, library(dplyr)
 
 #####
 # how to organize different 1d breakdowns
@@ -39,40 +36,75 @@ single_1d <- function(oned_ready, epoch="cue", onsetOnly=F){
 ######
 
 
-## READ IN DATA (merging recall and "view" onsets)
-oned_ready <- onset_recall()
-write.csv(file="txt/onset_and_recall_trialinfo.csv", oned_ready, row.names=FALSE)
-# or read in instead of regenerating
-# oned_ready <- read.csv("txt/onset_and_recall_trialinfo.csv")
 
-# 20221213: 248 visits with 17880 trials
-#  wc -l < txt/onset_and_recall_trialinfo.csv 
-#    17881 
-#  grep -oP '\d{5}_\d{8}' txt/onset_and_recall_trialinfo.csv |sort -u | wc -l
-#    248
+write_all_oned <- function(oned_read, REDO=FALSE) {
+   ## WRITE 1D files
+   # original left/right + img/noimage
+   # if REDO, will rewrite 1d file. otherwise skip if already exists
+   oned_ready %>% lr_img_1d(epoch='cue', onsetOnly=T) %>%
+      write_oned_by_fname(redo=REDO, col_1d='cue', dur_col = NULL)
+   oned_ready %>% lr_img_1d(epoch='dly', onsetOnly=T) %>%
+      write_oned_by_fname(redo=REDO, col_1d='dly', dur_col = NULL)
+   oned_ready %>% lr_img_1d(epoch='mgs', onsetOnly=T) %>%
+      write_oned_by_fname(redo=REDO, col_1d='mgs', dur_col = NULL)
 
-# debug missing subj
-# oned_single <- onset_recall("11735_20190719") # no recall
-# oned_single <- onset_recall("11802_20210618") # good trial
+   # break out trails by duration of wait
+   oned_ready %>% trial_dur_1d(epoch='cue', onsetOnly=T) %>%
+      write_oned_by_fname(redo=REDO, col_1d='cue', dur_col = NULL)
+   oned_ready %>% trial_dur_1d(epoch='dly', onsetOnly=T) %>%
+      write_oned_by_fname(redo=REDO, col_1d='dly', dur_col = NULL)
+   oned_ready %>% trial_dur_1d(epoch='mgs', onsetOnly=T) %>%
+      write_oned_by_fname(redo=REDO, col_1d='mgs', dur_col = NULL)
 
+   # duration and lr+img
+   oned_ready %>% lr_img_dur_1d(epoch='cue', onsetOnly=T) %>%
+      write_oned_by_fname(redo=REDO, col_1d='cue', dur_col = NULL)
+   oned_ready %>% lr_img_dur_1d(epoch='dly', onsetOnly=T)  %>%
+      write_oned_by_fname(redo=REDO, col_1d='dly', dur_col = NULL)
+   oned_ready %>% lr_img_dur_1d(epoch='mgs', onsetOnly=T) %>%
+      write_oned_by_fname(redo=REDO, col_1d='mgs', dur_col = NULL)
 
-## WRITE 1D files
-# original left/right + img/noimage
-source("task_onset_funcs.R") # onset_recall, write_oned_by_fname
-oned_ready %>% lr_img_1d(epoch='cue', onsetOnly=T) %>% write_oned_by_fname(redo=REDO, col_1d='cue', dur_col = NULL)
-oned_ready %>% lr_img_1d(epoch='dly', onsetOnly=T) %>% write_oned_by_fname(redo=REDO, col_1d='dly', dur_col = NULL)
-oned_ready %>% lr_img_1d(epoch='mgs', onsetOnly=T) %>% write_oned_by_fname(redo=REDO, col_1d='mgs', dur_col = NULL)
+   # all together
+   oned_ready %>% single_1d(epoch='dly', onsetOnly=T) %>%
+      write_oned_by_fname(redo=REDO, col_1d='dly', dur_col = NULL)
+}
 
-# break out trails by duration of wait
-oned_ready %>% trial_dur_1d(epoch='cue', onsetOnly=T) %>% write_oned_by_fname(redo=REDO, col_1d='cue', dur_col = NULL)
-oned_ready %>% trial_dur_1d(epoch='dly', onsetOnly=T) %>% write_oned_by_fname(redo=REDO, col_1d='dly', dur_col = NULL)
-oned_ready %>% trial_dur_1d(epoch='mgs', onsetOnly=T) %>% write_oned_by_fname(redo=REDO, col_1d='mgs', dur_col = NULL)
+if (sys.nframe() == 0){
+   ld8 <- commandArgs(trailingOnly=TRUE)
+   if(length(ld8)!=1L)
+      stop("
+USAGE: ./020_task_onsets.R {all|redo|read|<ld8>}
+ 'all' regerates recall+onset merge (txt/onset_and_recall_trialinfo.csv)
+      and generates 1d files for all visits (skipping those already existing)
+ 'redo' like 'all' but will rewrite 1d files even if they exist.
+      only needed if code generating file changes
+ 'read' uses prev view+recall merger file from 'all'.
+      faster. approprate if no new visits but have new 1d files to generage.
+ <ld8>=provide a lunaid_yyyymmdd
+       useful for picking up new or renamed visit")
 
-# duration and lr+img
-oned_ready %>% lr_img_dur_1d(epoch='cue', onsetOnly=T)  %>% write_oned_by_fname(redo=REDO, col_1d='cue', dur_col = NULL)
-oned_ready %>% lr_img_dur_1d(epoch='dly', onsetOnly=T)  %>% write_oned_by_fname(redo=REDO, col_1d='dly', dur_col = NULL)
-oned_ready %>% lr_img_dur_1d(epoch='mgs', onsetOnly=T)  %>% write_oned_by_fname(redo=REDO, col_1d='mgs', dur_col = NULL)
+   REDO <- ld8 == 'redo'
+   ## READ IN DATA (merging recall and "view" onsets)
+   if(ld8 == "read") {
+      oned_ready <-read.csv(file="txt/onset_and_recall_trialinfo.csv")
+   } else if(ld8 %in% c('all','redo')) {
+      oned_ready <- onset_recall()
+      write.csv(file="txt/onset_and_recall_trialinfo.csv", oned_ready, row.names=FALSE)
+   } else {
+      oned_ready <- onset_recall(ld8)
+   }
+   # or read in instead of regenerating
+   # oned_ready <- read.csv("txt/onset_and_recall_trialinfo.csv")
 
-# all together
-oned_ready %>% single_1d(epoch='dly', onsetOnly=T)  %>% write_oned_by_fname(redo=REDO, col_1d='dly', dur_col = NULL)
+   # 20221213: 248 visits with 17880 trials
+   #  wc -l < txt/onset_and_recall_trialinfo.csv 
+   #    17881 
+   #  grep -oP '\d{5}_\d{8}' txt/onset_and_recall_trialinfo.csv |sort -u | wc -l
+   #    248
 
+   # debug missing subj
+   # oned_single <- onset_recall("11735_20190719") # no recall
+   # oned_single <- onset_recall("11802_20210618") # good trial
+
+   write_all_oned(oned_read, REDO)
+}
