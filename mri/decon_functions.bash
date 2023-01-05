@@ -16,6 +16,23 @@ lookup_tr(){
     print $F[1] and exit if /$ld8/ # print the second column of only the first match
    ' -- -ld8="$ld8" < $db
 }
+regressors_in_use(){
+   # given list of preproc file nifti files
+   # find the regressors_in_use and list those
+   # use to put what preprocessfunctional thinks is in regerssors into output files history (3dNotes)
+   printf '%s\n' "$@"|
+      sed 's:/[^/]*\?$:/.regressors_in_use:g' |
+      xargs sed 's/ /,/g;s/\[\([0-9]\)\]/_\1/g;s/\.//g'|uniq|paste -sd:o
+}
+
+list_inputs(){
+   # 20230105: look for either W prefix (_nowarp) for mprage aligned functional (from 011_nowarp_to_t1.bash)
+   #           or standard nfswdkm with warp to mni (default preprocessFunctional)
+   local preproc_glob="$1"; shift
+   # nfswdkm for warp,Wnfsdkm for nowarp T1-aligned 
+   # shellcheck disable=SC2086,SC2010 # want globbing, so no quote
+   ls $preproc_glob/*nfs*dkm_func_4.nii.gz | grep -Pi 'Wn|wd'
+}
 
 concat_indir(){
   # save output (arg 1) by cating inname (arg 2) for the dirname of each file (arg 3-)
@@ -47,7 +64,7 @@ check_inputs(){
    local inputs4d=("$@")
    
    [ ! -r "$ex1dfile" ] &&
-      warn "$ld8 ERROR: missing  1d files (no $ex1dfile, see ./020_task_onsets.R and /Volumes/L/bea_res/Data/Tasks/MGSEncMem/7T/\$ld8)" && return 1
+      warn "$ld8 ERROR: missing  1d files (no $ex1dfile, see './020_task_onsets.R $ld8' and 'tree /Volumes/L/bea_res/Data/Tasks/MGSEncMem/7T/$ld8')" && return 1
    nb1d=$(wc -l < "$ex1dfile") # line per run on 1d file
    nbts=${#inputs4d[@]}
    [ ! -r "${inputs4d[0]}" ] && warn "ERROR: no nii inputs '${inputs4d[*]}'" && return 1
@@ -173,4 +190,17 @@ function decon_dir_test { #@test
 
   run decon_dir /Volumes/Hera/preproc/7TBrainMech_mgsencmem/MHTask_nost_nowarp/10173_20180802/
   [[  $output == MGSEncMem/nowarp ]]
+}
+function list_inputs_test { #@test
+   run list_inputs  "/Volumes/Hera/Projects/7TBrainMech/pipelines/MHTask_nost_nowarp/10173_20180802/0*/" 
+   [[ $(grep -c '\n' <<< "$output") == 3 ]]
+   [[ $output =~ Wnfsdkm_func_4.nii.gz ]]
+   run list_inputs  "/Volumes/Hera/Projects/7TBrainMech/pipelines/MHTask_nost/10173_20180802/0*/" 
+   [[ $(grep -c '\n' <<< "$output") == 3 ]]
+   [[ $output =~ nfswdkm_func_4.nii.gz ]]
+   
+}
+function regressors_in_use_test { #@test
+   run regressors_in_use /Volumes/Hera/Projects/7TBrainMech/pipelines/MHTask_nost_nowarp/10173_20200221/0*/W*nii.gz
+   [[ $output == "motion_demean_0,motion_demean_1,motion_demean_2,motion_demean_3,motion_demean_4,motion_demean_5,csf_ts,motion_deriv_0,motion_deriv_1,motion_deriv_2,motion_deriv_3,motion_deriv_4,motion_deriv_5,csf_ts_deriv,wm_ts_deriv,wm_ts" ]]
 }

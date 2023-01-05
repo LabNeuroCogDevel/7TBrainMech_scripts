@@ -22,7 +22,8 @@ decon_one_tent(){
    [[ ! $predir =~ 1[0-9]{4}_2[0-9]{7} ]] && echo "no id in $predir" && return
    ld8="${BASH_REMATCH[0]}"
 
-   inputs4d=("$predir"/0[1-4]/nfs*dkm_func_4.nii.gz) # nfswdkm for warp, nfsdkm for nowarp
+   # 20230105: use W prefix mprage aligned functions from 011_nowarp_to_t1.bash
+   mapfile -t inputs4d < <(list_inputs "$predir/0[1-4]")
 
    # check we have 1d files for each run and have at least 1 4d file
    # (1d file has as many rows as number 4d files)
@@ -38,7 +39,12 @@ decon_one_tent(){
    [ ! -d "$subj_task_dir" ] && mkdir -p "$subj_task_dir"
    cd "$subj_task_dir"
 
+   # 20230105 use regressors and not motion. still  creating motion file, but not used in decon
+   # use reg_names to put what preprocessfunctional thinks is in regerssors into output files history (3dNotes)
    mot_concat=$(concat_indir ./all_motion.par motion.par      "${inputs4d[@]}") || return
+   reg_concat=$(concat_indir ./all_nuisance_regs.txt  nuisance_regressors.txt     "${inputs4d[@]}") || return
+   reg_names=$(regressors_in_use "${inputs4d[@]}")
+
    fd_concat=$(concat_indir ./all_fd.txt motion_info/fd.txt "${inputs4d[@]}") || return
    fd_censor_file=$(fd_censor "$fd_concat" "$FD_THRES") || return
 
@@ -59,7 +65,7 @@ decon_one_tent(){
     -force_TR "$tr" \
     -overwrite \
     -censor "$fd_censor_file" \
-    -ortvec "$mot_concat" motion \
+    -ortvec "$reg_concat" "$reg_names" \
     -polort 3 \
     -jobs 32 \
     -prefix ${subj_task_dir}/${outfile} \
