@@ -13,11 +13,14 @@ getld8_dcmdir(){
    exampledcm=$(find -L $d -iname '*IMA' -print -quit) 
    [ -z "$exampledcm" ] && echo "$d: (dcm) cannot find IMA in $d" >&2 && return 1
 
-   patname=$(dicom_hinfo -no_name -tag 0010,0010 $exampledcm)
+   patname=$(dicom_hinfo -no_name -tag 0010,0010 "$exampledcm")
    orig_pn=$patname
 
-   hc_patname=$(getld8_hardcoded $patname || echo "")
-   [ -n "$hc_patname" ] && echo "$d: using hardcoded value $hc_patname (instead of $patname)" >&2  && patname=$hc_patname 
+   hc_patname=$(getld8_hardcoded "$patname" || echo "")
+   if [ -n "$hc_patname" ]; then 
+      [ -n "${VERBOSE:-}" ] && echo "$d: using hardcoded value $hc_patname (instead of $patname)" >&2
+      patname=$hc_patname 
+   fi
    [ -z "$patname" ] && echo "no id in $exampledcm" >&2 && return 1
 
    # match something like 
@@ -32,13 +35,17 @@ getld8_dcmdir(){
 
 }
 
+#DBHOST=arnold.wpic.upmc.edu
+#! ping -qc1 -W1 $DBHOST && echo "$DBHOST down?" && DBHOST=10.145.64.121
+DBHOST=10.145.64.121
+
 # give me a string like yyyymmddLuna#, and i'll give you the luna_date
 getld8_db(){
-   read ymd num <<< $(echo $@ | perl -lne 'print $1,"\t",$2?$2:1 if m/(\d{8})Luna([1-3])?/i')
-   warnifverb "$FUNCNAME: $@: ymd '$ymd' scanno '$num'";
+   read ymd num <<< $(echo "$@" | perl -lne 'print $1,"\t",$2?$2:1 if m/(\d{8})Luna([1-3])?/i')
+   warnifverb "${FUNCNAME[0]}: $*: ymd '$ymd' scanno '$num'";
    [ -z "$ymd" ] && return
    [ -n "$VERBOSE" ] && set -x
-   psql -F $'\t'  --no-align -qt  -h arnold.wpic.upmc.edu  lncddb  lncd -c "
+   psql -F $'\t'  --no-align -qt  -h $DBHOST  lncddb  lncd -c "
 select
    concat(id, '_', to_char(vtimestamp,'yyyymmdd')) as ld8,
    vtimestamp
@@ -68,6 +75,7 @@ getld8_hardcoded(){
    # hardcoded fix
    [ $patname == '20180614Luna1' ] && ld8="11659_20180614"  # was later dropped
    [ $patname == '20180614Luna2' ] && ld8="11662_20180614"  # (3pm) added b/c no Luna1, throws off query DB
+   # Dropped: 11667_20180629 noshowed
    [ $patname == '20181112Luna1' ] && ld8="11708_20181112"  # added 20181219, no info in dicom
    [ $patname == '20180628Luna1' ] && ld8="11665_20180628"  # added 20181219, no info in dicom
    [ $patname == '20180921Luna1' ] && ld8="11681_20180921"  # came in twice 09-21 and 10-12
@@ -110,6 +118,14 @@ getld8_hardcoded(){
    [ $patname == "20210419Luna"   ] && ld8="11668_20210419" # dirname is Luna2, but only visit for day
 
    [ $patname == "20210426Luna"   ] && ld8="11793_20210426" # dirname is Luna2, but only visit for day
+
+   # 20230113 ZBW 
+   [ $patname == "20210410Luna1"   ] && ld8="11845_20210410"
+   # 20230117 - finding missing calendar days
+   [ $patname == "20220716Luna1"   ] && ld8="11865_20220716"
+   [ $patname == "20211203Luna1"   ] && ld8="11738_20211203"
+   [ $patname == "20220819Luna1"   ] && ld8="11686_20220819" # flow has 20220829. no cal then
+   
    
    
    #[[ $patname == '20180521Luna1' ]] && patname=xxxxx_20180521
@@ -125,13 +141,13 @@ getld8(){
    local d="$1"
    ld8=$(getld8_dcmdir $d) || : 
    ld8db=$(getld8_db $d) || :
-   echo "# INFO:  dcmid '$ld8' vs. dbid '$ld8db' (only need 1 valid)" >&2
+   [ -n "${VERBOSE:-}" ] && echo "# INFO:  dcmid '$ld8' vs. dbid '$ld8db' (only need 1 valid)" >&2
    if [ -z "$ld8" -a -z "$ld8db" ]; then
       echo "$0:${FUNCNAME}:ERROR: $d has no luna in dcm or db?! run again with VERBOSE=1">&2
       #local dt=$(basename $(dirname $d))
       [[ $d =~ [0-9]{8}Luna ]] && search=${BASH_REMATCH:0:8} || search="??" 
       #echo $dt >&2;
-      echo -e "psql -h arnold.wpic.upmc.edu lncddb lncd -c \"select id,vtype,study,vtimestamp from visit natural join person natural join visit_study natural join enroll where to_char(vtimestamp,'YYYYmmdd') like '$search%' and etype like 'LunaID'\"" >&2
+      echo -e "psql -h $DBHOST lncddb lncd -c \"select id,vtype,study,vtimestamp from visit natural join person natural join visit_study natural join enroll where to_char(vtimestamp,'YYYYmmdd') like '$search%' and etype like 'LunaID'\"" >&2
       return 1
    fi
    [ -z "$ld8" ]   &&   ld8="$ld8db"  && warnifverb "#   $d: no dcm luna (maybe okay)"
