@@ -25,7 +25,7 @@ source $scriptdir/func.bash # getld8: getld8_dcmdir getld8_db
 #                                          | <-41 chars, 4 fields
 link_master_folder() {
    # check input
-   [ $# -ne 1 ] && echo "$FUNCNAME: need just the final folder. given '$@'" >&2 && return 1
+   [ $# -ne 1 ] && echo "$FUNCNAME: need just the final folder. given '$*'" >&2 && return 1
    dcmroot="$1"
    [ ! -d "$dcmroot" ] && echo "$FUNCNAME: '$dcmroot' must be a directory" >&2 && return 1
 
@@ -82,13 +82,46 @@ inputs are either
    the directory where there are folders for each sequence in a scan session.
    those folders should each be full of *IMA dicom files
 USAGE:
- $0 all
+ $0 all      # go through all DICOM dirs
+ $0 missing  # look at all dcmdirs without rawlinks/\$ld8
+ $0 db       # look at YYYYmmddLuna* for db 7tscan luna_vdate without rawdirs
+
+ # run individual
  $0 /Volumes/Hera/Raw/MRprojects/7TBrainMech/20190422Luna1/20190422Luna1DCMALL/TIEJUN_JREF-LUNA_20190422_134510_234000
 " && exit 1
 
 # 'all' means look for TIEJUN fold220
-[ $1 = "all" ] && dirs=(/Volumes/Hera/Raw/MRprojects/7TBrainMech/20{19*/2019*,2*/202*,{19,2}*/DICOM}/TIEJUN_JREF-LUNA*/) || dirs=($@) 
+case "$1" in
+   all) dirs=(/Volumes/Hera/Raw/MRprojects/7TBrainMech/202*/DICOM /Volumes/Hera/Raw/MRprojects/7TBrainMech/20{19*/2019*,2*/202*,{19,2}*/DICOM}/TIEJUN_JREF-LUNA*/);;
+   db)
+      dirs=()
+      for ld8 in $(selld8 l |grep Scan.*Brain | cut -f1); do
+         [ -d "/Volumes/Hera/Raw/BIDS/7TBrainMech/rawlinks/$ld8" ] && continue
+         vdate=${ld8/*_/}
+         thisdir=""
+         for d in "/Volumes/Hera/Raw/MRprojects/7TBrainMech/${vdate}"Luna*/{DICOM,{DICOM/,}TIEJUN_JREF-LUNA*/}; do
+           test -r $d && thisdir="$_"
+         done
+         [ -z "$thisdir" ] && warn "# no mr direcotry for $ld8 '${vdate}Luna*" && continue
+         echo "# $ld8 found: $thisdir"
+         dirs+=("$thisdir")
+      done
+      echo "# dirs: ${dirs[*]}";
+      ;;
+   missing)
+      dirs=()
+      for d in /Volumes/Hera/Raw/MRprojects/7TBrainMech/202*; do
+         mrid=$(basename "$d")
+         id=$(getld8 "$d" || echo -n "")
+         [ -z "$id" ] && warn "# no luna for '$mrid', update db or $scriptdir/func.bash" && continue
+         [ -d "/Volumes/Hera/Raw/BIDS/7TBrainMech/rawlinks/$id" ] && continue
+         dirs+=("$d/"{DICOM,{DICOM/,}TIEJUN_JREF-LUNA*/})
+      done
+      echo "# dirs: ${dirs[*]}";
+      ;;
+   *) dirs=("$@") ;;
+esac
 
-for d in ${dirs[@]}; do
-   link_master_folder $d || continue
+for d in "${dirs[@]}"; do
+   link_master_folder "$d" || continue
 done
