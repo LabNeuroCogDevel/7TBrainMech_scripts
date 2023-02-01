@@ -134,17 +134,24 @@ end
 
 
 function recon_coords(points, a, vo::Float64, ho::Float64)
-    new_points = zeros(size(points))
+    n = size(points)[1]
+    new_points = zeros(n,5)
     # directly from ReconCoordinates.m
     new_points[:,1] .= points[:,1].*cos(a) .+ points[:,2].*sin(a) .+vo;
     new_points[:,2] .= points[:,2].*cos(a) .- points[:,1].*sin(a) .+ho;
+    # 20230201 - track where these came from and assign an index so we can refer back
+    # index used by 3dundump to set roi/atlas/mask value
+    # original row/col used to assign back to spectrum file
+    new_points[:,3] .= points[:,1]
+    new_points[:,4] .= points[:,2]
+    new_points[:,5] .= 1:n
     return new_points
 end
 @testset "transform coord" begin
     points = [10 20; 30 40]
     x = recon_coords(points, 0, 0, 0)
-    @test points == x
-    @test points != recon_coords(points, 1, 0, 0)
+    @test points == x[:,1:2]
+    @test points != recon_coords(points, 1, 0, 0)[:,1:2]
 end
 
 
@@ -204,7 +211,7 @@ function plot_rot_loc(fname)
     anat = balance_anat(anat);
     #locs = abs.(locs .- [216, 0]');
     #plot_placment(anat, locs);
-    plot = plotjl_placment(anat, locs, fname);
+    plot = plotjl_placment(anat, locs[:,1:2], fname);
 end
 
 function plot_loc_noadjust(fname)
