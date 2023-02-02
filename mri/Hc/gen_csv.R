@@ -49,7 +49,7 @@ d_YV_fixed <- rbind(d_YV_okay, d_reconstruct_side) %>% select(-dname)
 
 
 # lncd placed ROIs
-lncd_list <- Sys.glob('/Volumes/Hera/Raw/MRprojects/7TBrainMech/MRSI_BrainMechR01/HPC/ProcessedHc*/20*/spectrum*/spreadsheet.csv')
+lncd_list <- Sys.glob('/Volumes/Hera/Raw/MRprojects/7TBrainMech/MRSI_BrainMechR01/HPC/*/20*/spectrum*/spreadsheet.csv')
 d_lncd <- lapply(lncd_list, read_mrsisheet) %>% bind_rows %>% select(-dname)
 d_lncd <- d_lncd %>% separate(roi, c('Row', 'Col', 'Side', 'roinum')) 
 

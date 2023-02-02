@@ -15,6 +15,12 @@ cd raw_zipdir/ # /Volumes/Hera/Raw/MRprojects/7TBrainMech/MRSI_BrainMechR01
 outdir=$(pwd)/HPC/ProcessedHc103019_fixed_ln
 test ! -d $outdir && mkdir $_
 # standardize naming: HPC/Processed103019/ 
+# May 20  2020 -- run
+# 20220630     -- lots of renaming to fix issues.
+#   $'\r' included in filename!
+#   side should be R/L not Right/Left
+#   untouched: count is backwards? goes 6-1 instead of 1-6
+# TODO: fix these!! not neded for b/c ProcessedHc103019_fixed_ln replicated elsewhere correctly
 for f in $(pwd)/HPC/Processed103019/*/locations.txt; do
    ! [[ $f =~ Luna([0-9]{4})([0-9]) ]] && echo "bad name $f" && continue
    newid=2019${BASH_REMATCH[1]}Luna${BASH_REMATCH[2]}

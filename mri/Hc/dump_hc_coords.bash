@@ -6,10 +6,41 @@
 #  high res FS has sub parcilations. could use that for more info (different $aseg and $hc_rois)
 #  might care more about the labels of what's not in Hc. need to use differt roi idxes
 #  problem with -cubes -srad 4.5? not getting 9**3 voxel counts (all nii.gz are 1x1x1mm)
+#  - also consider $aseg<17> $aseg<53> as separate inputs to 3dROIstats for more fine grain count
+#     would have caught accidental 52 instead of 53 when all right was 0
+#     will be useful for high res labeling too
 
 # 20221111WF - init
 
-hc_rois=17,52  # left and right. value selectors given to roistats
+hc_rois=17,53  # left and right. value selectors given to roistats
+
+
+
+#  https://surfer.nmr.mgh.harvard.edu/fswiki/FsTutorial/AnatomicalROI/FreeSurferColorLUT
+# 17  Left-Hippocampus 
+# 53  Right-Hippocampus
+
+# # HiRes Hippocampus labeling
+# 500 right_CA2_3              
+# 501 right_alveus             
+# 502 right_CA1                
+# 503 right_fimbria            
+# 504 right_presubiculum       
+# 505 right_hippocampal_fissure
+# 506 right_CA4_DG             
+# 507 right_subiculum          
+# 508 right_fornix             
+# 
+# 550 left_CA2_3               
+# 551 left_alveus              
+# 552 left_CA1                 
+# 553 left_fimbria             
+# 554 left_presubiculum        
+# 555 left_hippocampal_fissure 
+# 556 left_CA4_DG              
+# 557 left_subiculum           
+# 558 left_fornix              
+
 
 for T1_hc in /Volumes/Hera/Projects/7TBrainMech/scripts/mri/Hc/spectrum/20*/FS_warp/*_T1-HcScout_Warped.nii.gz; do
     outdir=$(dirname "$T1_hc")

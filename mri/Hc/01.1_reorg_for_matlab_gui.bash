@@ -9,14 +9,49 @@ trap 'e=$?; [ $e -ne 0 ] && echo "$0 exited in error"' EXIT
 
 # most coreg and siarray are in Recon. but a few are in Shim
 # 20220303 201[89] organized differently
-for rdir in /Volumes/Hera/Raw/MRprojects/7TBrainMech/202*/Recon \
-   $(ls /Volumes/Hera/Raw/MRprojects/7TBrainMech/202*/Shim/CoregH[cC] | xargs dirname); do
-   [[ $rdir =~ 20[0-9]{6}Luna[1-9] ]] || continue
+[ $# -eq 0 ] && list=(
+    /Volumes/Hera/Raw/MRprojects/7TBrainMech/202*/Recon \
+   $(ls -d /Volumes/Hera/Raw/MRprojects/7TBrainMech/202*/Shim/CoregH[cC] | xargs dirname) \
+   /Volumes/Hera/Raw/MRprojects/7TBrainMech/202*/SHIM/CSIHC/ \
+   /Volumes/Hera/Raw/MRprojects/7TBrainMech/HCCollection/2*/Recon_CSI/CoregHC) ||
+   list=("$@")
+
+# single id
+[[ $# -eq 1 && $1 =~ 20.*[Aa][0-9]?$ ]] && list=(/Volumes/Hera/Raw/MRprojects/7TBrainMech/$1/{Recon,Recon_CSI,S*/CSIHC})
+
+for rdir in "${list[@]}"; do
+   [ ! -d "$rdir" ] && echo "# no dir like '$rdir' (checking both Recon and S*/CSIHC)" >&2 && continue
+   ! [[ $rdir =~ 20[0-9]{6}Luna[1-9]? ]] && echo "# no MRDate in '$rdir'" >&2 && continue
    id=${BASH_REMATCH}
    siarray=$(find $rdir/ -maxdepth 2 -type f,l -iname siarray.1.1 -ipath '*CSIHC*' -print -quit)
+   test -z "$siarray" -a -r "$rdir/../CSIHC" &&
+      siarray=$(find "$_" -maxdepth 1 -type f,l -iname siarray.1.1 -print -quit)
    # scout might be larger or smaller, but we want middle of 13, so always 7th slice
-   center=$(find $rdir/ -maxdepth 3 -type f,l  -iname '1[6789]_7_FlipLR.MPRAGE' -ipath '*CoregHC*' -print -quit)
-   [ -z "$siarray" -o ! -s "$siarray" ] && echo "$id: missing siarray.1.1 -- probably not a HC visit ($rdir)" >&2 && continue
+   # 20221005: add *CSIHC* for
+   #    rawdir=/Volumes/Hera/Raw/MRprojects/7TBrainMech/20210719Luna1/Recon
+   #    ln -s $rawdir/{CoregHC/registration_out/17_7_FlipLR.MPRAGE,CSIHC}/
+   #    ./01.1_reorg_for_matlab_gui.bash $rawdir/CSIHC/
+   # 20221130 - added 15_7 for /Volumes/Hera/Raw/MRprojects/7TBrainMech/20210423Luna/Recon but that might be too high
+ center=$(find "$rdir/" -maxdepth 3 -type f,l  \
+    \( -iname '1[56789]_7_FlipLR.MPRAGE' -or \
+       -iname '17_7_FlipLR.MPRAGE.17' -or \
+       -iname '21_10_FlipLR.MPRAGE' \
+    \) \
+    \( -ipath '*CoregHC*' -or -ipath '*CSIHC*' \) \
+     -print -quit)
+   if [ -z "$siarray" -o ! -s "$siarray" ]; then
+      dbhc=$(lncddb "select luna.id || '_'||to_char(vtimestamp,'YYYYmmdd'), measures->'Hc_Spectroscopy' from enroll mr
+              join enroll luna on mr.pid=luna.pid and mr.etype like '%MR%' and luna.etype like 'LunaID'
+              left join visit on mr.pid = visit.pid 
+                 and visit.vtype = 'Scan'
+                 and to_char(visit.vtimestamp,'YYYYmmdd') like substr(mr.id,1,8)
+              natural left join visit_task
+              where
+                  visit_task.task = 'ScanLog'
+                  and mr.id like '$id'" | uniq)
+      warn "$id: missing siarray.1.1 -- probably not a HC visit ($rdir). scanlog db has $dbhc" >&2 
+      continue
+   fi
    [ -z "$center" -o ! -s "$center" ] && echo "$id: missing 17_7_FlipLR.MPRAGE -- maybe different res scout (e.g. need 21_10) ($rdir)" >&2 && continue
    outdir=$(pwd)/spectrum/$id 
    test -d $outdir || $DRYRUN mkdir $outdir

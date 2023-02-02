@@ -7,7 +7,25 @@ trap 'e=$?; [ $e -ne 0 ] && echo "$0 exited in error"' EXIT
 # reorganize files to for spectrum gui
 # 20210825WF  init
 # 20220304WF  allow for input args
-getluna() {  lncddb "select e.id from enroll e join enroll m on e.pid=m.pid and e.etype='LunaID' and m.id like '$1%'"|
+getluna() { 
+  # struggling with DB. just get these out
+  # 20201113Luna1  could be 11700_20201113 or 11707_20201113
+  hardcode="$(echo "
+        11668  20220624Luna1
+        11751  20220618Luna1
+        11689  20210605Luna1
+        11796  20210719Luna1
+        11693  20211004Luna1
+        11725  20211029Luna1
+        11683  20211106Luna1
+        11713  20211108Luna1
+        11734  20220610Luna1 # is in db? but query fails 20230119
+        11788  20230112Luna1 # is in db? but query fails 20230120
+        11653  20180608Luna1" \
+     | grep "$1" |awk '{ print $1 }')"
+   [ -n "$hardcode" ] && echo "$hardcode" && return 0
+
+   lncddb "select e.id from enroll e join enroll m on e.pid=m.pid and e.etype='LunaID' and m.id like '$1%'"|
    sed 1q; }
 
 build_anat(){
@@ -33,8 +51,12 @@ for anat in "${ANATS[@]}"; do
    specdir=$(dirname "$anat")
    outdir=$specdir/FS_warp
 
-   [[ $anat =~ 20[0-9]{6}Luna[1-9] ]] || continue
+   [[ $anat =~ 20[0-9]{6}Luna[1-9]? ]] || continue
    id="${BASH_REMATCH[*]}"
+   # 20220316 - looks okay? 
+   #  afni /Volumes/Hera/preproc/7TBrainMech_rest/MHT1_2mm/10173_20210830
+   # but Recon isn't?
+   # * FATAL ERROR: Can't open dataset /Volumes/Hera/Raw/MRprojects/7TBrainMech/20210830Luna1/Recon/CoregHC/20210830_122724MP2RAGEPTXTR60001mmisos046a1001.nii
    [[ $id == 20210830Luna1 ]] && echo "# $id: bad mprage; skipping" && continue
 
    [[ $anat =~ 20[0-9]{6} ]] || continue
@@ -48,7 +70,7 @@ for anat in "${ANATS[@]}"; do
    [ -z "$anatdir" -o "$anatdir" == "." ] &&
       echo "#ERROR: cannot fidn link dir from '$anat_link' ('$anat')!?" && continue
    t1=$(find "$anatdir" -maxdepth 1 -type f,l \( -iname '[^r]*MP*nii' -or -iname 'MP*nii' \) )
-   sct=$(find "$anatdir" -maxdepth 1 -type f,l -iname '*SCOUT*.nii' -not -iname '*_resize.nii'|sed 1q)
+   sct=$(find "$anatdir" -maxdepth 1 -type f,l \( -iname '*SCOUT*.nii' -or -iname '*grefieldmappingMCxxB0map33*' -or -iname 'hcslice_e*.nii'  \) -not -iname '*_resize.nii' -print -quit)
    [ -z "$t1" ] && echo "#ERROR: $id: cannot find struct *MP*nii in '$anatdir'" && continue
    [ -z "$sct" ] && echo "#ERROR: $id: cannot find scout *SCOUT*nii in '$anatdir'" && continue
 
@@ -78,7 +100,8 @@ for anat in "${ANATS[@]}"; do
       $DRYRUN 3dresample -dxyz 1 1 1 -inset $sct -rmode Cu -prefix $_ -overwrite
    prefix=${ld8}_T1-HcScout_
    test -r ${prefix}0GenericAffine.mat ||
-      $DRYRUN antsRegistrationSyNQuick.sh -f ${ld8}_HcScout_upsample.nii.gz -m $t1 -t r -o $prefix
+      $DRYRUN niinote ${prefix}Warped.nii.gz \
+      antsRegistrationSyNQuick.sh -f ${ld8}_HcScout_upsample.nii.gz -m $t1 -t r -o $prefix
    
    test -r ${ld8}_aseg_scout.nii.gz ||
       $DRYRUN niinote $_\

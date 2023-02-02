@@ -9,6 +9,7 @@ mprage_neighbors(){
   local in="$1"
   local d="$(dirname "$in")"
   local f="$(basename "$in")"
+  f=${f/MPRAGE.17/MPRAGE} # a few with extra .17 at the end (20230117)
   # index 0 is bottom; will use as top bottom 
   perl -sE 'say s!^(\d+)_(\d+)!"$d/$1_" . ($2 +3)!er'  -- -d="$d" -_="$f"
   perl -sE 'say s!^(\d+)_(\d+)!"$d/$1_" . ($2 -3)!er'  -- -d="$d" -_="$f"

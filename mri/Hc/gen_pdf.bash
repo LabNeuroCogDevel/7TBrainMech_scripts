@@ -5,18 +5,21 @@ cd $(dirname $0)
 
 #
 # 20200520WF - copy from ../MRSI_roi/gen_pdf.bash
-#  make pdf from first page of csi.pdf
-#
+#  make pdf from first page of csi.ps
+#  searches in spectrum.xx.yy.dir within /Volumes/Hera/Raw/MRprojects/7TBrainMech/MRSI_BrainMechR01/HPC/
+#  saves to pdf/hpc_pg${pg}_${newer}_$(date +%F).pdf
+# 20230201 
+# prev run was pdf/hpc_pg1_2020-04-24_2020-05-20.pdf
+
 
 # depends on manual unzip
 # like 
 #  cd /Volumes/Hera/Raw/MRprojects/7TBrainMech/MRSI_BrainMechR01
 #  unzip -d HPC/ ProcessedHc_20200520_2019-Mar2020.zip
 
-env|grep ^DRYRUN= && DRYRUN=echo || DRYRUN=""
-
 pg=1
-newer=2020-04-24
+#newer=2020-04-24  # set 20200520
+newer=2020-05-20   # set 20230201
 tmpdir=$(mktemp -d /tmp/mrsi-pdfs-XXXX)
 test -d $tmpdir || mkdir $_
 
@@ -33,10 +36,10 @@ while read f; do
   out=$tmpdir/$ld8-$pos-pg$pg.pdf
   [ -r "$out" ] && continue
   echo $out
-  $DRYRUN gs -q -dSAFER -dBATCH -dFirstPage=$pg -dLastPage=$pg -sDEVICE=pdfwrite -o "$out" $f
+  dryrun gs -q -dSAFER -dBATCH -dFirstPage=$pg -dLastPage=$pg -sDEVICE=pdfwrite -o "$out" $f
 done
 
-[ -n "$DRYRUN" ] && exit 0
+[ -n "${DRYRUN:-}" ] && exit 0
 
 # make bookmark file
 ls $tmpdir/*-pg$pg.pdf |
