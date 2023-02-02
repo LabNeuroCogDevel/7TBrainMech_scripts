@@ -1,6 +1,12 @@
 .PHONY: always
+txt/hc_missing.txt: txt/all_hc.csv txt/hc_scanlog.txt
+	./missing_hc.R
+
 txt/all_hc.csv:  .make/specturm.ls
 	./gen_csv.R
+
+txt/hc_scanlog.txt: always
+	./db_scanlog_hc_acqnum.bash|mkifdiff $@
 
 .make/pdf.ls:  .make/specturm.ls | .make
 	./gen_pdf.bash
@@ -29,3 +35,5 @@ qc/hc_placement.pdf: .make/anat_mat.ls
 .make:
 	@-mkdir $@
 
+txt/hc_fs_lut.txt: /opt/ni_tools/freesurfer7.2/FreeSurferColorLUT.txt
+	awk -f hc_lut.awk $^  > $@
