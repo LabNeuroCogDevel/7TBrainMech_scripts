@@ -22,16 +22,21 @@ _slice_centers() {
      dryrun slicer "$nii" -L -z 0.5 "$_"
   return 0
 }
+verb_report_file(){
+  id=$(grep -Po '20\d{6}L[A-Za-z]+[12]?' <<< "$nii")
+  test ! -d spectrum/$id/ && verb "# missing $_ (have $nii)" || :
+}
 
 _slicemain(){
    [ $# -eq 0 ] &&
      files=(/Volumes/Hera/Raw/MRprojects/7TBrainMech/2*/Recon_CSI/CoregHC/rmprage.nii \
             /Volumes/Hera/Raw/MRprojects/7TBrainMech/2*/Recon/CoregHC/r*.nii\
-            /Volumes/Hera/Raw/MRprojects/7TBrainMech/HCCollection/2*/Recon_CSI/CoregHC/r*.nii) ||
+            /Volumes/Hera/Raw/MRprojects/7TBrainMech/{2023021[34],HCCollection}/2*/Recon_CSI/CoregHC/r*.nii) ||
      files=("$@")
         verb "have ${#files[@]} total r*.ni.gz files from MRRC. $(ls -d spectrum/2*/|wc -l) w/ preproc folders already. $(ls slices/ax/*.png|wc -l) slice images"
    for nii in "${files[@]}"; do
       _slice_centers "$nii" || continue
+      verb_report_file
    done
 }
 eval "$(iffmain _slicemain)"
