@@ -3,13 +3,21 @@
 # combine left and right HBT amygLabels
 # right is +500 of left
 # also see Makefile for txt/hc_fs_lut.txt (hc_lut.awk)
+# depends on ants warp from 01.2_FS_to_HcScout.bash
+#
+#
+# ambivalent about mgz->nii + 3dcalc HBT l,500+r being done here
+# output file lives in FS7.2 directory without a clear pointer back to this script
 #
 # 20230201WF - init
 #
 verb(){ [ -n "${VERBOSE:-}" ] && warn "$*" || : ; }
 
 FS72_hippoAmyg_one() {
-   #FSdir=/Volumes/Hera/preproc/7TBrainMech_rest/FS7.2/highres/11822_20210412/mri/
+   # combine HBT hemis and affine transform to scout space
+   # hippoAmygLables_l-HBT_r-500HBT.nii.gz left in FS7.2 directory
+   # ${ld8}_HBTlr500_scout.nii.gz put in spectrum/$MRID/FS_warp
+   #FSdir like /Volumes/Hera/preproc/7TBrainMech_rest/FS7.2/highres/11822_20210412/mri/
    local specdir="$1"; shift
    local fs_affine_l=("$specdir"/FS_warp/*_T1-HcScout_0GenericAffine.mat)
    fs_affine=${fs_affine_l[0]}
@@ -31,7 +39,7 @@ FS72_hippoAmyg_one() {
 
    hbts=("$FSdir/"[rl]h.hippoAmygLabels-T1.v21.HBT.FSvoxelSpace.mgz)
    [ ${#hbts[@]} -ne 2 ] &&
-      warn "$FSdir has ${#hbts[@]}!=1 hippoAmygLabels-T1.v21.HBT.FSvoxelSpace files!" &&
+      warn "# ERROR: $ld8 ${#hbts[@]} != 2 $FSdir/*hippoAmygLabels-T1.v21.HBT.FSvoxelSpacei* files!" &&
       return 1
 
    tmpd=$(mktemp -d /tmp/hc/fsconv-XXXXX || echo /tmp/hc/fsconv)
@@ -48,7 +56,12 @@ FS72_hippoAmyg_one() {
       -prefix "$combined_HBT"
    rm -r "$tmpd"
 
-   dryrun antsApplyTransforms -n NearestNeighbor \
+   # add reference to this script
+   3dNotes -h "# $0" "$combined_HBT"
+
+   dryrun
+    niinote "$HBT_scout" \
+    antsApplyTransforms -n NearestNeighbor \
       -t "$fs_affine" \
       -i "$combined_HBT" \
       -r "$fs_warpdir/${ld8}_HcScout_upsample.nii.gz" \
@@ -67,19 +80,16 @@ FS72_hippoAmyg_main(){
 
    for specdir in "${FILES[@]}"; do
       verb "$specdir"
-      FS72_hippoAmyg_one "$specdir" || :
-      waitforjobs
+      dryrun FS72_hippoAmyg_one "$specdir" & # || :
+      waitforjobs 4
    done
    wait
 }
+export -f FS72_hippoAmyg_one 
 
 # if not sourced (testing), run as command
 eval "$(iffmain "FS72_hippoAmyg_main")"
 
-####
-# testing with bats. use like
-#   bats ./01.2.2_FS72_hippoAmyg.bash --verbose-run
-####
 FS72_hippoAmyg_main_test() { #@test
    run FS72_hippoAmyg_main
    [[ $output =~ ".*" ]]
