@@ -21,7 +21,12 @@ getluna() {
         11713  20211108Luna1
         11734  20220610Luna1 # is in db? but query fails 20230119
         11788  20230112Luna1 # is in db? but query fails 20230120
-        11653  20180608Luna1" \
+        11818  20221117Luna2
+        11716  20221118Luna2
+        11653  20180608Luna1
+        11741  20190209Luna1
+        11739  20190429Luna1
+        " \
      | grep "$1" |awk '{ print $1 }')"
    [ -n "$hardcode" ] && echo "$hardcode" && return 0
 
@@ -39,11 +44,15 @@ build_anat(){
 }
 
 # allow single 7TMRID input. much easier for debugging when something is missing
-[[ $# -eq 0 || "$*" =~ "-h" ]] && echo "USAGE: $0 [all|7TMRID]" && exit 1
+[[ $# -eq 0 || "$*" =~ "-h" ]] && echo "USAGE: $0 [all|missing|7TMRID]" && exit 1
 case "$1" in
    all) 
-    mapfile -t ANATS < <(find "$(pwd)"/spectrum/* -maxdepth 1 -name anat.mat -type f,l);;
- *) mapfile -t ANATS < <(build_anat "$@")
+     mapfile -t ANATS < <(find "$(pwd)"/spectrum/* -maxdepth 1 -name anat.mat -type f,l);;
+   missing)
+     ./to_place.bash |grep FS|sed 's:spectrum/::;s/ .*//'|xargs "$0";
+     exit;;
+   *)
+     mapfile -t ANATS < <(build_anat "$@")
 esac
 
 # most coreg and siarray are in Recon. but a few are in Shim
@@ -51,13 +60,13 @@ for anat in "${ANATS[@]}"; do
    specdir=$(dirname "$anat")
    outdir=$specdir/FS_warp
 
-   [[ $anat =~ 20[0-9]{6}Luna[1-9]? ]] || continue
+   [[ $anat =~ 20[0-9]{6}L[Uu][Nn][Aa][1-9]? ]] || continue
    id="${BASH_REMATCH[*]}"
    # 20220316 - looks okay? 
    #  afni /Volumes/Hera/preproc/7TBrainMech_rest/MHT1_2mm/10173_20210830
    # but Recon isn't?
    # * FATAL ERROR: Can't open dataset /Volumes/Hera/Raw/MRprojects/7TBrainMech/20210830Luna1/Recon/CoregHC/20210830_122724MP2RAGEPTXTR60001mmisos046a1001.nii
-   [[ $id == 20210830Luna1 ]] && echo "# $id: bad mprage; skipping" && continue
+   #[[ $id == 20210830Luna1 ]] && echo "# $id: bad mprage; skipping" && continue
 
    [[ $anat =~ 20[0-9]{6} ]] || continue
    yyymmdd="${BASH_REMATCH[*]}"

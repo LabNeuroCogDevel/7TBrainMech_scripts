@@ -25,7 +25,7 @@ txt/hc_scanlog.txt: always
 	mkls $@ "/Volumes/Hera/preproc/7TBrainMech_rest/FS/1*_2*/mri/aseg.mgz"
 
 .make/FS_warped.ls: .make/anat_mat.ls .make/FS.ls
-	./01.2_FS_to_HcScout.bash all
+	./01.2.1_FS_to_HcScout.bash all
 	mkls $@ "spectrum/*/FS_warp"
 
 qc/hc_placement.pdf: .make/anat_mat.ls
@@ -37,3 +37,7 @@ qc/hc_placement.pdf: .make/anat_mat.ls
 
 txt/hc_fs_lut.txt: /opt/ni_tools/freesurfer7.2/FreeSurferColorLUT.txt
 	awk -f hc_lut.awk $^  > $@
+
+.make/reorient.ls:
+	/opt/ni_tools/julia-1.7.2/bin/julia	view_placements.jl
+	mkls $@ 'spectrum/*/hc_loc_unrotated.1d'

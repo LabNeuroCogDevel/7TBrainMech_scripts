@@ -3,7 +3,7 @@
 # combine left and right HBT amygLabels
 # right is +500 of left
 # also see Makefile for txt/hc_fs_lut.txt (hc_lut.awk)
-# depends on ants warp from 01.2_FS_to_HcScout.bash
+# depends on ants warp from 01.2.1_FS_to_HcScout.bash
 #
 #
 # ambivalent about mgz->nii + 3dcalc HBT l,500+r being done here
