@@ -11,11 +11,11 @@ IDV_R_LABEL="/Volumes/Hera/Projects/7TBrainMech/scripts/mri/Hc/fs_label_idv.R"
 undump_and_label(){
   hcdir="$1";
   cd "$hcdir" || return 1
-  test -r hc_aseg_roirat.csv -a -r hc_HBT_roirat.csv && return 0
+  test -r hc_aseg_roirat.csv -a -r hc_HBT_roirat.csv -a -r hc_gm_rat.csv && return 0
   ! test -r hc_loc_unrotated.1d && echo "ERROR: missing '$hcdir/$_'!" && return 1
   ! test -r FS_warp/*_aseg_scout.nii.gz && echo "ERROR: missing '$hcdir/$_'!" && return 1
   nk=$(3dinfo -nk FS_warp/*_aseg_scout.nii.gz)
-  awk  -v nk=$nk '{print $2,216-$1,nk/2,$5}' hc_loc_unrotated.1d | writedry hc_loc_ijk_afni.1d
+  awk  -v nk=$nk '{print $2,216-$1,nk/2,$5}' hc_loc_unrotated.1d | drytee hc_loc_ijk_afni.1d
   dryrun 3dUndump -overwrite \
      -prefix placements.nii.gz \
      -master FS_warp/*_aseg_scout.nii.gz \

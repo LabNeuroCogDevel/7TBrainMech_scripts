@@ -68,9 +68,9 @@ for T1_hc in /Volumes/Hera/Projects/7TBrainMech/scripts/mri/Hc/spectrum/20*/FS_w
 
     # expect volume to be the same for all rois and all visits. but one roi will overlap another if place too close!?
     # see 11769_29291192
-    dryrun 3dROIstats -nomeanout -nzvoxels -mask "$outdir/hc-coords.nii.gz" "$outdir/hc-coords.nii.gz" | writedry "$outdir/coord_vol.txt"
+    dryrun 3dROIstats -nomeanout -nzvoxels -mask "$outdir/hc-coords.nii.gz" "$outdir/hc-coords.nii.gz" | drytee "$outdir/coord_vol.txt"
     # TODO: nzvol count like 1133 > 10^3. expect 9^3==729
 
-    dryrun 3dROIstats -nomeanout -nzvoxels -mask "$outdir/hc-coords.nii.gz" "$aseg<$hc_rois>" | writedry "$txt_out"
+    dryrun 3dROIstats -nomeanout -nzvoxels -mask "$outdir/hc-coords.nii.gz" "$aseg<$hc_rois>" | drytee "$txt_out"
 
 done
