@@ -12,6 +12,24 @@
 # 20230201WF - init
 #
 verb(){ [ -n "${VERBOSE:-}" ] && warn "$*" || : ; }
+find_affine(){
+   local specdir="$1"; shift
+   local fs_affine_l=("$specdir"/FS_warp/*_T1-HcScout_0GenericAffine.mat)
+   fs_affine=${fs_affine_l[0]}
+   [ -z "$fs_affine" -o ! -r "$fs_affine" ] &&
+      warn "ERROR: $specdir/FS_warp has no affine. check 01.2_FS_to_HcScout.bash" &&
+      return 1
+   echo "$fs_affine"
+}
+find_fsdir(){
+   local ld8="$1" 
+   local FSdir_l=(/Volumes/Hera/preproc/7TBrainMech_rest/FS7.2/*/$ld8/mri/)
+   local FSdir=${FSdir_l[0]}
+   [ -z "$FSdir" -o ! -r "$FSdir" ] &&
+      warn "ERROR: $ld8 does not have a FS 7.2 dir (need for hippoamyg labels): ${FSdir_l[*]}" &&
+      return 1
+   echo "$FSdir"
+}
 
 FS72_hippoAmyg_one() {
    # combine HBT hemis and affine transform to scout space
@@ -19,23 +37,19 @@ FS72_hippoAmyg_one() {
    # ${ld8}_HBTlr500_scout.nii.gz put in spectrum/$MRID/FS_warp
    #FSdir like /Volumes/Hera/preproc/7TBrainMech_rest/FS7.2/highres/11822_20210412/mri/
    local specdir="$1"; shift
-   local fs_affine_l=("$specdir"/FS_warp/*_T1-HcScout_0GenericAffine.mat)
-   fs_affine=${fs_affine_l[0]}
-   [ -z "$fs_affine" -o ! -r "$fs_affine" ] &&
-      echo "ERROR: $specdir/FS_warp has no affine. check 01.2_FS_to_HcScout.bash" &&
-      return 1
-
-   local ld8=$(ld8 "$fs_affine")
+   local fs_affine fs_warpdir FSdir
+   fs_affine=$(find_affine "$specdir") || return $?
+   local ld8="$(ld8 "$fs_affine")"
+   
    fs_warpdir=$(dirname "$fs_affine")
    HBT_scout="$fs_warpdir/${ld8}_HBTlr500_scout.nii.gz"
    test -r "$HBT_scout" && verb "have $_" && return 0
 
-   # 
-   local FSdir_l=(/Volumes/Hera/preproc/7TBrainMech_rest/FS7.2/*/$ld8/mri/)
-   local FSdir=${FSdir_l[0]}
-   [ -z "$FSdir" -o ! -r "$FSdir" ] &&
-      echo "ERROR: $ld8 does not have a FS 7.2 dir (need for hippoamyg labels): ${FSdir_l[*]}" &&
-      return 1
+   FSdir=$(find_fsdir "$ld8") || return $?
+
+   # 20230213
+   # also want
+   # lh.hippoAmygLabels-T1.v21.CA.FSvoxelSpace.mgz
 
    hbts=("$FSdir/"[rl]h.hippoAmygLabels-T1.v21.HBT.FSvoxelSpace.mgz)
    [ ${#hbts[@]} -ne 2 ] &&
@@ -43,7 +57,7 @@ FS72_hippoAmyg_one() {
       return 1
 
    tmpd=$(mktemp -d /tmp/hc/fsconv-XXXXX || echo /tmp/hc/fsconv)
-   for f in  "${hbts[@]}"; do
+   for f in "${hbts[@]}"; do
       out=$tmpd/$(basename "$f" .mgz).nii.gz
       dryrun niinote "$out" mri_convert "$f" "$out"
    done
@@ -59,7 +73,7 @@ FS72_hippoAmyg_one() {
    # add reference to this script
    3dNotes -h "# $0" "$combined_HBT"
 
-   dryrun
+   dryrun \
     niinote "$HBT_scout" \
     antsApplyTransforms -n NearestNeighbor \
       -t "$fs_affine" \
@@ -68,6 +82,39 @@ FS72_hippoAmyg_one() {
       -o "$HBT_scout"
 
 }
+
+FS72_gm_one() {
+   local specdir="$1"; shift
+   local fs_affine fs_warpdir FSdir
+   fs_affine=$(find_affine "$specdir") || return $?
+   local ld8="$(ld8 "$fs_affine")"
+   
+   fs_warpdir=$(dirname "$fs_affine")
+   gm_scout="$fs_warpdir/${ld8}_gm_scout.nii.gz"
+   test -r "$gm_scout" && verb "have $_" && return 0
+
+   FSdir=$(find_fsdir "$ld8") || return $?
+
+   gm_fs=$fs_warpdir/gm_fs.nii.gz
+   dryrun niinote "$gm_fs" \
+      mri_binarize --gm \
+      --i "$FSdir/aseg.mgz" \
+      --o "$gm_fs"
+
+   #gm_t1=$fs_warpdir/gm_t1.nii.gz
+   #3dresample  -master "" -inset "$gm_fs" --prefix "$gm_fs"
+   # add reference to this script
+
+   dryrun \
+    niinote "$gm_scout" \
+    antsApplyTransforms -n NearestNeighbor \
+      -t "$fs_affine" \
+      -i "$gm_fs" \
+      -r "$fs_warpdir/${ld8}_HcScout_upsample.nii.gz" \
+      -o "$gm_scout"
+}
+
+
 
 FS72_hippoAmyg_main(){
    [ $# -eq 0 ] &&
@@ -81,6 +128,7 @@ FS72_hippoAmyg_main(){
    for specdir in "${FILES[@]}"; do
       verb "$specdir"
       dryrun FS72_hippoAmyg_one "$specdir" & # || :
+      FS72_gm_one "$specdir" &
       waitforjobs 4
    done
    wait
@@ -90,7 +138,18 @@ export -f FS72_hippoAmyg_one
 # if not sourced (testing), run as command
 eval "$(iffmain "FS72_hippoAmyg_main")"
 
-FS72_hippoAmyg_main_test() { #@test
-   run FS72_hippoAmyg_main
-   [[ $output =~ ".*" ]]
+find_fsdir_test() { #@test
+   local output status
+   run find_fsdir 11711_20181119
+   [[ $status -eq 0 ]]
+   [[ $output =~ .*FS.* ]]
+
+   run find_fsdir 11711_20180000
+   echo "s: $status"
+   [[ $status -eq 1 ]]
+}
+find_affine_test() { #@test
+   run find_affine spectrum/20180216Luna2/
+   [[ $status -eq 0 ]]
+   [[ $output =~ FS_warp/.*_T1-HcScout_0GenericAffine.mat ]]
 }
