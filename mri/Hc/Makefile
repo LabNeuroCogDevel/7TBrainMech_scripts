@@ -1,6 +1,14 @@
-.PHONY: always
+.PHONY: always all
+
+all: txt/top_hbt_gm.csv txt/all_hc.csv
+
 txt/hc_missing.txt: txt/all_hc.csv txt/hc_scanlog.txt
 	./missing_hc.R
+
+# 20230227 
+txt/top_hbt_gm.csv: .make/placement_nii.ls
+	# /Volumes/Hera/Projects/7TBrainMech/scripts/mri/Hc/spectrum/2*/hc_gm_rat.csv
+	./05_select_fs_labels.R
 
 txt/all_hc.csv:  .make/specturm.ls
 	./gen_csv.R
@@ -14,6 +22,7 @@ txt/hc_scanlog.txt: always
 
 .make/specturm.ls: always | .make
 	# N.B. probably need to manually unzip HPC data
+	# TODO: also ls for Raw/CoregHC
 	mkls $@ /Volumes/Hera/Raw/MRprojects/7TBrainMech/MRSI_BrainMechR01/HPC/*/
 
 .make/anat_mat.ls: .make/specturm.ls
@@ -24,20 +33,40 @@ txt/hc_scanlog.txt: always
 	# for more FS, rerun /Volumes/Hera/Projects/7TBrainMech/scripts/mri/FS/001_runlocal.bash
 	mkls $@ "/Volumes/Hera/preproc/7TBrainMech_rest/FS/1*_2*/mri/aseg.mgz"
 
+.make/FS7.2.ls: always | .make
+	# for more FS, rerun 
+	# /Volumes/Hera/Projects/7TBrainMech/scripts/mri/FS/001c_runlocal.bash all
+	mkls $@ "/Volumes/Hera/preproc/7TBrainMech_rest/FS7.2/*/1*_2*/mri/aseg.mgz"
+
+
 .make/FS_warped.ls: .make/anat_mat.ls .make/FS.ls
 	./01.2.1_FS_to_HcScout.bash all
 	mkls $@ "spectrum/*/FS_warp"
 
-qc/hc_placement.pdf: .make/anat_mat.ls
-	./view_placements.jl
-	pdftk  /tmp/Hc_loc_202*pdf cat output $@
+.make/FSmasks.ls: .make/FS_warped.ls .make/FS7.2.ls
+	./01.2.2_FS72_roimasks.bash all
+	mkls $@ "spectrum/2*/hc_gm_rat.csv"
+
+.make/orient.ls: $(wildcard spectrum/*/orient.txt)
+	# ./02_mlgui.bash # gui roi placements by hand!
+	mkstat $@ "spectrum/*/orient.txt"
+
+.make/reorient_unrotate.ls: .make/orient.ls
+	/opt/ni_tools/julia-1.7.2/bin/julia	view_placements.jl
+	mkls $@ 'spectrum/*/hc_loc_unrotated.1d'
+
+# previously just used view_placement to gen pdf to QC
+# now (20230307) have placements.nii.gz
+#qc/hc_placement.pdf: .make/anat_mat.ls
+#	./view_placements.jl
+#	pdftk  /tmp/Hc_loc_202*pdf cat output $@
+
+.make/placement_nii.ls: .make/reorient_unrotate.ls fs_label_idv.R .make/FSmasks.ls
+	./04_fslabels.bash all
+	mkls $@ "spectrum/*/placements.nii.gz"
 
 .make:
 	@-mkdir $@
 
 txt/hc_fs_lut.txt: /opt/ni_tools/freesurfer7.2/FreeSurferColorLUT.txt
 	awk -f hc_lut.awk $^  > $@
-
-.make/reorient.ls:
-	/opt/ni_tools/julia-1.7.2/bin/julia	view_placements.jl
-	mkls $@ 'spectrum/*/hc_loc_unrotated.1d'
