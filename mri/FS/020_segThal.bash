@@ -5,6 +5,7 @@
 
 # before set -u b/c empty vars used by FS source script
 source "$(dirname "$0")"/setup_FS72.bash
+[ -v LOWRES ] && SUBJECTS_DIR="${SUBJECTS_DIR/highres/lowres}"
 export MAXJOBS=15 WAITTIME=60 JOBCFGDIR="$(dirname "$0")/.jobcfg"
 source /opt/ni_tools/lncdshell/utils/waitforjobs.sh # waituntildone waitforjobs
 

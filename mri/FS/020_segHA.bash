@@ -4,9 +4,11 @@
 # needs ML 2014b runtime (fs_install_mcr R2014b)
 # sample run took ~30min
 #  20211220WF  init
+#  20230319WF  LOWRES env var
 
 # before set -u b/c empty vars used by FS source script
 source "$(dirname "$0")"/setup_FS72.bash
+[ -v LOWRES ] && SUBJECTS_DIR="${SUBJECTS_DIR/highres/lowres}"
 export MAXJOBS=15 WAITTIME=60 JOBCFGDIR="$(dirname "$0")/.jobcfg"
 source /opt/ni_tools/lncdshell/utils/waitforjobs.sh # waituntildone waitforjobs
 
