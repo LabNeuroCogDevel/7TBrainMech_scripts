@@ -10,8 +10,8 @@
 
 module viewPlacement
 # using Pkg; Pkg.add(["Winston","ColorSchemes","Glob","ReTest","CSV","Colors","Plots"])
-using Winston, ColorSchemes, Glob, ReTest, CSV, Plots, Colors
-using DelimitedFiles
+#using Winston, ColorSchemes, Glob, ReTest, CSV, Plots, Colors
+using DelimitedFiles, Glob, ReTest, CSV
 
 function test_viewplacements()
   # this probably doesn't work
@@ -195,7 +195,7 @@ struct Session
         locs = get_placements(fname);
         isnothing(locs) && return nothing
         anat = read_anat(fname);
-        id = match(r"\d{8}Luna\d*",fname).match;
+        id = match(r"\d{8}L[Uu][Nn][Aa]\d*",fname).match;
         new(anat, orient, locs, id);
     end
 end
@@ -226,7 +226,7 @@ function plot_loc_noadjust(fname)
 end
 
 # quick func defs
-find_anats() = Glob.glob("spectrum/2*Luna*/anat.mat";)
+find_anats() = Glob.glob("spectrum/2*L*/anat.mat";)
 save_name(fname) = "/tmp/Hc_loc_" * match(r"\d{8}Luna\d*",fname).match * ".pdf"
 
 function plot_all()
@@ -259,10 +259,17 @@ end
 
 end # module
 
+## 
+# either save unrotated corridantes
+# where 04_fslabels.bash will turn it into placements.nii.gz
+# OR generate a plot of locations
+#    (example, expect interactive repl)
+##
 if abspath(PROGRAM_FILE) == @__FILE__
     #viewPlacement.plot_all()
     viewPlacement.save_all_locs()
 else
+    using Winston, ColorSchemes, Plots, Colors
     cd("/Volumes/Hera/Projects/7TBrainMech/scripts/mri/Hc");
     fname="spectrum/20210225Luna1/anat.mat";
     s = viewPlacement.Session(fname);
