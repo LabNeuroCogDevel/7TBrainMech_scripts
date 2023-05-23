@@ -1,4 +1,4 @@
-% read in roi time series (nvol x nroi) per subject
+% read in roi time series (nvol x nroi) per subject (see mkTS_roi.bash)
 % generate per visit Hurst Exponent (EI balance proxy measure)
 % https://github.com/elifesciences-publications/ei_hurst/blob/master/code/C_1a_parcEst.m
 % 20230508WF - init
