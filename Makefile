@@ -1,10 +1,44 @@
 MAKEFLAGS += --no-builtin-rules
 .SUFFIXES:
-.PHONY: all FS alwaysrun
+.PHONY: all FS alwaysrun .ALWAYS
 
-all: mri/txt/status.csv
+all: txt/merged_7t.csv mri/txt/status.csv
 .make:
 	mkdir .make
+
+txt/merged_7t.csv: txt/sessions_db.txt mri/MRSI_roi/gam_adjust/out/gamadj_wide.csv mri/tat2/maskave.csv eeg/Shane/fooof/Results/allSubjectsFooofMeasures_20230516.csv mri/hurst/stats/MRSI_pfc13_H.csv
+	./merge7T.R
+
+### other makefiles (added 20230516)
+mri/tat2/maskave.csv: mri/tat2/Makefile .ALWAYS
+	make -C $(dir $@) $(notdir $@)
+mri/MRSI_roi/txt/13MP20200207_LCMv2fixidx.csv: mri/MRSI_roi/Makefile .ALWAYS
+	make -C $(dir $@) $(notdir $@)
+mri/hurst/stats/MRSI_pfc13_H.csv:
+	# mri/hurst/Makefile
+	make -C mri/hurst stats/MRSI_pfc13_H.csv:
+
+### MERGE 7T
+txt/sessions_db.txt: .ALWAYS
+	(echo "id\tvisitno\tvtype\tvdate\tage\tsex\tvscore\tdrop" && \
+		timeout 5s lncddb "with dc as ( \
+	  select pid, string_agg(dropcode::text,',') drops \
+	  from note\
+	  where dropcode is not null  \
+	  and dropcode::text not like 'BAD_VEIN'\
+	  group by pid) \
+	 select id, visitno, vtype,\
+		to_char(vtimestamp,'YYYYmmdd') as vdate, \
+    	round(age::numeric,2), \
+		sex, vscore, drops \
+	from visit natural join visit_study \
+	natural join person \
+	join enroll on visit.pid = enroll.pid and etype like 'LunaID' \
+	left join dc on visit.pid = dc.pid  \
+	where study like '%BrainMech%' \
+	order by vdate")  | mkifdiff $@
+
+### IDs, raw MR org, FS, and origianl [PFC] MRSI (partially used for MRSI_roi)
 
 .make/task_csv.ls: alwaysrun |.make
 	mkls $@ "/Volumes/L/bea_res/Data/Tasks/MGSEncMem/7T/*/*/*view.csv"
@@ -29,11 +63,12 @@ mri/txt/rest_fd.csv:
 .make/raw_folders.ls: alwaysrun | .make
 	mkls $@ '/Volumes/Hera/Raw/MRprojects/7TBrainMech/*[lL]una*/'
 
-.make/rawlinks.ls .make/bids.ls: .make/raw_folders.ls
+.make/bids.ls: .make/rawlinks.ls
+.make/rawlinks.ls: .make/raw_folders.ls
 	mri/001_dcm2bids.bash
 	mkls .make/rawlinks.ls '/Volumes/Hera/Raw/BIDS/7TBrainMech/rawlinks/1*_2*/'
 	mkls .make/bids.ls '/Volumes/Hera/Raw/BIDS/7TBrainMech/sub-1*/*/*/*.nii.gz'
-	
+
 .make/preproc.ls: .make/bids.ls
 	mri/010_preproc.bash
 	mkls $@ '/Volumes/Zeus/preproc/7TBrainMech_*/*/1*_2*/.*_complete'
@@ -61,7 +96,7 @@ mri/FS/recent_transfer_to.txt: .make/bids.ls .make/FS_missing.txt
 .make/rawmrsi.ls: alwaysrun
 	# probably no fast way to make sure we have no new files
 	find /Volumes/Hera/Raw/MRprojects/7TBrainMech/MRSI_BrainMechR01/  -iname spreadsheet.csv -and -not -ipath '*Thal*' -and -not -ipath '*20190507processed*' | mkifdiff $@
-	
+
 .make/MRSI_coord.ls: .make/FS.ls .make/rawmrsi.ls
 	# do all also makes csi_roi_gmmax_tis_values_20190411
 	./mri/MRSI/90_doall.bash
@@ -87,6 +122,14 @@ mri/FS/recent_transfer_to.txt: .make/bids.ls .make/FS_missing.txt
 mri/txt/status.csv: .make/FS.ls .make/preproc.ls .make/mrsi_roi_setup.ls
 	mri/900_status.R
 
+mri/txt/onset_and_recall_trialinfo.csv:
+	cd mri && ./020_task_onsets.R
+
+mri/txt/task_trs.txt: .make/bids.ls
+	cd mri && ./014_actual_tr.bash| sponge $@
+
+
+## Documentation attempts. old interawiki; docs/* markdown
 readme.dwiki:
 	# curl -d "u=<username>&p=<password>" --cookie-jar .doku_cjar http://arnold.wpic.upmc.edu/dokuwiki/doku.php?do=login
 	curl --cookie .doku_cjar --cookie-jar .doku_cjar "http://arnold.wpic.upmc.edu/dokuwiki/doku.php?id=studies:7t:processingpipelines&do=export_raw" > $@
@@ -94,6 +137,3 @@ readme.dwiki:
 site/sitemap.xml: $(wildcard docs/*md)
 	# pip install mkdocs mkdocs-material mkdocsstrings
 	mkdocs gh-deploy
-
-mri/txt/onset_and_recall_trialinfo.csv:
-	cd mri && ./020_task_onsets.R
