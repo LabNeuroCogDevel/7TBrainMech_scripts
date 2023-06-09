@@ -15,6 +15,7 @@
 #
 suppressPackageStartupMessages({
 library(dplyr); library(tidyr)})
+library(glue)
 source('merge_funcs.R') # addcolprefix, lunadatemerge, check_datecol
 files <- list(
  sess="txt/sessions_db.txt",
@@ -23,7 +24,8 @@ files <- list(
  # see mri/tat2/Makefile
  tat2="mri/tat2/maskave.csv",
  # see eeg/Shane/python/fooof/runFooof.py
- fooof="eeg/Shane/fooof/Results/allSubjectsFooofMeasures_20230516.csv",
+ #fooof="eeg/Shane/fooof/Results/allSubjectsFooofMeasures_20230516.csv", # channel no region
+ fooof="eeg/Shane/fooof/Results/allSubjectsDLPFCfooofMeasures_20230523.csv", # region no channel
  # see mri/hurst/hurst.m
  hurst="mri/hurst/stats/MRSI_pfc13_H.csv"
 )
@@ -31,7 +33,7 @@ files <- list(
 sess <- read.table(files$sess, sep="\t", header=T) %>% rename(lunaid=`id`)
 mrsi <- read.csv(files$mrsi)
 tat2 <- read.csv(files$tat2)
-fooof <- read.csv(files$fooof) %>% select(-X)
+fooof <- read.csv(files$fooof)
 hurst <- read.csv(files$hurst)
 
 ## tat2 - roi, subj (luan_date), event, beta
@@ -63,14 +65,18 @@ mrsi_mrg <-  merge(mrsi_mrg,
 
 # fooof - Subject, Channel, Offset, Exponent, Condition (closed/open)
 # 20230609 - from shane
-eeg_lookup <- c("F4"="RDLPFC","F6"="RDLPFC","F8"="RDLPFC",
-                   "F3"="LDLPFC","F4"="LDLPFC","F7"="LDLPFC")
-fooof_dlpfc <- fooof %>%
-   filter(Channel %in% names(eeg_lookup)) %>%
-   mutate(Region=eeg_lookup[Channel]) %>%
-   select(-Channel) %>%
+if("Channel" %in% names(fooof)) {
+   eeg_lookup <- c("F4"="RDLPFC","F6"="RDLPFC","F8"="RDLPFC",
+                      "F3"="LDLPFC","F4"="LDLPFC","F7"="LDLPFC")
+   fooof_dlpfc <- fooof %>% select(-X) %>%
+      filter(Channel %in% names(eeg_lookup)) %>%
+      mutate(Region=eeg_lookup[Channel]) %>%
+      select(-Channel) %>%
    group_by(Subject, Region, Condition) %>%
    summarise_all(mean) # across(c("Offset","Exponent"), mean)
+} else {
+  fooof_dlpfc <- fooof %>% select(Subject,Condition,Offset,Exponent,Region)
+}
    
 
 fooof_wide <- fooof_dlpfc %>%
@@ -89,8 +95,12 @@ fooof_mrg <-  merge(fooof_wide,
 # 11668_20170710 first visit no in DB? only one missing currently. quick fix
 fooof_mrg$visitno[is.na(fooof_mrg$visitno) & fooof_mrg$lunaid == "11668"] <- 1
 
-cat("fooof with missing visit number\n")
-fooof_mrg %>% filter(is.na(visitno)) %>% select(lunaid,eeg.date) %>% print
+cat("have",nrow(fooof_mrg),"eeg rows\n")
+fooof_mia <- fooof_mrg %>% filter(is.na(visitno))
+if(nrow(fooof_mia) >0L) {
+ cat("fooof with missing visit number\n")
+ fooof_mia %>% select(lunaid,eeg.date) %>% print
+}
 
 ## Hurst will use tat2's rest.date to merge
 #  dont need session info -- should already have. but just incase
@@ -113,6 +123,8 @@ merged <- tat2_wide %>%
    merge(hurst_ses, by=c("lunaid","visitno","rest.date","rest.age","rest.vscore"), all=T) %>%
   unique # 11832 is repeated 2 twice?
 
+
+cat(glue("# merged: {nrow(merged)} rows with {ncol(merged)} columns"),"\n")
 write.csv(merged, 'txt/merged_7t.csv', quote=F, row.names=F)
 
 
