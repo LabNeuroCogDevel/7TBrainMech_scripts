@@ -27,7 +27,8 @@ files <- list(
  #fooof="eeg/Shane/fooof/Results/allSubjectsFooofMeasures_20230516.csv", # channel no region
  fooof="eeg/Shane/fooof/Results/allSubjectsDLPFCfooofMeasures_20230523.csv", # region no channel
  # see mri/hurst/hurst.m
- hurst="mri/hurst/stats/MRSI_pfc13_H.csv"
+ hurst="mri/hurst/stats/MRSI_pfc13_H.csv",
+ mgs_eog="eeg/eog_cal/eye_scored_mgs_eog.csv" # 20230612
 )
 
 sess <- read.table(files$sess, sep="\t", header=T) %>% rename(lunaid=`id`)
@@ -35,6 +36,7 @@ mrsi <- read.csv(files$mrsi)
 tat2 <- read.csv(files$tat2)
 fooof <- read.csv(files$fooof)
 hurst <- read.csv(files$hurst)
+mgs_eog_trial <- read.csv(files$mgs_eog)
 
 ## tat2 - roi, subj (luan_date), event, beta
 #        use to get rest date
@@ -114,6 +116,26 @@ hurst_ses <- hurst %>% separate(ld8,c('lunaid','date')) %>%
 
 #hurst_ses %>% filter(is.na(visitno))
 
+
+## MGS task eye tracking results from EOG
+mgs_eog_visit <- mgs_eog_trial %>%
+   rename(lunaid=LunaID,eeg.date=ScanDate) %>%
+   group_by(lunaid,eeg.date,Delay) %>%
+   summarise(across(-Trial, list(mean=function(x) mean(x,na.rm=T),
+                                 sd=function(x) sd(x,na.rm=T)))) %>%
+   pivot_wider(id_cols=c("lunaid","eeg.date"),
+               names_from=c("Delay"),
+               values_from=matches("_mean|_sd"))
+mgs_eog <- mgs_eog_visit %>%
+   merge(sess %>%
+         filter(vtype=="eeg") %>%
+         select(lunaid,visitno,vdate,eeg.age=age,eeg.vscore=vscore),
+         all.x=T, by.x=c("lunaid","eeg.date"), by.y=c("lunaid","vdate"))
+missing_eog <- filter(mgs_eog,is.na(eeg.age))
+if(nrow(missing_eog)>0L){
+   cat("# MISSING EEG (EOG) visit in DB\n")
+   print(missing_eog %>% select(lunaid,eeg.date))
+}
 #####
 
 cat("mergeing all, writing merge file\n")
@@ -121,6 +143,7 @@ merged <- tat2_wide %>%
    merge(mrsi_mrg, by=c("lunaid","visitno"), all=T) %>%
    merge(fooof_mrg, by=c("lunaid","visitno"), all=T) %>%
    merge(hurst_ses, by=c("lunaid","visitno","rest.date","rest.age","rest.vscore"), all=T) %>%
+   merge(mgs_eog, by=c("lunaid","visitno","eeg.date","eeg.age","eeg.vscore"), all=T) %>%
   unique # 11832 is repeated 2 twice?
 
 
