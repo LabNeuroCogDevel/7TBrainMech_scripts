@@ -119,22 +119,25 @@ hurst_ses <- hurst %>% separate(ld8,c('lunaid','date')) %>%
 
 ## MGS task eye tracking results from EOG
 mgs_eog_visit <- mgs_eog_trial %>%
-   rename(lunaid=LunaID,eeg.date=ScanDate) %>%
-   group_by(lunaid,eeg.date,Delay) %>%
+   rename(lunaid=LunaID,date=ScanDate) %>%
+   group_by(lunaid,date,Delay) %>%
    summarise(across(-Trial, list(mean=function(x) mean(x,na.rm=T),
                                  sd=function(x) sd(x,na.rm=T)))) %>%
-   pivot_wider(id_cols=c("lunaid","eeg.date"),
+   pivot_wider(id_cols=c("lunaid","date"),
                names_from=c("Delay"),
-               values_from=matches("_mean|_sd"))
+               values_from=matches("_mean|_sd")) %>%
+   addcolprefix('eeg')
+
 mgs_eog <- mgs_eog_visit %>%
    merge(sess %>%
          filter(vtype=="eeg") %>%
-         select(lunaid,visitno,vdate,eeg.age=age,eeg.vscore=vscore),
-         all.x=T, by.x=c("lunaid","eeg.date"), by.y=c("lunaid","vdate"))
+         select(lunaid,visitno,eeg.date=vdate,eeg.age=age,eeg.vscore=vscore),
+         all.x=T, by.x=c("lunaid","eeg.date"), by.y=c("lunaid","eeg.date"))
+
 missing_eog <- filter(mgs_eog,is.na(eeg.age))
 if(nrow(missing_eog)>0L){
-   cat("# MISSING EEG (EOG) visit in DB\n")
-   print(missing_eog %>% select(lunaid,eeg.date))
+   cat("#",nrow(missing_eog),"MISSING EEG (EOG) visit in DB\n")
+   missing_eog %>% select(lunaid,eeg.date) %>% print
 }
 #####
 
