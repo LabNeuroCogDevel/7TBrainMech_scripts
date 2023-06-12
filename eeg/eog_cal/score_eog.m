@@ -445,6 +445,9 @@ datatable.Properties.VariableNames = {'LunaID','ScanDate','Trial','Delay','Delay
 save(sprintf('eeg_data_%s.mat',datestr(now, 'YYYYmmdd')), 'datatable');
 writetable(datatable, sprintf('eeg_data_%s.csv',datestr(now, 'YYYYmmdd')));
 
+% 20230609WF - for Makefile. also save a no-date version
+writetable(datatable, 'eye_scored_mgs_eog.csv');
+
 
 rmpath(genpath('~/Documents/MATLAB/fieldtrip-20180926/'))
 
