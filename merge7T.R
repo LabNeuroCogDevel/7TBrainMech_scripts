@@ -36,7 +36,8 @@ mrsi <- read.csv(files$mrsi)
 tat2 <- read.csv(files$tat2)
 fooof <- read.csv(files$fooof)
 hurst <- read.csv(files$hurst)
-mgs_eog_trial <- read.csv(files$mgs_eog)
+mgs_eog_trial <- read.csv(files$mgs_eog) %>%
+   rename(lunaid=LunaID,date=ScanDate)
 
 ## tat2 - roi, subj (luan_date), event, beta
 #        use to get rest date
@@ -118,15 +119,35 @@ hurst_ses <- hurst %>% separate(ld8,c('lunaid','date')) %>%
 
 
 ## MGS task eye tracking results from EOG
-mgs_eog_visit <- mgs_eog_trial %>%
-   rename(lunaid=LunaID,date=ScanDate) %>%
+# initially have trial level data.
+# collapse over delays to get row per visit. get mean and sd of every measure
+mgs_eog_visit_dly <- mgs_eog_trial %>%
    group_by(lunaid,date,Delay) %>%
    summarise(across(-Trial, list(mean=function(x) mean(x,na.rm=T),
-                                 sd=function(x) sd(x,na.rm=T)))) %>%
+                                 sd=function(x) sd(x,na.rm=T))),
+             nTrial=n()) %>%
    pivot_wider(id_cols=c("lunaid","date"),
                names_from=c("Delay"),
-               values_from=matches("_mean|_sd")) %>%
+               values_from=matches("_mean|_sd|nTrial")) %>%
    addcolprefix('eeg')
+
+mgs_eog_visit_nodly <- mgs_eog_trial %>%
+   group_by(lunaid,date) %>%
+   summarise(across(-Trial, list(mean=function(x) mean(x,na.rm=T),
+                                 sd=function(x) sd(x,na.rm=T))),
+             nTrial=n()) %>%
+   mutate(Delay="all") %>%
+   pivot_wider(id_cols=c("lunaid","date"),
+               names_from=c("Delay"),
+               values_from=matches("_mean|_sd|nTrial")) %>%
+   addcolprefix('eeg')
+
+# combine delay columns: _all and _6 _8 _10
+mgs_eog_visit <- merge(mgs_eog_visit_dly,
+                       mgs_eog_visit_nodly,
+                       by=c("lunaid","eeg.date")) %>%
+   select(!matches('calR2.*sd'))
+
 
 mgs_eog <- mgs_eog_visit %>%
    merge(sess %>%
@@ -157,38 +178,3 @@ write.csv(merged, 'txt/merged_7t.csv', quote=F, row.names=F)
 cat("merged with missing visit number\n")
 merged %>% filter(is.na(visitno)) %>% select(lunaid,matches('\\.date$')) %>% print
 
-####### QC and plots
-# 11823 visit 1 is duplicated
-# merged %>% select(lunaid, visitno) %>% filter(duplicated(paste(lunaid,visitno)))
-library(ggplot2)
-dates <- merged %>%
-    select(lunaid,visitno,matches("\\.date")) %>%
-    pivot_longer(matches("date"), values_to="vdate", names_to="vtype") %>%
-    mutate(vtype=gsub('.date','',vtype), vdate=lubridate::ymd(vdate))
-
-p_visits <- ggplot(dates) +
-    aes(x=vdate,
-        y=rank(lunaid),
-        shape=as.factor(visitno))+
-    geom_point(aes(color=vtype))+
-    geom_line(aes(group=paste(lunaid,visitno))) +
-    see::theme_modern()
-
-ggsave(p_visits, file='imgs/visit_date_waterfall.png', width=8.05,height=8.59)
-
-cnts <- dates %>% ungroup() %>% 
-    filter(!is.na(vdate)) %>%
-    unique() %>%
-    group_by(lunaid, visitno) %>%
-    summarise(n_per_visit=n(),
-              visits=paste(collapse=",", sort(vtype))) %>% group_by(visitno, visits) %>%
-    tally()
-
-
-p_cnts <- ggplot(cnts) +
-    aes(x=visitno, y=n, fill=visits) +
-    geom_bar(stat='identity',position='dodge') + 
-    see::theme_modern() +
-    labs(title=glue::glue("7T from {min(dates$vdate,na.rm=T)} - {max(dates$vdate,na.rm=T)}"))
-
-ggsave(p_cnts, file='imgs/visit_type_counts.png', width=8.05,height=8.59)
