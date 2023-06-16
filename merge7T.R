@@ -19,7 +19,7 @@ library(glue)
 source('merge_funcs.R') # addcolprefix, lunadatemerge, check_datecol
 files <- list(
  sess="txt/sessions_db.txt",
- # symlinked of 13MP20200207_LCMv2fixidx.csv; see mri/MRSI_roi/Makefile
+ # see mri/MRSI_roi/gam_adjust/Makefile
  mrsi="mri/MRSI_roi/gam_adjust/out/gamadj_wide.csv",
  # see mri/tat2/Makefile
  tat2="mri/tat2/maskave.csv",
@@ -28,7 +28,8 @@ files <- list(
  fooof="eeg/Shane/fooof/Results/allSubjectsDLPFCfooofMeasures_20230523.csv", # region no channel
  # see mri/hurst/hurst.m
  hurst="mri/hurst/stats/MRSI_pfc13_H.csv",
- mgs_eog="eeg/eog_cal/eye_scored_mgs_eog.csv" # 20230612
+ #mgs_eog="eeg/eog_cal/eye_scored_mgs_eog.csv" # 20230612
+ mgs_eog="eeg/eog_cal/eye_scored_mgs_eog_cleanvisit.csv" # 20230616. new cleaned version
 )
 
 sess <- read.table(files$sess, sep="\t", header=T) %>% rename(lunaid=`id`)
@@ -36,8 +37,7 @@ mrsi <- read.csv(files$mrsi)
 tat2 <- read.csv(files$tat2)
 fooof <- read.csv(files$fooof)
 hurst <- read.csv(files$hurst)
-mgs_eog_trial <- read.csv(files$mgs_eog) %>%
-   rename(lunaid=LunaID,date=ScanDate)
+mgs_eog_visit <- read.csv(files$mgs_eog)
 
 ## tat2 - roi, subj (luan_date), event, beta
 #        use to get rest date
@@ -118,38 +118,9 @@ hurst_ses <- hurst %>% separate(ld8,c('lunaid','date')) %>%
 #hurst_ses %>% filter(is.na(visitno))
 
 
-## MGS task eye tracking results from EOG
-# initially have trial level data.
-# collapse over delays to get row per visit. get mean and sd of every measure
-mgs_eog_visit_dly <- mgs_eog_trial %>%
-   group_by(lunaid,date,Delay) %>%
-   summarise(across(-Trial, list(mean=function(x) mean(x,na.rm=T),
-                                 sd=function(x) sd(x,na.rm=T))),
-             nTrial=n()) %>%
-   pivot_wider(id_cols=c("lunaid","date"),
-               names_from=c("Delay"),
-               values_from=matches("_mean|_sd|nTrial")) %>%
-   addcolprefix('eeg')
-
-mgs_eog_visit_nodly <- mgs_eog_trial %>%
-   group_by(lunaid,date) %>%
-   summarise(across(-Trial, list(mean=function(x) mean(x,na.rm=T),
-                                 sd=function(x) sd(x,na.rm=T))),
-             nTrial=n()) %>%
-   mutate(Delay="all") %>%
-   pivot_wider(id_cols=c("lunaid","date"),
-               names_from=c("Delay"),
-               values_from=matches("_mean|_sd|nTrial")) %>%
-   addcolprefix('eeg')
-
-# combine delay columns: _all and _6 _8 _10
-mgs_eog_visit <- merge(mgs_eog_visit_dly,
-                       mgs_eog_visit_nodly,
-                       by=c("lunaid","eeg.date")) %>%
-   select(!matches('calR2.*sd'))
-
-
 mgs_eog <- mgs_eog_visit %>%
+   rename(lunaid=LunaID,date=ScanDate) %>%
+   addcolprefix('eeg') %>%
    merge(sess %>%
          filter(vtype=="eeg") %>%
          select(lunaid,visitno,eeg.date=vdate,eeg.age=age,eeg.vscore=vscore),
@@ -177,4 +148,3 @@ write.csv(merged, 'txt/merged_7t.csv', quote=F, row.names=F)
 
 cat("merged with missing visit number\n")
 merged %>% filter(is.na(visitno)) %>% select(lunaid,matches('\\.date$')) %>% print
-
