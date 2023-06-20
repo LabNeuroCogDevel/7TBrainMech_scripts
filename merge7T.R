@@ -29,7 +29,8 @@ files <- list(
  # see mri/hurst/hurst.m
  hurst="mri/hurst/stats/MRSI_pfc13_H.csv",
  #mgs_eog="eeg/eog_cal/eye_scored_mgs_eog.csv" # 20230612
- mgs_eog="eeg/eog_cal/eye_scored_mgs_eog_cleanvisit.csv" # 20230616. new cleaned version
+ mgs_eog="eeg/eog_cal/eye_scored_mgs_eog_cleanvisit.csv", # 20230616. new cleaned version
+ sr="behave/txt/SR.csv" # 20230620. pulled from db from RA matained sheets
 )
 
 sess <- read.table(files$sess, sep="\t", header=T) %>% rename(lunaid=`id`)
@@ -38,6 +39,8 @@ tat2 <- read.csv(files$tat2)
 fooof <- read.csv(files$fooof)
 hurst <- read.csv(files$hurst)
 mgs_eog_visit <- read.csv(files$mgs_eog)
+sr <- read.csv(files$sr) %>% addcolprefix('sr') %>%
+      rename(screen.date=sr.date.screening, visitno=sr.visitno)
 
 ## tat2 - roi, subj (luan_date), event, beta
 #        use to get rest date
@@ -132,13 +135,39 @@ if(nrow(missing_eog)>0L){
    missing_eog %>% select(lunaid,eeg.date) %>% print
 }
 #####
+sessid <- function(d)
+   apply(d,1,function(x)
+         paste0(collapse="_",x[c("lunaid","visitno")])) %>%
+   gsub(' ','',.)
+
+merge_and_check <- function(big, d, ...) {
+   big.new <- merge(big, d, ...) %>% unique # 11832 is repeated 2 twice?
+
+   bs <- sessid(big)
+   ds <- sessid(d)
+   mia_big <- setdiff(bs,ds)
+   mia_d   <- setdiff(ds,bs)
+   cat("#",
+       glue::glue(
+                  "{substitute(d)}({nrow(d)}x{ncol(d)}) adding ",
+                  "to {nrow(big)}x{ncol(big)}; ",
+                  "{length(mia_big)} new visits / ",
+                  "{length(mia_d)} not in {substitute(d)}"),
+       "\n")
+
+   cat("  missing: ", paste(collapse=", ",head(mia_big)), "\n")
+   cat("      new: ", paste(collapse=", ",head(mia_d))  , "\n")
+   cat("   total rows now",nrow(big.new),"\n")
+   return(big.new)
+}
 
 cat("mergeing all, writing merge file\n")
 merged <- tat2_wide %>%
-   merge(mrsi_mrg, by=c("lunaid","visitno"), all=T) %>%
-   merge(fooof_mrg, by=c("lunaid","visitno"), all=T) %>%
-   merge(hurst_ses, by=c("lunaid","visitno","rest.date","rest.age","rest.vscore"), all=T) %>%
-   merge(mgs_eog, by=c("lunaid","visitno","eeg.date","eeg.age","eeg.vscore"), all=T) %>%
+   merge_and_check(mrsi_mrg, by=c("lunaid","visitno"), all=T) %>%
+   merge_and_check(fooof_mrg, by=c("lunaid","visitno"), all=T) %>%
+   merge_and_check(hurst_ses, by=c("lunaid","visitno","rest.date","rest.age","rest.vscore"), all=T) %>%
+   merge_and_check(mgs_eog, by=c("lunaid","visitno","eeg.date","eeg.age","eeg.vscore"), all=T) %>%
+   merge_and_check(sr, by=c("lunaid","visitno"), all.x=T, all.y=F) %>%
   unique # 11832 is repeated 2 twice?
 
 

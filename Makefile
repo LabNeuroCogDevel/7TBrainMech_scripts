@@ -6,7 +6,7 @@ all: txt/merged_7t.csv mri/txt/status.csv
 .make:
 	mkdir .make
 
-txt/merged_7t.csv: txt/sessions_db.txt mri/MRSI_roi/gam_adjust/out/gamadj_wide.csv mri/tat2/maskave.csv eeg/Shane/fooof/Results/allSubjectsFooofMeasures_20230516.csv mri/hurst/stats/MRSI_pfc13_H.csv eeg/eog_cal/eye_scored_mgs_eog_cleanvisit.csv
+txt/merged_7t.csv: txt/sessions_db.txt mri/MRSI_roi/gam_adjust/out/gamadj_wide.csv mri/tat2/maskave.csv eeg/Shane/fooof/Results/allSubjectsFooofMeasures_20230516.csv mri/hurst/stats/MRSI_pfc13_H.csv eeg/eog_cal/eye_scored_mgs_eog_cleanvisit.csv behave/txt/SR.csv
 	./merge7T.R
 
 ### other makefiles (added 20230516)
@@ -21,6 +21,9 @@ mri/hurst/stats/MRSI_pfc13_H.csv: .ALWAYS
 eeg/eog_cal/eye_scored_mgs_eog_cleanvisit.csv: .ALWAYS
 	# eeg/Makefile
 	make -C eeg eog_cal/eye_scored_mgs_eog_cleanvisit.csv
+
+behave/txt/SR.csv:
+	make -C behave txt/SR.csv
 
 ### MERGE 7T
 txt/sessions_db.txt: .ALWAYS

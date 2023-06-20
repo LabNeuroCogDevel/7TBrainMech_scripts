@@ -1,7 +1,7 @@
 .PHONY: alwaysrun all
 
 # all daw (pet and 7t)
-all: all_daw.csv txt/upps_scored.csv
+all: all_daw.csv txt/upps_scored.csv txt/SR.csv
 
 .make:
 	mkdir .make
@@ -14,6 +14,10 @@ all: all_daw.csv txt/upps_scored.csv
 .make/task_txt.ls: .make/task_mats.ls daw2csv.m 
 	matlab -nodisplay -nojvm -r 'try,daw2csv,end;quit'
 	mkls $@ '/Volumes/Hera/Projects/7TBrainMech/subjs/*/daw/daw_*.txt'
+
+# use db to collect CBCL, YSR, ASR. from 7T doc currated by RAs
+txt/SR.csv: alwaysrun
+	./SR_db.R stdout | mkifdiff $@
 
 # collapse all into one file
 all_daw.csv: daw.R .make/task_txt.ls
