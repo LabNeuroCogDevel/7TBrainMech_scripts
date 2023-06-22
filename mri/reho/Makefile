@@ -25,6 +25,8 @@ gmmasks_res: $(GMRES)
 	niinote $@ mri_binarize --i $(subst gmmask.nii.gz,aseg.mgz,$@) --o $@ --gm 
 	3dNotes -h "make -C $(PWD) $@" $@
 
+# NB: wildcard secondary expansion will silently fail when no FS for visit.
+#     causes error in 3dresample
 .SECONDEXPANSION:
 %/gmmask_restres.nii.gz: %/Wbgrndkm_func.nii.gz $$(word 1,$$(wildcard /Volumes/Hera/preproc/7TBrainMech_rest/FS7.2/*/$$(notdir %)/mri/gmmask.nii.gz))
 	3dresample -overwrite -prefix $@ -master $(word 1,$^)  -inset $(word 2,$^)

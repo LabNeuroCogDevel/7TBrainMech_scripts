@@ -6,3 +6,5 @@
 # 20230622WF - init
 #
 make -kj 10 gmmasks_res
+
+# there are some (~10) w/o working FS. Makefile does not do a good job erroring for those
