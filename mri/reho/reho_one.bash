@@ -23,12 +23,12 @@ reho_output=out/${ld8}_reho.nii.gz
 test -r "$reho_output" && echo "# already have '$reho_output'; rm to redo" && exit 0
 
 ## need to find gm mask
-gmmask=$(find /Volumes/Hera/preproc/7TBrainMech_rest/FS7.2/*/"$ld8"/mri/gmmask.nii.gz -print -quit)
-[ -z "$gmmask" ] && warn "ERROR: $ld8 has no gmmask.nii.gz!?" && exit 3
+gmmask="$(dirname "$rest_input")/gmmask_restres.nii.gz"
+[ ! -r "$gmmask" ] && warn "ERROR: $ld8 has no gmmask.nii.gz!?" && exit 3
 
 
 # TODO: run reho on rest_input, save to output
-echo "# use $rest_input to make $reho_output. need to resample mask '$gmmask'"
+echo "# use $rest_input to make $reho_output. mask '$gmmask'"
 echo see: 3dReHo -help
 echo look at 01_reho.bash as wrapper
 
