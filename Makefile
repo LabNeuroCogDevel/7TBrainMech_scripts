@@ -6,7 +6,7 @@ all: txt/merged_7t.csv mri/txt/status.csv
 .make:
 	mkdir .make
 
-txt/merged_7t.csv: txt/sessions_db.txt mri/MRSI_roi/gam_adjust/out/gamadj_wide.csv mri/tat2/maskave.csv eeg/Shane/fooof/Results/allSubjectsFooofMeasures_20230516.csv mri/hurst/stats/MRSI_pfc13_H.csv eeg/eog_cal/eye_scored_mgs_eog_cleanvisit.csv behave/txt/SR.csv
+txt/merged_7t.csv: txt/sessions_db.txt mri/MRSI_roi/gam_adjust/out/gamadj_wide.csv mri/tat2/maskave.csv eeg/Shane/fooof/Results/allSubjectsFooofMeasures_20230516.csv mri/hurst/stats/MRSI_pfc13_H.csv eeg/eog_cal/eye_scored_mgs_eog_cleanvisit.csv behave/txt/SR.csv eeg/Shane/Results/Power_Analysis/Spectral_events_analysis/Gamma/Gamma_DLPFCs_spectralEvents_wide.csv
 	./merge7T.R
 
 ### other makefiles (added 20230516)
@@ -28,16 +28,16 @@ behave/txt/SR.csv:
 ### MERGE 7T
 txt/sessions_db.txt: .ALWAYS
 	(echo "id\tvisitno\tvtype\tvdate\tage\tsex\tvscore\tdrop" && \
-		timeout 5s lncddb "with dc as ( \
+	 timeout 5s lncddb "with dc as ( \
 	  select pid, string_agg(dropcode::text,',') drops \
 	  from note\
 	  where dropcode is not null  \
 	  and dropcode::text not like 'BAD_VEIN'\
 	  group by pid) \
 	 select id, visitno, vtype,\
-		to_char(vtimestamp,'YYYYmmdd') as vdate, \
-    	round(age::numeric,2), \
-		sex, vscore, drops \
+	  to_char(vtimestamp,'YYYYmmdd') as vdate, \
+	round(age::numeric,2), \
+	  sex, vscore, drops \
 	from visit natural join visit_study \
 	natural join person \
 	join enroll on visit.pid = enroll.pid and etype like 'LunaID' \
@@ -45,6 +45,8 @@ txt/sessions_db.txt: .ALWAYS
 	where study like '%BrainMech%' \
 	order by vdate")  | mkifdiff $@
 
+eeg/Shane/Results/Power_Analysis/Spectral_events_analysis/Gamma/Gamma_DLPFCs_spectralEvents_wide.csv:
+	eeg/Shane/Rscripts/spectral_events_wide.R
 ### IDs, raw MR org, FS, and origianl [PFC] MRSI (partially used for MRSI_roi)
 
 .make/task_csv.ls: alwaysrun |.make
