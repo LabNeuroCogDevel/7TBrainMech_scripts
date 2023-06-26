@@ -118,12 +118,12 @@ fooof_wide <- fooof_dlpfc %>%
 fooof_wide$eeg.date[fooof_wide$lunaid == "11668"&fooof_wide$eeg.date == "20170710"] <- "20180710"
 
 
-cat("have",nrow(fooof_mrg),"eeg rows\n")
-fooof_mia <- fooof_mrg %>% filter(is.na(visitno))
-if(nrow(fooof_mia) >0L) {
- cat("fooof with missing visit number\n")
- fooof_mia %>% select(lunaid,eeg.date) %>% print
-}
+#cat("have",nrow(fooof_wide),"eeg rows\n")
+#fooof_mia <- fooof_wide %>% filter(is.na(visitno))
+#if(nrow(fooof_mia) >0L) {
+# cat("fooof with missing visit number\n")
+# fooof_mia %>% select(lunaid,eeg.date) %>% print
+#}
 
 ## Hurst will use tat2's rest.date to merge
 #  dont need session info -- should already have. but just incase
