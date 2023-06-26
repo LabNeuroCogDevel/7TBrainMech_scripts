@@ -1,11 +1,19 @@
 #!/usr/bin/env Rscript
-suppressPackageStartupMessages({library(dplyr); library(tidyr)})
+#
 #  L/R dlPFC Delay period gamma spectraum events (power analysis)
+#  GammaEventDuration, GammaEventNumber,  GammaTrialPower, logGammaPower
+#
+#  0. read in delay epoch data and restrict to only DLPFC channels
+#  1. remove outliers from TrialLevel power (time series for each measure)
+#  2. mean and sd for each measure
+#  3. remove mean and sd outliers
+#  4. make wide (1 row per visit) for merge7T
 #  
-# 20230622SM - init
+# 20230622SM - init, pulled from mergeSubjects_longSpectralEvents.R
 # 20230622WF - tidyverse-ize. undo complete.case aggregate constraint. make wide for merge7T
 
 # Define Functions ----
+suppressPackageStartupMessages({library(dplyr); library(tidyr)})
 # quick shortcut for mean and sd that ignores missing values
 # here so we dont have to keep passing lambda functions to mutate/summarise
 na_mean <- function(x, ...) mean(x, na.rm=T, ...)
@@ -76,7 +84,9 @@ long_smry <- long_rmout %>%
 
 # remove summary outliers (rm visits, per measure)
 smry_rmout_long <- long_smry %>%
-    mutate(across(c(mean,sd), na_outliers))
+    group_by(measure) %>%
+    mutate(across(c(mean,sd), na_outliers)) %>%
+    ungroup()
     # 20230623 -- separate measures. dont mean one b/c the other is an outlier
     #mutate(mean=ifelse(is.na(sd), NA, mean))
 
