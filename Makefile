@@ -6,7 +6,10 @@ all: txt/merged_7t.csv mri/txt/status.csv
 .make:
 	mkdir .make
 
-txt/merged_7t.csv: txt/sessions_db.txt mri/MRSI_roi/gam_adjust/out/gamadj_wide.csv mri/tat2/maskave.csv eeg/Shane/fooof/Results/allSubjectsFooofMeasures_20230516.csv mri/hurst/stats/MRSI_pfc13_H.csv eeg/eog_cal/eye_scored_mgs_eog_cleanvisit.csv behave/txt/SR.csv eeg/Shane/Results/Power_Analysis/Spectral_events_analysis/Gamma/Gamma_DLPFCs_spectralEvents_wide.csv behave/txt/SSP.csv
+txt/db_sex.csv: .ALWAYS
+	lncddb "select id,sex from person p join enroll e on e.pid=p.pid and e.etype = 'LunaID'" | mkifdiff -n $@
+
+txt/merged_7t.csv: txt/sessions_db.txt mri/MRSI_roi/gam_adjust/out/gamadj_wide.csv mri/tat2/maskave.csv eeg/Shane/fooof/Results/allSubjectsFooofMeasures_20230516.csv mri/hurst/stats/MRSI_pfc13_H.csv eeg/eog_cal/eye_scored_mgs_eog_cleanvisit.csv behave/txt/SR.csv eeg/Shane/Results/Power_Analysis/Spectral_events_analysis/Gamma/Gamma_DLPFCs_spectralEvents_wide.csv behave/txt/SSP.csv txt/db_sex.csv
 	./merge7T.R
 
 ### other makefiles (added 20230516)
