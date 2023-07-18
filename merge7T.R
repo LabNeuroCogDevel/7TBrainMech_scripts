@@ -49,10 +49,14 @@ files <- list(
  hurst="mri/hurst/stats/MRSI_pfc13_H.csv",
  #mgs_eog="eeg/eog_cal/eye_scored_mgs_eog.csv" # 20230612
  mgs_eog="eeg/eog_cal/eye_scored_mgs_eog_cleanvisit.csv", # 20230616. new cleaned version
- sr="behave/txt/SR.csv" # 20230620. pulled from db from RA matained sheets
+ sr="behave/txt/SR.csv", # 20230620. pulled from db from RA matained sheets
+ ssp="behave/txt/SSP.csv"  # 20230717. from behave/SSP_Cantab_spatial.R
 )
 
 sess <- read.table(files$sess, sep="\t", header=T) %>% rename(lunaid=`id`)
+behave <- sess %>%
+         filter(vtype=="Behavioral") %>%
+         select(lunaid,visitno,behave.date=vdate)
 mrsi <- read.csv(files$mrsi)
 tat2 <- read.csv(files$tat2)
 fooof <- read.csv(files$fooof)
@@ -62,6 +66,10 @@ sr <- read.csv(files$sr) %>% addcolprefix('sr') %>%
       rename(screen.date=sr.date.screening, visitno=sr.visitno)
 # cols like "eeg.Delay_LDLPFC_GammaEventDuration_mean"
 eegspec <- read.csv(files$eegspec) %>% addcolprefix('eeg')
+ssp <- read.csv(files$ssp) %>%
+   separate(ld8,c('lunaid','behave.date')) %>%
+   addcolprefix('ssp',sep="_", preserve=c("lunaid", "behave.date")) %>%
+   addcolprefix('cantab', preserve=c("lunaid", "behave.date"))
 
 ## tat2 - roi, subj (luan_date), event, beta
 #        use to get rest date
@@ -214,6 +222,7 @@ merge_and_check <- function(big, d, ...) {
 }
 cat("mergeing all, writing merge file\n")
 merged <- tat2_wide %>%
+   merge_and_check(behave, by=c("lunaid","visitno"), all=T) %>%
    merge_and_check(eeg_date, by=c("lunaid","visitno"), all=T) %>%
    merge_and_check(mrsi_mrg, by=c("lunaid","visitno"), all=T) %>%
    merge_and_check(fooof_wide, by=c("lunaid","eeg.date"), all=T) %>%
@@ -221,6 +230,8 @@ merged <- tat2_wide %>%
    merge_and_check(mgs_eog, by=c("lunaid","visitno","eeg.date","eeg.age","eeg.vscore"), all=T) %>%
    merge_and_check(sr, by=c("lunaid","visitno"), all.x=T, all.y=F) %>%
    merge_and_check(eegspec, by=c("lunaid","eeg.date"), all=T) %>%
+   # only all.x b/c might have dropped after behv visit
+   merge_and_check(ssp, by=c("lunaid","behave.date"),all.x=T) %>%
   unique # 11832 is repeated 2 twice?
 
 
