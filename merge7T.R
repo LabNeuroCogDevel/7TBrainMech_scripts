@@ -51,7 +51,8 @@ files <- list(
  mgs_eog="eeg/eog_cal/eye_scored_mgs_eog_cleanvisit.csv", # 20230616. new cleaned version
  sr="behave/txt/SR.csv", # 20230620. pulled from db from RA matained sheets
  ssp="behave/txt/SSP.csv",  # 20230717. from behave/SSP_Cantab_spatial.R
- sex="txt/db_sex.csv" # 20230718 all sex in DB
+ sex="txt/db_sex.csv", # 20230718 all sex in DB
+ adi="/Volumes/Hera/Projects/Maria/Census/parguard_luna_visit_adi.csv" # 20230807
 )
 
 sess <- read.table(files$sess, sep="\t", header=T) %>% rename(lunaid=`id`)
@@ -72,6 +73,10 @@ ssp <- read.csv(files$ssp) %>%
    separate(ld8,c('lunaid','behave.date')) %>%
    addcolprefix('ssp',sep="_", preserve=c("lunaid", "behave.date")) %>%
    addcolprefix('cantab', preserve=c("lunaid", "behave.date"))
+
+# removing city, state, zip, FIP. TODO: keep all columns?
+adi <- read.csv(files$adi) %>%
+   select(lunaid, visitno=visit, ADI_NATRANK, ADI_STATERNK)
 
 ## tat2 - roi, subj (luan_date), event, beta
 #        use to get rest date
@@ -235,6 +240,7 @@ merged <- tat2_wide %>%
    # only all.x b/c might have dropped after behv visit
    merge_and_check(ssp, by=c("lunaid","behave.date"),all.x=T) %>%
    merge_and_check(sex, by=c("lunaid"), all.x=T) %>%
+   merge_and_check(adi, by=c("lunaid","visitno"), all.x=T) %>%
   unique # 11832 is repeated 2 twice?
 
 
