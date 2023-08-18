@@ -1,8 +1,8 @@
-function [] = homogenizeChanLoc(setfiles,correction_cap_location,outpath)
+function [] = homogenizeChanLoc_RestingState(setfiles,correction_cap_location,outpath)
 
 
 [filepath,filename ,ext] =  fileparts((setfiles));
-locs = file_locs(setfiles);
+locs = file_locs_RestingState(setfiles);
 
 if exist(locs.ICACleanHomongenize, 'file')
     OUTEEG = [];
@@ -11,7 +11,7 @@ if exist(locs.ICACleanHomongenize, 'file')
     return
 end
 
-[ALLEEG EEG CURRENTSET ALLCOM] = eeglab;
+ALLEEG = [];
 EEG = pop_loadset('filename',[filename,ext],'filepath',filepath);
 [ALLEEG, EEG, CURRENTSET] = eeg_store( ALLEEG, EEG, 0 );
 CL = importdata(correction_cap_location);
@@ -27,6 +27,7 @@ CL_old.n = {EEG_old.chanlocs.urchan}';
 %     
 % end
 
+% TODO: probably not going to run correctly!!
 
 differ = find(~strcmp(CL.name, CL_old.name(1:64))); 
 for idealIDX = differ'

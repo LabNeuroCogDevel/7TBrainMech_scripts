@@ -1,7 +1,7 @@
 function [channels_removed, data_removed, epochs_removed] = Initial_Preprocessing(inputfile, lowBP, topBP, outpath, FLAG, condition, varargin)
 
-addpath(genpath('Functions'));
-addpath(genpath('Functions/resources'));
+addpath(genpath(hera('Projects/7TBrainMech/scripts/eeg/Shane/Prep/ICAwhole')))
+
 
 % allocate cells
 %  Output argument "channels_removed" (and maybe others) not assigned during call to "singlesubject".
@@ -18,9 +18,9 @@ if ~exist(inputfile,'file'), error('inputfile "%s" does not exist!', inputfile),
 eeglabpath = fileparts(which('eeglab'));
 
 %% cap locations
-cap_location = fullfile(eeglabpath,'/plugins/dipfit2.3/standard_BESA/standard-10-5-cap385.elp');
+cap_location = fullfile(eeglabpath,'/plugins/dipfit/standard_BESA/standard-10-5-cap385.elp');
 if ~exist(cap_location, 'file'), error('cannot find file for 128 channel cap: %s', cap_location), end
-correction_cap_location = hera('Projects/7TBrainMech/scripts/eeg/Shane/Functions/resources/ChanLocMod128to64.ced');
+correction_cap_location = hera('Projects/7TBrainMech/scripts/eeg/Shane/resources/ChanLocMod128to64.ced');
 if ~exist(correction_cap_location, 'file'), error('cannot find file for correction 128 channel cap: %s', correction_cap_location), end
 
 %% Files
@@ -172,7 +172,7 @@ end
 
 %% CHANNELS
 % remove external channels
-EEG = pop_select( EEG,'nochannel',{'EX3' 'EX4' 'EX5' 'EX6' 'EX7' 'EX8' 'EXG1' 'EXG2' 'EXG3' 'EXG4' 'EXG5' 'EXG6' 'EXG7' 'EXG8' 'GSR1' 'GSR2' 'Erg1' 'Erg2' 'Resp' 'Plet' 'Temp' 'FT7' 'FT8' 'TP7' 'TP8' 'TP9' 'TP10'});
+EEG = pop_select( EEG,'nochannel',{'EX5' 'EX6' 'EX7' 'EX8' 'EXG1' 'EXG2' 'EXG3' 'EXG4' 'EXG5' 'EXG6' 'EXG7' 'EXG8' 'GSR1' 'GSR2' 'Erg1' 'Erg2' 'Resp' 'Plet' 'Temp' 'FT7' 'FT8' 'TP7' 'TP8' 'TP9' 'TP10'});
 
 [ALLEEG EEG] = eeg_store(ALLEEG, EEG, CURRENTSET);
 %import channel locations
@@ -184,7 +184,7 @@ EEG=pop_chanedit(EEG, 'lookup', cap_location);
 
 if size(EEG.data,1) > 100
     EEG = pop_select( EEG,'channel',commonPlus);
-    EEG=pop_chanedit(EEG, 'load', {correction_cap_location 'filetype' 'autodetect'});
+    EEG = pop_chanedit(EEG, 'load', {correction_cap_location 'filetype' 'autodetect'});
     % 128    'AF8' --> 64    'AF6'
     % 128    'AF7' --> 64    'AF5'
     % 128    'AF4' --> 64    'AF2'

@@ -52,7 +52,7 @@ loc.is_finished = exist(loc.icaout, 'file') ~= 0;
 loc.epochClean      = mkname('AfterWhole/epochclean', '_Rem_rerefwhole_ICA_icapru_epochs_rj');
 loc.ICAwholeClean      = mkname('AfterWhole/ICAwholeClean', '_Rem_rerefwhole_ICA_icapru');
 loc.epochCleanHomongenize      = mkname('AfterWhole/epochclean_homogenize', '_Rem_rerefwhole_ICA_icapru_epochs_rj');
-
+loc.ICACleanHomongenize      = mkname('AfterWhole/ICAwholeClean_homogenize', '_Rem_rerefwhole_ICA_icapru');
 
 
 end

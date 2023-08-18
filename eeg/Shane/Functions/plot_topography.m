@@ -263,9 +263,10 @@ function h = plot_topography(ch_list, values, make_contour, system, ...
     min_width  = -max_width;
     L = max([min_height, max_height, min_width, max_width]);
     xlim([-L, L]);
-    ylim([-L, L]);  
+    ylim([-L, L]); 
+    colormap autumn;
     colorbar;   % Feel free to modify caxis after calling the function
-    caxis([0 .2]);
+%     caxis([0 1.2]);
     axis square;
     axis off;
     hold off;
