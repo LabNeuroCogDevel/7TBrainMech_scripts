@@ -1,34 +1,103 @@
 #!/usr/bin/env bash
-set -euo pipefail
-#
-# run ReHo using individual rest file
-#
-# 20230622WF - skeleton
-#
+ 
+# read from nowarp preproc dir
+PREPROCDIR=/Volumes/Zeus/preproc/7TBrainMech_rest/MHRest_nost_nowarp_nosmooth
+# write to local images dir
+OUTDIR="/Volumes/Hera/Projects/7TBrainMech/scripts/mri/reho/images"
 
-## check inputs
-if [ $# -ne 1 ]; then
-   echo "USAGE: $0 /Volumes/Hera/preproc/7TBrainMech_rest/MHRest_nost_nowarp_nosmooth/10129_20180917/Wbgrndkm_func.nii.gz
-
-   where only input argument is a 4D nifti timeseries to use with reho" 
-  exit 1
+#ask for file name
+ 
+# use what's given on the commandline ("$1") or ask for input if not given
+if [ -n "$1" ]; then
+   subject="$1"
+else
+   echo -e "\nEnter file name from directory:"
+   echo -e "/Volumes/Zeus/preproc/7TBrainMech_rest/MHRest_nost_nowarp_nosmooth\n"
+   read -r subject
 fi
-rest_input=${1}; shift
-[ ! -r "$rest_input" ] && warn "cannot read '$rest_input'; should be 4d nifti image" && exit 2
 
-## determine what the output should bee
-ld8=$(ld8 "$rest_input")
-reho_output=out/${ld8}_reho.nii.gz
-# don't need to do anything if we already have file. 0 status is successs
-test -r "$reho_output" && echo "# already have '$reho_output'; rm to redo" && exit 0
+# make sure we were given a good subject
+# if given a full file and not a subject, use that as input instead
+inputfile="$PREPROCDIR/$subject/Wbgrndkm_func.nii.gz"
+[ ! -r  "$inputfile" ] && inputfile="$subject"
+if [ ! -r "$inputfile" ]; then
+   echo "ERROR: cannot read '$inputfile'"
+   exit 1
+fi
+# make (or ensure) subject is the luna_date8 from inputfile
+subject="$(ld8 "$inputfile")"
 
-## need to find gm mask
-gmmask="$(dirname "$rest_input")/gmmask_restres.nii.gz"
-[ ! -r "$gmmask" ] && warn "ERROR: $ld8 has no gmmask.nii.gz!?" && exit 3
+#echo "input_arg=$1;subject: $subject;inputfile=$inputfile"
+#exit 1
 
 
-# TODO: run reho on rest_input, save to output
-echo "# use $rest_input to make $reho_output. mask '$gmmask'"
-echo see: 3dReHo -help
-echo look at 01_reho.bash as wrapper
+# get gm mask
+gmmask="$(dirname "$inputfile")/gmmask_restres.nii.gz"
+[ ! -r "$gmmask" ] && warn "ERROR: $subject has no gmmask.nii.gz ($gmmask)!?" && exit 3
 
+# -p doesn't error if already exists and creats all parents when needed
+mkdir -p "$OUTDIR/${subject}"
+
+# get gm epi mask
+# don't redo files we've already done
+gmepimask=$OUTDIR/${subject}/gmmask_epimasked.nii.gz
+if [ ! -r "$gmepimask" ]; then
+# calculate gm epi mask
+   3dcalc -m "$gmmask" -a "${inputfile[0]}" \
+      -expr 'm*step(abs(a))' \
+      -prefix "$gmepimask"
+   echo "# wrote $gmepimask"
+ else
+   echo "# already have $gmepimask"
+ fi
+
+
+
+# run ReHo for each neighborhood size
+for neighbor in 7 19 27; do
+  echo -e "\n\ncalculating ReHo with $neighbor-voxel neighborhood\n"
+
+
+  # no mask version
+  # don't redo files we've already done
+  outfile=$OUTDIR/${subject}/reho_n$neighbor.nii.gz
+  if [ ! -r "$outfile" ]; then
+  # run unmasked ReHo with $neighbor-voxel neighborhood
+     3dReHo -prefix "$outfile" \
+        -inset "$inputfile" \
+        -nneigh $neighbor
+     echo "# wrote $outfile"
+   else
+     echo "# already have $outfile"
+  fi
+
+
+  # gm masked version
+  outfile=$OUTDIR/${subject}/reho-gmmask_n$neighbor.nii.gz
+  if [ ! -r "$outfile" ]; then
+     # run gm masked ReHo with $neighbor-voxel neighborhood
+     3dReHo -prefix "$outfile" \
+        -mask "$gmmask" \
+        -inset "$inputfile" \
+        -nneigh $neighbor
+     echo "# wrote $outfile"
+   else
+     echo "# already have $outfile"
+  fi
+
+
+  # gm epi masked version
+  outfile=$OUTDIR/${subject}/reho-gmmask_epimasked_n$neighbor.nii.gz
+  if [ -r "$outfile" ]; then
+     echo "# already have $outfile"
+     continue
+  fi
+  # run gm epi masked ReHo with $neighbor-voxel neighborhood
+  3dReHo -prefix "$outfile" \
+     -mask "$gmepimask" \
+     -inset "$inputfile" \
+     -nneigh $neighbor
+  echo "# wrote $outfile"
+
+
+done
