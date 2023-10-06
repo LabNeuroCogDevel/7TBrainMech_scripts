@@ -1,4 +1,6 @@
 %function score_eog(subj)
+REDO=0 % 20231006WF - Makefile reruns everything when new eeg data.
+       % disabling REDO should speed this up a bunch
 
 if ismac
     addpath('~/Documents/MATLAB/fieldtrip-20200928/')
@@ -51,7 +53,7 @@ for subji = 1:length(allSubjs)
     fprintf(1, '\nProcessing subject %s (%d/%d), %s %s\n', subj, subji, length(allSubjs), subjid, scandate);
 
     subjdatafile = sprintf('trial_data/%s_%s.mat', subjid, scandate);
-    if 0 %exist(subjdatafile, 'file')
+    if ~REDO && exist(subjdatafile, 'file')
         load(subjdatafile);
         data = [data; thisdata];
         fprintf(1, 'Using existing data for %s %s (%s)\n', subjid, scandate, subjdatafile);
