@@ -87,7 +87,7 @@ make_long <- function(wide_metabolite='txt/13MP20200207_LCMv2fixidx.csv'){
    age_breaks <- c(0,15,19,23,Inf)
    long <- 
        read.csv(wide_metabolite) %>%
-       filter(!is.na(roi)) %>%
+       filter(!is.na(roi), !failqc) %>%
        select(ld8,visitnum, ld8, age, fd=fd_mean, roi=label, matches('\\.Cr$|\\.SD$')) %>%
        pivot_longer(cols=matches('Cr$|SD$')) %>%
        # met is metabolite, mtype is '.Cr' ratio or '.SD' crlb value

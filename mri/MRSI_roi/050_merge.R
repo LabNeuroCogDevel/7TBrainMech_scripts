@@ -1,5 +1,6 @@
 #!/usr/bin/Rscript
 library(dplyr)
+library(tidyr)
 
 setwd("/Volumes/Hera/Projects/7TBrainMech/scripts/mri/MRSI_roi/")
 source('rest_fd.R')
@@ -18,6 +19,26 @@ L <- read.table("roi_locations/labels_13MP20200207.txt", sep=":") %>%
 G <- gmcnt[file.exists(gmcnt)] %>% lapply(read.table, as.is=T) %>% bind_rows
 names(G) <- c("ld8", "gm.atlas", "roi", "GMrat", "GMcnt")
 
+# 20231006 - add manually inspected model fits
+#            create column indicating visual qc failed for those annotated
+#            see gen_pdf.bash and e.g.
+#            pdf/csi_all-gt2022-12-05_n-29_d8-20191017-20230309_slice-PFC_pg1.pdf
+# has two formats (remote/MRRC, local/DIY)
+#   orig:  luna_date-dateLuna/specturm.yy.xx
+#   new:   luna_date/spectrum-yy.xx
+# when it doesn't matching the original, make the new look like the old
+visqc <-
+  readxl::read_xlsx('txt/visual_qc.xlsx', col_names='path_to_qcfail') %>% 
+  mutate(title_with_junk =
+           ifelse(!grepl('Luna', path_to_qcfail, ignore.case=T),
+                  gsub('/','-junk/',path_to_qcfail),
+                  path_to_qcfail),
+         failqc=TRUE) %>% 
+  separate(title_with_junk,
+           c("ld8", "mrid", "y","x"),extra="merge", sep = "[-.]") %>%
+  select(-mrid)
+
+
 readcsi <- function(f) {
       d <- read.csv(f) %>% mutate(f=f)
       names(d) <-
@@ -25,13 +46,28 @@ readcsi <- function(f) {
           gsub("\\.+", ".", .)
       return(d)
 }
-csi <-
+
+csi_raw <-
    Filter(function(f) file.size(f) > 0, yxcsi) %>%
    lapply(readcsi) %>%
-   bind_rows %>%
+   bind_rows
+csi_extract <- csi_raw %>%
    mutate(ld8=LNCDR::ld8from(f),
           coord=stringr::str_extract(f, "(?<=spectrum.)\\d+.\\d+")) %>%
-   tidyr::separate(coord, c("y", "x")) %>%
+   separate(coord, c("y", "x"))
+
+cat("visually QC'ed as bad model fit, but no data in $ld8/spectrum*.dir/*csv:\n")
+anti_join(visqc,csi_extract) %>%
+   group_by(ld8) %>%
+   summarise(n=n(), yx=paste(sep=".", collapse=" ",y,x))%>%
+   print.data.frame(row.names=F)
+cat("maybe these were redone/have more than one model?\n")
+
+csi <- csi_extract %>%
+   # 20231006 - reverse coded :( when failqc is na, it's a pass
+   #            NB. merge here before we adjust x and y
+   left_join(visqc, by=c("ld8","y","x")) %>% 
+   mutate(failqc=ifelse(is.na(failqc),FALSE,failqc)) %>%
    # 20200414 - spectrum are oriented differently
    mutate(x=216+1-as.numeric(x), y=216+1-as.numeric(y)) %>%
    select(-f, -Row, -Col)
@@ -74,7 +110,7 @@ read_backup_dob<-function(){read.table('txt/id_sex_dob.txt', sep="\t",header=T) 
 r <- tryCatch(LNCDR::db_query(query), error=function(e) {print(e); read_backup_dob();})
 
 sep <-
-   d %>% tidyr::separate(ld8, c("id", "vdate"), remove=F) %>%
+   d %>% separate(ld8, c("id", "vdate"), remove=F) %>%
    mutate(vdate=lubridate::ymd(vdate)) 
 
 # 20200504 - have 7 repeat subjects!
