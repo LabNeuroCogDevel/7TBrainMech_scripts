@@ -3,6 +3,15 @@ function savedir = hera(varargin)
    % Hera on lab servers is in /Volumes (also see  'sshfs r:/Volumes /Volumes')
    % but on macOS mounting all /Volumes isn't a good idea
    % so will have variable Hera locations. enumerated in 'places'
+   if nargin < 1
+      error('must have at least one path to combine')
+   end
+   % remove volume hera
+   rhearoot = '/Volumes/Hera/';
+   if strncmp(varargin{1}, rhearoot, length(rhearoot))
+      pathwithroot=varargin{1};
+      varargin{1} = pathwithroot((length(rhearoot)+1):end);
+   end
 
    if ispc
        savedir = fullfile('H:/',varargin{:});
