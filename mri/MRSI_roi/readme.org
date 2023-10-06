@@ -1,7 +1,19 @@
 #+Title: MRSI roi atlas coordinate positioning pipeline
+* Data
+See ~Makefile~. Briefly,
+
+| action                                              | output                                             |
+| 000-02: organize and place coordinates              |                                                    |
+| ~030a_lcmodel_diy.bash~ + ~./040_spec2subjdir.bash~ | ~subjs/1*_2*/slice_PFC/MRSI_roi/LCModel/v2idxfix/~ |
+| ~gen_pdf.bash~ + manually inspect                   | ~txt/visual_qc.xlsx~                               |
+| ~050_merge.R~                                       | ~txt/13MP20200207_LCMv2fixidx.csv~                 |
+| ~gam_adjust/adjust_all.R~                           | ~gam_adjust/out/gamadj_wide.csv~                   |
+| ~../../merge7T.R~                                   | ~../../txt/merged_7t.csv~                          |
+
 * Placing coordinates
   #+BEGIN_SRC bash
-  ./coord_builder.bash view 10129_20180917 roi_locations/ROI_mni_13MP20200207.nii.gz
+    ./coord_builder.bash view 10129_20180917 roi_locations/ROI_mni_13MP20200207.nii.gz
+    ./coord_builder.bash view  11769_20220908 roi_locations/ROI_mni_13MP20200207.nii.gz
   #+END_SRC
 
 * Data pipeline
