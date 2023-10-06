@@ -11,7 +11,7 @@ head(agetbl);
 agetbl = unique(agetbl);
 
 if ~exist('datatable', 'var')
-    load('eeg_data_20200813.mat');
+    load('eeg_data_20220819.mat');
 end
 
 ses_id = {};
