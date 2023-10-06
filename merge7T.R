@@ -42,7 +42,7 @@ files <- list(
  tat2="mri/tat2/maskave.csv",
  # see eeg/Shane/python/fooof/runFooof.py
  #fooof="eeg/Shane/fooof/Results/allSubjectsFooofMeasures_20230516.csv", # channel no region
- fooof="eeg/Shane/fooof/Results/allSubjectsDLPFCfooofMeasures_20230523.csv", # region no channel
+ fooof="eeg/Shane/Results/FOOOF/Results/allSubjectsDLPFCfooofMeasures_20230523.csv", # region no channel
  # eeg/Shane/Rscripts/spectral_events_wide.R # 20230623
  eegspec="eeg/Shane/Results/Power_Analysis/Spectral_events_analysis/Gamma/Gamma_DLPFCs_spectralEvents_wide.csv",
  # see mri/hurst/hurst.m
@@ -52,18 +52,20 @@ files <- list(
  sr="behave/txt/SR.csv", # 20230620. pulled from db from RA matained sheets
  ssp="behave/txt/SSP.csv",  # 20230717. from behave/SSP_Cantab_spatial.R
  sex="txt/db_sex.csv", # 20230718 all sex in DB
- adi="/Volumes/Hera/Projects/Maria/Census/parguard_luna_visit_adi.csv" # 20230807
+ adi="/Volumes/Hera/Projects/Maria/Census/parguard_luna_visit_adi.csv", # 20230807
+ fd="mri/txt/rest_fd.csv" # 20230912 (but generated long ago)
 )
 
 sess <- read.table(files$sess, sep="\t", header=T) %>% rename(lunaid=`id`)
 sex <- read.table(files$sex,col.names=c("lunaid","sex"))
 behave <- sess %>%
          filter(vtype=="Behavioral") %>%
-         select(lunaid,visitno,behave.date=vdate)
+         select(lunaid,visitno,behave.date=vdate, behave.age=age)
 mrsi <- read.csv(files$mrsi)
 tat2 <- read.csv(files$tat2)
 fooof <- read.csv(files$fooof)
 hurst <- read.csv(files$hurst)
+fd <- read.table(files$fd,header=T) %>% rename(lunaid=id, date=d8) %>% addcolprefix('rest')
 mgs_eog_visit <- read.csv(files$mgs_eog)
 sr <- read.csv(files$sr) %>% addcolprefix('sr') %>%
       rename(screen.date=sr.date.screening, visitno=sr.visitno)
@@ -241,10 +243,17 @@ merged <- tat2_wide %>%
    merge_and_check(ssp, by=c("lunaid","behave.date"),all.x=T) %>%
    merge_and_check(sex, by=c("lunaid"), all.x=T) %>%
    merge_and_check(adi, by=c("lunaid","visitno"), all.x=T) %>%
+   merge_and_check(fd, by=c("lunaid","rest.date"), all.x=T) %>%
   unique # 11832 is repeated 2 twice?
 
-
 cat(glue("# merged: {nrow(merged)} rows with {ncol(merged)} columns"),"\n")
+
+# often have ages missing, want a single column to use for generic age @ session
+# NB. 'sess.age' will match grepl. dont rerun these lines multiple times w/o reruning merge above
+all_age_cols <- merged[,grepl('\\.age$',names(merged))] # eeg.age rest.age behave.age sipfc.age
+merged$sess.age       <- apply(all_age_cols, 1, mean,na.rm=T)
+merged$sess.age_range <- apply(all_age_cols, 1, \(x) diff(range(x,na.rm=T)))
+
 write.csv(merged, 'txt/merged_7t.csv', quote=F, row.names=F)
 
 
