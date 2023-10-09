@@ -9,13 +9,19 @@ suppressPackageStartupMessages({
 })
 
 count_surveys <- function(svys) sapply(svys, function(x) ifelse(is.null(x), 0, nrow(x)))
-get_svys_qualtrics <- function() {
+
+get_survey_list <- function(){
    ini <- read.ini("qualtircs.ini")
    qualtrics_api_credentials(api_key=ini$api$api_token, base_url=ini$api$root_url)
 
-   all_survey_list <- all_surveys()
+   all_survey_list <- qualtRics::all_surveys()
    survey_list <- all_survey_list %>% filter(grepl("7T", name))
+}
 
+# query all: # SV_bdejyV7MRgmOhuZ (7TAdult Screen) failing?!
+# force_request=T does not reuse cache. unclear if cache invalidated by survey's last update time 
+get_svys_qualtrics <- function(force_request=TRUE) {
+   survey_list <- get_survey_list()
    # show by date
    cat("# list of surveys")
    survey_list %>%
@@ -24,9 +30,11 @@ get_svys_qualtrics <- function() {
 
    # get all the surveys and junk the ones with too few responses
    svys <- lapply(survey_list$id, function(x)
-                         tryCatch(getSurvey(x, root_url=ini$api$root_url, force=T),
+                         #tryCatch(getSurvey(x, root_url=ini$api$root_url, force=T),
+                         tryCatch(fetch_survey(x, force_request=force_request, save_dir="surveys"),
                                   error=function(e) {
-                                     cat("# error reading",x,":",e,"\n")
+                                     str(e)
+                                     cat("# error reading",x,"\n")
                                      return(NULL)}))
    names(svys) <- survey_list$name
 
@@ -55,7 +63,6 @@ save_all_csv <- function(svys=NULL) {
       refcol <- "ExternalDatareference"
       if(! refcol %in% names(s)) refcol <- "ExternalReference"
       ld8 <- paste(s[[refcol]],format(s$StartDate,"%Y%m%d"),sep="_")
-      sid <- survey_list$id[survey_list$name == bname]
       #qname <- sapply(names(s), function(n) paste0(collapse="-",unique(c(n,attr(s[[n]],'label'))))) %>% unname
       qname <- sapply(names(s), function(n) attr(s[[n]],'label')) %>% unname
   
@@ -218,7 +225,15 @@ PSS <- function(svys=NULL){
   #qend <- 9
   svynames <- svy_with_Q(svys, qstart, min_resp=3)
   d_list <- lapply(svys[svynames], function(svy) extract_qrange(svy, qstart, qend))
-  pss <- d_list %>% lapply(function(d) d %>% mutate(across(!ld8, rm_num_label))) %>% bind_rows
+  # show how many we have from each survey
+  print.data.frame(row.names=F,
+                   data.frame(s=names(d_list),
+                              n=unname(sapply(d_list, nrow)),
+                              firstd=sapply(d_list, function(x) min(gsub('.*_','',x$ld8),na.rm=T)),
+                              lastd=sapply(d_list, function(x) max(gsub('.*_','',x$ld8),na.rm=T))) %>%
+                   arrange(-as.numeric(lastd))) 
+
+  pss <- d_list %>% lapply(function(d) d %>% mutate(across(!ld8, as.character))) %>% bind_rows
   return(pss)
 }
 
@@ -241,6 +256,10 @@ if (sys.nframe() == 0){
 
    if(any(inargs %in% c("pss"))) {
       pss <- PSS()
-      write.csv(pss, file="PSS.csv")
+      # NA filter can probably go into PSS function
+      not_all_na <- apply(pss,1,function(x) length(which(is.na(x))) < 10)
+      # was done earlier but wanted to make sure NAs were b/c of bad conversion
+      pss_no_all_na <- pss[not_all_na,] %>% mutate(across(!ld8, rm_num_label))
+      write.csv(pss_no_all_na, file="PSS.csv", row.names=F, quote=T)
    }
 }
