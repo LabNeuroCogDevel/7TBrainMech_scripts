@@ -44,13 +44,15 @@ decon_one_dmblock(){
    # use reg_names to put what preprocessfunctional thinks is in regerssors into output files history (3dNotes)
    mot_concat=$(concat_indir ./all_motion.par motion.par      "${inputs4d[@]}") || return
    reg_concat=$(concat_indir ./all_nuisance_regs.txt  nuisance_regressors.txt     "${inputs4d[@]}") || return
+   test ! -s all_nuisance_regs.txt && warn "$ld8 ERROR: '$_' empty" && return 1
+
    reg_names=$(regressors_in_use "${inputs4d[@]}")
 
    fd_concat=$(concat_indir ./all_fd.txt motion_info/fd.txt "${inputs4d[@]}") || return
    fd_censor_file=$(fd_censor "$fd_concat" "$FD_THRES") || return
 
    # check if we have an output
-   outfile=${ld8}_lrimg_deconvolve_dmblock.nii.gz
+   outfile=${ld8}_lrimg_nuis_deconvolve_dmblock.nii.gz
    [ -r ${outfile} -a -z "${REDO:-}" ] &&
       echo "Output file ($(pwd)/${outfile}) exists, SKIPPING" && return
 

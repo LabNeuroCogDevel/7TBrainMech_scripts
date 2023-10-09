@@ -14,6 +14,7 @@ get_coverage_files(){
     ls "$(dirname "$(readlink -f "$f")")"/cmsphere-mni.nii.gz
   done
   # TODO: remove subjs that are excluded
+  # TODO: should maybe use blob-mni.nii.gz instead of cmspheres
 }
 
 unique_visit_only(){
@@ -21,11 +22,10 @@ unique_visit_only(){
 }
 
 collapse_coverage(){
-  local roi="$1"; shift
+  local out="$1"; shift
+  mkdir -p $(dirname $out)
   # rest are input filenames
   # combine them all as one nifti image (bucket 4d)
-  local out=coverage/roi/$roi/coverage_ratio.nii.gz 
-  mkdir -p $(dirname $out)
   3dTcat -overwrite -prefix "$out" "$@"
   # remove ROI number so sum is count
   3dcalc -overwrite -a "$out" -expr 'step(a)' -prefix "$out"
@@ -44,7 +44,8 @@ _all_coverage_perroi() {
   echo "# making rois"
   for roi in "${rois[@]}"; do
      echo "# $roi"
-     $DRYRUN collapse_coverage "$roi" $(add_roi_selector "${roi/_*/}" "${inputs[@]}")
+     $DRYRUN collapse_coverage coverage/roi/$roi/coverage_ratio.nii.gz \
+        $(add_roi_selector "${roi/_*/}" "${inputs[@]}")
   done
   return 0
 }

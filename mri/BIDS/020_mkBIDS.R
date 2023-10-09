@@ -93,7 +93,10 @@ discard <-
 proc <- info %>%
    filter(!is.na(process)) %>%
    group_by(luna, vdate, process) %>%
-   mutate(item=rank(as.numeric(seqno))) %>%
+   mutate(item=rank(as.numeric(seqno),ties.method='first')) %>%
+   # 20230302 - 20221020 and 20221101 have additional yes/no MT directories
+   # not sure what they're for yet. ignoring for now
+   filter(!grepl("MPRAGE2MTGRE-mtgre-",indir)) %>%
    # hard code a fix for some weirdos
    left_join(hardcode_fix, by=c("luna","vdate","protocol","seqno"),
              suffix=c("", ".fix")) %>%

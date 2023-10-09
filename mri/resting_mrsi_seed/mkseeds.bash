@@ -26,22 +26,24 @@ addroinum() {
 }
 
 mkroi-centergm() {
-  local size=9
+  local size=4.5 # orig mxsph, now cube
   local gm=/opt/ni_tools/standard/mni_icbm152_nlin_asym_09c/mni_icbm152_gm_tal_nlin_asym_09c_2mm.nii 
-  local gmthres=0.5
+  #local gmthres=0.5
+  local gmthres=0
 
   local in="$1"
-  local out=${in/.nii.gz/_gm-${gmthres}_mxsph-$size.nii.gz}
+  local out=${in/.nii.gz/_gm-${gmthres}_cube-$size.nii.gz}
   test -r "$out" && warn "# have $_" && return 0
 
   local mx="$(3dBrickStat -max "$in"|sed 's/ //g')"
   [[ -z "$mx" || $mx =~ \[ ]] && warn "bad max '$mx' for '$in'" && return 1
   warn "# mx $mx for '$in'"
-
-  3dCM -local_ijk "$in<$mx>"|
-      3dUndump -prefix "$out" -mask "3dcalc(-expr step(a-$gmthres) -a $gm )" \
-               -overwrite \
-               -srad $size -master "$in" -ijk -
+  cmout="${out/.nii.gz/cmijk_gm${gmthres}_mx$mx.1d}"
+  3dCM -local_ijk "$in<$mx>" > "$cmout"
+  3dUndump -prefix "$out" -cubes\
+    -mask "3dcalc(-expr step(a-$gmthres) -a $gm )" \
+    -overwrite \
+    -srad $size -master "$in" -ijk "$cmout"
    echo "$out"
 }
 

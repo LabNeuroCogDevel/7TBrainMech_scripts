@@ -86,6 +86,22 @@ anat2func(){
       applywarp --in=$anat_file --out=$out --interp=nn --ref=$ref --premat=$mat
    echo $out
 }
+fs_func_warp_one(){
+   [ $# -ne 2 ] && warn "$FUNCNAME preproc_d fs_file" && return 1
+   local preproc_d="$1"; shift
+   local fs_file="$1"; shift
+   [ ! -d "$preproc_d" ] && warn "'$preproc_d' should be a directory!" && return 1
+   [ ! -r "$fs_file" ] && warn "'$fs_file' should be just the filename (not path) of FS atlas" && return 1
+   local ld8_fs_file=$(funcdir2fsdir "$preproc_d" $fs_file) || return 1
+   # /Volumes/Hera/preproc/7TBrainMech_rest/FS7.2/highres/10129_20180917/mri/aseg.mgz
+   local fs_nii="$(mgz2nii "$ld8_fs_file")"
+   # /Volumes/Hera/preproc/7TBrainMech_rest/FS7.2/highres/10129_20180917/mri/nii/aparc+aseg.nii.gz 
+   echo "# $fs_nii warp to $preproc_d"
+   local fs_res=$(fs2anat "$fs_nii" $mprage_bet)
+   # local out="$(dirname $fs)/mprage_$(basename ${fs})"
+   anat2func "$fs_res" "$preproc_d"
+}
+
 _fs_func_warp() {
   mapfile -t FUNCDIRS < <(func_list)
   for d in ${FUNCDIRS[@]}; do
@@ -121,22 +137,22 @@ fi
 #   bats ./fs_func_warp.bash --verbose-run
 ####
 if  [[ "$(caller)" =~ /bats.*/preprocessing.bash ]]; then
-@test "find FS" {
+function find_FS_test { #@test
     run funcdir2fsdir "/Volumes/Hera/preproc/7TBrainMech_rest/MHRest_nost_nowarp/10129_20180917/" aseg.mgz
     echo $output >&2
     [[ $output == "/Volumes/Hera/preproc/7TBrainMech_rest/FS7.2/highres/10129_20180917/mri/aseg.mgz" ]]
 }
-@test "no FS" {
+function no_FS_test { #@test
     run funcdir2fsdir "/Volumes/Hera/preproc/7TBrainMech_rest/MHRest_nost_nowarp/10129_20180917/" asegDNE.mgz
     echo "$output" >&2
     [[ $output =~ "no file" ]]
 }
-@test "mprage" {
+function mprage_test { #@test
     run find_mprage "/Volumes/Hera/preproc/7TBrainMech_rest/MHRest_nost_nowarp/10129_20180917/"
     warn $output
     [[ $output =~ mprage_bet.nii.gz$ ]]
 }
-@test "newname" {
+function newname_test { #@test 
    run new_fs_name /Volumes/Hera/preproc/7TBrainMech_rest/FS7.2/highres/10129_20180917/mri/aparc+aseg.mgz
    warn $output
    [[ $output == /Volumes/Hera/preproc/7TBrainMech_rest/FS7.2/highres/10129_20180917/mri/nii/aparc+aseg.nii.gz ]]

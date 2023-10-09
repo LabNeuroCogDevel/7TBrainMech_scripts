@@ -15,6 +15,9 @@ hurst <- data.frame(ld8=LNCDR::ld8from(niis), InputFile=niis) %>%
 d <- merge(sess, hurst, by=c("id","vdate"), all.y=T) %>%
    rename(Subj=`id`) %>%  relocate(InputFile, .after = last_col())
 
+cat("where age is missing:\n")
 d %>% filter(is.na(age)) %>% print
+
+cat("writting datatable.tsv\n")
 write.table(d%>% filter(!is.na(age)), 'datatable.tsv',sep="\t",row.names=F,quote=F)
 

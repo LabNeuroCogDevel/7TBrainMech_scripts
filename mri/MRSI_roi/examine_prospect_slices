@@ -46,7 +46,10 @@ def dcm_center(folder):
     gstr = '%s/*.IMA' % folder
     g = glob(gstr)
     ds = read_dicoms(g)
-    allpx = [ i.pixel_array for i in ds]
+    if not ds:
+        return ([], [], [])
+
+    allpx = [i.pixel_array for i in ds]
     encdir = ds[0].InPlanePhaseEncodingDirection
     print(f"# read {len(ds)}/{len(g)} {encdir} dcms in {folder}")
 
@@ -76,6 +79,8 @@ def main(opts):
     for i, xd in enumerate(imgs):
         x = xd[0]
         d = xd[1]
+        if not len(d) > 0:
+            continue
         imslice = xd[2]
         dirname = os.path.basename(opts.get('<slicedir>')[i])
         title = "%d %s %s %s %s" % \

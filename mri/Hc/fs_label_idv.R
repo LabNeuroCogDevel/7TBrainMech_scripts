@@ -7,6 +7,7 @@
 #
 # 20230201WF - init
 # 20230224   - add GM, and redo
+# 20230314   - each into function. take args. add stop
 
 file_unrotated_coord <- "hc_loc_unrotated.1d" # 12x5 coordinate unrotated from gui placmenet
 # used in system2/bash call
@@ -19,6 +20,10 @@ REDO <- FALSE # TRUE if should rewrite output files
 suppressPackageStartupMessages({library(dplyr);library(tidyr)});
 
 lut_rat <- function(lut="/opt/ni_tools/freesurfer/ASegStatsLUT.txt", scout="FS_warp/*_aseg_scout.nii.gz"){
+
+    if(length(Sys.glob(scout)) != 1L){
+       stop("No scout: ",file.path(getwd(), scout))
+    }
     # there are values for each rgba in aseg. will get a warning but dont care
     # but didnt' do the same for HBT subset. s
     if(class(lut) == "character")
@@ -55,24 +60,38 @@ lut_rat <- function(lut="/opt/ni_tools/freesurfer/ASegStatsLUT.txt", scout="FS_w
     arrange(place)
 }
 
-if(!file.exists("hc_aseg_roirat_highest.csv") || REDO){
+aseg <- function() {
+  if(file.exists("hc_aseg_roirat_highest.csv") && !REDO){
+     return()
+  }
   FS_roi <- lut_rat()
   write.csv(file="hc_aseg_roirat.csv", FS_roi, row.names=F, quote=F)
   FS_roi %>% group_by(place) %>% filter(rat==max(rat)) %>%
       write.csv(file="hc_aseg_roirat_highest.csv", row.names=F, quote=F)
 }
-
-if(!file.exists("hc_HBT_roirat_highest.csv") || REDO){
-   HBT_roi <- lut_rat(lut="/Volumes/Hera/Projects/7TBrainMech/scripts/mri/Hc/txt/hc_fs_lut.txt",
-                     scout="FS_warp/*_HBTlr500_scout.nii.gz")
-   write.csv(file="hc_HBT_roirat.csv", HBT_roi, row.names=F, quote=F)
-   HBT_roi %>% group_by(place) %>% filter(rat==max(rat)) %>%
-       write.csv(file="hc_HBT_roirat_highest.csv", row.names=F, quote=F)
+hbt <- function(){
+  if(file.exists("hc_HBT_roirat_highest.csv") && !REDO){
+     return()
+  }
+  HBT_roi <- lut_rat(lut="/Volumes/Hera/Projects/7TBrainMech/scripts/mri/Hc/txt/hc_fs_lut.txt",
+                    scout="FS_warp/*_HBTlr500_scout.nii.gz")
+  write.csv(file="hc_HBT_roirat.csv", HBT_roi, row.names=F, quote=F)
+  HBT_roi %>% group_by(place) %>% filter(rat==max(rat)) %>%
+      write.csv(file="hc_HBT_roirat_highest.csv", row.names=F, quote=F)
+}
+gm <- function(){
+  if(file.exists("hc_gm_rat.csv") && !REDO){
+     return()
+  }
+  gm_roi <- lut_rat(lut=data.frame(FSroi=c(0,1), label=c('not_gm','gm')),
+                    scout="FS_warp/*_gm_scout.nii.gz")
+  write.csv(gm_roi,file="hc_gm_rat.csv", row.names=F, quote=F)
 }
 
-
-if(!file.exists("hc_gm_rat.csv") || REDO){
-   gm_roi <- lut_rat(lut=data.frame(FSroi=c(0,1), label=c('not_gm','gm')),
-                     scout="FS_warp/*_gm_scout.nii.gz")
-   write.csv(gm_roi,file="hc_gm_rat.csv", row.names=F, quote=F)
+fs_all <- function(args) {
+ if(any(grepl('hbt|all',args)))  hbt()
+ if(any(grepl('gm|all',args)))   gm()
+ if(any(grepl('aseg|all',args))) aseg()
 }
+
+if (!interactive()) { fs_all(commandArgs(trailingOnly = FALSE)) }

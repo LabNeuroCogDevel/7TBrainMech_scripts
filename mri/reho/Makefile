@@ -10,7 +10,14 @@ RAWREST := $(wildcard /Volumes/Hera/Raw/BIDS/7TBrainMech/sub-*/*/func/*task-rest
 	./001_preproc_nosmooth.bash
 	mkls $@ "/Volumes/Hera/preproc/7TBrainMech_rest/MHRest_nost_nowarp_nosmooth/1*_2*/Wbgrndkm_func.nii.gz"
 
+txt/age_sex.tsv: .make/preproc.ls
+	ld8 < .make/preproc.ls |xargs ld8info | mlr --tsv cut -f ld8,age,sex then  format-values -f %0.0f > $@
 
+txt/maskave-MPFC_ACC.csv: images/1*_2*/reho-gmmask_epimasked_n27_space-mni.nii.gz
+	3dmaskave_grp -csv $@ -m 'acc=/Volumes/Hera/Projects/Maria/7Trest_mrsi/mvm/ACC_p2-16_cl40.nii.gz<1>' -m 'mpfc=/Volumes/Hera/Projects/Maria/7Trest_mrsi/mvm/MPFC_p2-16_cl40.nii.gz<1>' -- $^
+
+txt/overall_mean.csv: images/1*_2*/reho-gmmask_epimasked*.nii.gz
+	./030_visit_mean.bash
 ###
 LD8 := $(shell echo "$(RAWREST)" |perl -pe 's:/Volumes/.*?/sub-::g;s:/func/[^ ]*::g;s:/:_:g' )
 #APARC := $(patsubst %,/Volumes/Hera/preproc/7TBrainMech_rest/FS7.2/highres/%/mri/aparc+aseg.mgz,$(LD8))

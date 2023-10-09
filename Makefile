@@ -132,7 +132,7 @@ mri/FS/recent_transfer_to.txt: .make/bids.ls .make/FS_missing.txt
 	mkls $@ "/Volumes/Hera/Projects/7TBrainMech/subjs/*/slice_PFC/slice_pfc.nii.gz"
 
 .make/parc_res.ls: .make/FS.ls .make/scout.ls
-	@ NOCSV=1 mri/MRSI/02_label_csivox.bash ALL
+	@ NOCSV=1 DISPLAY= mri/MRSI/02_label_csivox.bash ALL
 	mkls $@ "/Volumes/Hera/Projects/7TBrainMech/subjs/*/slice_PFC/MRSI/parc_group/rorig.nii"
 
 .make/mrsi_roi_setup.ls: .make/parc_res.ls 

@@ -49,9 +49,9 @@ decon_one_tent(){
    fd_censor_file=$(fd_censor "$fd_concat" "$FD_THRES") || return
 
    # check if we have an output
-   outfile=${ld8}_lrimg_deconvolve_tent.nii.gz
+   outfile=${ld8}_lrimg_nuis_deconvolve_tent.nii.gz
    [ -r ${outfile} -a -z "${REDO:-}" ] &&
-      echo "Output file ($(pwd)/${outfile}) exists, SKIPPING" && return
+      verb "Output file ($(pwd)/${outfile}) exists, SKIPPING" && return
 
    # show what we're working on
    pwd

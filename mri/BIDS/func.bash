@@ -125,6 +125,11 @@ getld8_hardcoded(){
    [ $patname == "20220716Luna1"   ] && ld8="11865_20220716"
    [ $patname == "20211203Luna1"   ] && ld8="11738_20211203"
    [ $patname == "20220819Luna1"   ] && ld8="11686_20220819" # flow has 20220829. no cal then
+   [ $patname == "20221118Luna2"   ] && ld8="11716_20221118" # 20230207 - rescan. confirm id in calendar
+   [ $patname == "20221117Luna2"   ] && ld8="11818_20221117" # 20230209 - confimed with calendar
+   [ $patname == "20230120Luna1"   ] && ld8="11793_20230120" # 20230217 - scan will need to be rerun. but test recon data from chan
+   [ $patname == "20230727Luna2"   ] && ld8="11904_20230727" # 20230929 - Luna2 didn't come over thankfully Luna1 correctly picked
+
    
    
    

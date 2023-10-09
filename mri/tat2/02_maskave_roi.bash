@@ -12,7 +12,13 @@ echo "# running for ${#TAT2_FILES[@]} tat2 files";
 
 echo "
 # name         mask                                              rois
-harox_striatum_upsample atlas/HarvardOxford-striatum-2mm.masknums.18_09c.nii.gz 1..21
+# harox_striatum_upsample atlas/HarvardOxford-striatum-2mm.masknums.18_09c.nii.gz 1..21
+harox_striatum            atlas/HarOx_2mm.nii.gz                                  5,16,6,17,11,21,7,18
+harox_nacc                atlas/HarOx_2mm.nii.gz                                  11,21
+harox_caudate             atlas/HarOx_2mm.nii.gz                                  5,16
+harox_putamen             atlas/HarOx_2mm.nii.gz                                  6,17
+harox_pallidum            atlas/HarOx_2mm.nii.gz                                  7,18
+
 "| sed 's/#.*//' |grep -v '^$'|
 while read -r maskname maskfile valuerange; do
   [ -z "$maskname" ] && continue
@@ -28,7 +34,7 @@ while read -r maskname maskfile valuerange; do
      [ -r "$outfile" -a $forceWrite -eq 0 ] && echo "# Have output file $outfile, SKIPPING" && continue
   
      
-     cmd="3dmaskave -quiet -mask '${maskfile}' $cfile'<$valuerange>'"
+     cmd="3dmaskave -quiet -mask ${maskfile}'<$valuerange>' $cfile"
      echo "$outfile: $cmd"
      val=$(eval "$cmd")
      echo "${maskname},${subj},rest,${val}" > "$outfile"

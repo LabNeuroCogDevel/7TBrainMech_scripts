@@ -15,8 +15,11 @@ mni_warp_ld8(){
   in="$1"; shift
   out="$1"; shift
   ld8=$(ld8 "$in")
-  [ -r "$out" ] && verb "have '$out'" && return 0
-  [ -z "$ld8" ] && warn "no luna_date in '$in'" && return 1
+#  [ -r "$out" ] && verb "  have '$out'" && return 0
+  [ -r "$out" ] && return 0
+  [ -z "$ld8" ] && warn "  no luna_date in '$in'" && return 1
+
+echo "RUNNING $out"
   # make nii.gz version if given afni exixts
   afni_ver=${in/.nii.gz/+orig.HEAD}
   local made_nii=0
@@ -42,7 +45,7 @@ mni_warp_ld8(){
 
 list_all_conn(){
    # list all seedconn files but as nii.gz instead of +orig.HEAD. mni_warp_ld8 will make nii.gz out of HEAD if it doesn't exist
-   ls /Volumes/Hera/preproc/7TBrainMech_rest/MHRest_nost_nowarp/1*/seedconn/1*REML_r{nii.gz,+orig.HEAD}| sed 's/+orig.HEAD$/.nii.gz/'
+   ls /Volumes/Hera/preproc/7TBrainMech_rest/MHRest_nost_nowarp/1*/seedconn/1*REML_r{.nii.gz,+orig.HEAD}| sed 's/+orig.HEAD$/.nii.gz/'
 }
 
 _seedconn_to_mni() {

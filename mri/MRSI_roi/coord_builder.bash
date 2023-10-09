@@ -22,6 +22,10 @@ EXAMPLE:
  # 1. run coord_mover.m to place roi coordinates on a single subject in slice space
  $0 place 11734_20190128
 
+ # 20230313 -- if just using subject id will dump output into roi_locations/ ?!
+ # updated putamen to go into subject directory
+ $0 place 11734_20190128 putamen
+
  # 2. click "mni" warps subject square rois into mni, runs
  #  mni_examples/warps/ 
  # $0 mni-subjblob <generated_coord> <t1_dir> <slice_dir> mni_examples/ 
@@ -54,8 +58,16 @@ case "$action" in
       [ $# -gt 0 ] && n="$1" || n=13
       echo "$n roi_num"
       case $n in 
+         2|putamen)
+            n=2
+            roi_list="roi_locations/putamen2_labels.txt"
+            # this wont exist. not warping. just want init at 50 50 
+            coord_list="/Volumes/Hera/Projects/7TBrainMech/subjs/$subj/slice_PFC/MRSI_roi/putamen2/putamen2_empty.txt"
+            ! test -d "$(dirname "$coord_list")" && mkdir -p "$_" && echo "# making $_"
+            [ ! -r "$coord_list" ] && seq 1 $n|sed 's/$/\t50\t50/' > "$coord_list"
+            ;;
          13)
-            roi_list="roi_locations/13MP20200207_labels.txt"
+            roi_list="roi_locations/labels_13MP20200207.txt"
             coord_list="roi_locations/13MP20200207_empty.txt"
             [ ! -r $coord_list ] && seq 1 $n|sed 's/$/\t50\t50/' > $coord_list
             ;;
@@ -112,6 +124,13 @@ case "$action" in
          echo "failed to make '$subj_coord'! see 'warp_to_example_subjs.bash $MASK $subj'" && exit 1
 
       nroi=$(awk 'END{print $1}' $subj_coord)
+      skipfile="/Volumes/Hera/Projects/7TBrainMech/subjs/$subj/slice_PFC/SKIPME"
+      if [ -r "$skipfile" ] && [ -z "${IGNORESKIP:-}" ]; then
+         warn "NOT RUNNING: have $skipfile."
+         warn "export IGNORESKIP=1 to do anyway"
+         sed 's/^/\t/' "$skipfile"
+         exit 1
+      fi
       case $nroi in
          13) roi_list="roi_locations/labels_13MP20200207.txt";;
          18) roi_list="tmp/labels_18MP20200117.txt";;

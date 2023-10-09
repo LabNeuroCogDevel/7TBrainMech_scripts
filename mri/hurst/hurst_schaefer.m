@@ -20,7 +20,7 @@ H_all = hurst1D_parfor(roi_ts_1d, nroi)
 
 %% relabel using acutual names
 roi_labels = readtable('/opt/ni_tools/atlas/schaefer2018/Schaefer2018_LocalGlobal/Parcellations/project_to_individual/Schaefer2018_1000Parcels_17Networks_order_LUT.txt');
-labels =  regexprep(roi_labels.Var2',' ','');
+labels =  regexprep(roi_labels.Var2(roi_labels.Var1>1000 & roi_labels.Var1~=2000 )','17Networks_','');
 assert(length(labels) == nroi)
 %out_table.Properties.VariableNames = ...
 %   regexprep(out_table.Properties.VariableNames,'Var','ROI');

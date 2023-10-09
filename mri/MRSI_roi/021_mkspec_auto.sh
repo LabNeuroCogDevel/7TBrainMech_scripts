@@ -10,6 +10,7 @@
 WHO="OR"; WHEN=2020-07-01 # 20200720
 WHO="NW"; WHEN=2020-10-01 # 20220118 # previously missing, back in time to catch
 WHO="AG"; WHEN=2021-10-01 # 20211103
+WHO="AO"; WHEN=2022-11-01 # 20221201
 
 mkspecdir=$(cd $(dirname $0);pwd)
 tmp_ml=$(mktemp /tmp/genspecXXXX.m)

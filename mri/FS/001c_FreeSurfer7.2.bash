@@ -59,7 +59,7 @@ while [ $# -gt 0 ]; do
        sesdir=$bidsroot/sub-${ld8//_2*/}/${ld8//1*_/}
        # TODO: look to USE_LOWRES or similiar to find loweres
        file=$(find $sesdir -iname '*T1*.nii.gz' -not -iname '*lowres*' -not -iname '*bold.nii.gz')
-       [ -z "$file" ] && echo "WARNING: no file for '$sesdir' ($ld8)" && continue
+       [ -z "$file" ] && echo "WARNING: no '$sesdir' *T1*nii.gz ($ld8). ignoring 'lowres'" && continue
        T1FILES=(${T1FILES[@]} $file)
        ;;
    *) echo "bad id/option '$1'"; exit;;

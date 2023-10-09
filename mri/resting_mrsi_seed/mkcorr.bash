@@ -76,9 +76,18 @@ make_corr(){
   roi_name=${outname/[<_]*/}
   roits=$(mkts "$ld8" "$mask" "mxcovsph/$roi_name.1d")
   test ! -r "$roits"  && warn "ERROR: failed to make '$_'" && return 1
-  corr_out=$(dirname "$roits")/${roi_name}_corr-r.nii.gz
+  corr_out=$(dirname "$roits")/${roi_name}_deconreml-r.nii.gz
   test -r "$corr_out" && warn "# skip '$_'. already have" && return 1
-  dryrun 3dTcorr1D -prefix "$corr_out" "$(get_rest "$ld8")" "$roits"
+
+  # 20221014 - using decon + reml (via 3dSeedCorr)  instead of 3dTcorr1D
+  # prev had:
+  #corr_out=$(dirname "$roits")/${roi_name}_corr-r.nii.gz
+  #dryrun 3dTcorr1D -prefix "$corr_out" "$(get_rest "$ld8")" "$roits"
+
+  ts=$(get_rest "$ld8")
+  censor=$(dirname "$ts")/motion_info/censor_custom_fd_0.3_dvars_Inf.1d
+  [ ! -r "$censor" ] && warn "missing censor '$censor'" && return 1
+  dryrun 3dSeedCorr -jobs 32 -reml -prefix "$corr_out" -ts "$ts" -seed "$roits" -cen "$censor"
 }
 
 usage(){ echo "USAGE: $0 [-roi 2] {all|ld8 ld8 ld8}"; }

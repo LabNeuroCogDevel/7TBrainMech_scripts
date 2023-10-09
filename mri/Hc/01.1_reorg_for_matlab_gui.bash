@@ -4,7 +4,7 @@ trap 'e=$?; [ $e -ne 0 ] && echo "$0 exited in error"' EXIT
 [ -v DRYRUN ] && DRYRUN=echo || DRYRUN=""
 find_center(){
  local rdir="$1"; shift
- find "$rdir/" "$rdir/../CoregHC/registration_out/" -maxdepth 3 -type f,l  \
+ find -L "$rdir/" "$rdir/../CoregHC/registration_out/" -maxdepth 3 -type f,l  \
     \( -iname '1[56789]_7_FlipLR.MPRAGE' -or \
        -iname '*_7_FlipLR.MPRAGE.*' -or \
        -iname '*_7_FlipLR.MPRAGE' \
@@ -18,6 +18,7 @@ list_all_or_one(){
    $(ls -d /Volumes/Hera/Raw/MRprojects/7TBrainMech/202*/Shim/CoregH[cC] | xargs dirname) \
    /Volumes/Hera/Raw/MRprojects/7TBrainMech/202*/SHIM/CSIHC/ \
    /Volumes/Hera/Raw/MRprojects/7TBrainMech/20*/Recon_CSI/CSIHC \
+   /Volumes/Hera/Raw/MRprojects/7TBrainMech/20230324/20*/Recon_CSI/CoregHC/ \
    /Volumes/Hera/Raw/MRprojects/7TBrainMech/{2023021[34],HCCollection}/2*/Recon_CSI/CoregHC) ||
    list=("$@")
 
@@ -45,11 +46,11 @@ run_all(){
      [ ! -d "$rdir" ] && echo "# no dir like '$rdir' (checking both Recon and S*/CSIHC)" >&2 && continue
      ! [[ $rdir =~ 20[0-9]{6}L[Uu][Nn][Aa][1-9]? ]] && echo "# no MRDate in '$rdir'" >&2 && continue
      id=${BASH_REMATCH}
-     siarray=$(find $rdir/ -maxdepth 2 -type f,l -iname siarray.1.1 -ipath '*CSIHC*' -print -quit)
+     siarray=$(find -L $rdir/ -maxdepth 2 -type f,l -iname siarray.1.1 -ipath '*CSIHC*' -print -quit)
      test -z "$siarray" -a -r "$rdir/../CSIHC" &&
-        siarray=$(find "$_" -maxdepth 1 -type f,l -iname siarray.1.1 -print -quit)
+        siarray=$(find -L "$_" -maxdepth 1 -type f,l -iname siarray.1.1 -print -quit)
      test -z "$siarray" -a -r "$rdir/../CSIHc" &&
-        siarray=$(find "$_" -maxdepth 1 -type f,l -iname siarray.1.1 -print -quit)
+        siarray=$(find -L "$_" -maxdepth 1 -type f,l -iname siarray.1.1 -print -quit)
      # scout might be larger or smaller, but we want middle of 13, so always 7th slice
      # 20221005: add *CSIHC* for
      #    rawdir=/Volumes/Hera/Raw/MRprojects/7TBrainMech/20210719Luna1/Recon

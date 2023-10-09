@@ -45,8 +45,14 @@ files <- list(
  fooof="eeg/Shane/Results/FOOOF/Results/allSubjectsDLPFCfooofMeasures_20230523.csv", # region no channel
  # eeg/Shane/Rscripts/spectral_events_wide.R # 20230623
  eegspec="eeg/Shane/Results/Power_Analysis/Spectral_events_analysis/Gamma/Gamma_DLPFCs_spectralEvents_wide.csv",
- # see mri/hurst/hurst.m
- hurst="mri/hurst/stats/MRSI_pfc13_H.csv",
+ # 20231009 - switch to python for hurst and dfa
+ # see mri/hurst/hurst_nolds.py
+ hurst_brns="mri/hurst/stats/MRSI_pfc13_brnsdkm_hurst_rs.csv",
+ hurst_ns="mri/hurst/stats/MRSI_pfc13_nsdkm_hurst_rs.csv",
+ dfa_brns="mri/hurst/stats/MRSI_pfc13_brnsdkm_dfa.csv",
+ dfa_ns="mri/hurst/stats/MRSI_pfc13_nsdkm_dfa.csv",
+ #hurst="mri/hurst/stats/MRSI_pfc13_H.csv", #remove matlab hurst see mri/hurst/hurst.m
+
  #mgs_eog="eeg/eog_cal/eye_scored_mgs_eog.csv" # 20230612
  mgs_eog="eeg/eog_cal/eye_scored_mgs_eog_cleanvisit.csv", # 20230616. new cleaned version
  sr="behave/txt/SR.csv", # 20230620. pulled from db from RA matained sheets
@@ -64,7 +70,6 @@ behave <- sess %>%
 mrsi <- read.csv(files$mrsi)
 tat2 <- read.csv(files$tat2)
 fooof <- read.csv(files$fooof)
-hurst <- read.csv(files$hurst)
 fd <- read.table(files$fd,header=T) %>% rename(lunaid=id, date=d8) %>% addcolprefix('rest')
 mgs_eog_visit <- read.csv(files$mgs_eog)
 sr <- read.csv(files$sr) %>% addcolprefix('sr') %>%
@@ -144,8 +149,14 @@ fooof_wide$eeg.date[fooof_wide$lunaid == "11668"&fooof_wide$eeg.date == "2017071
 
 ## Hurst will use tat2's rest.date to merge
 #  dont need session info -- should already have. but just incase
-hurst_ses <- hurst %>% separate(ld8,c('lunaid','date')) %>%
-   addcolprefix('hurst') %>% rename(rest.date=hurst.date) %>%
+
+hursts <- lapply(list("hurst_brns","hurst_ns","dfa_brns","dfa_ns"),
+                 \(x) read.csv(files[[x]]) %>% addcolprefix(x, preserve='ld8')) %>%
+          Reduce(f=\(x,y) merge(x,y,by='ld8'))
+
+hurst_ses <- hursts %>%
+   separate(ld8,c('lunaid','vdate')) %>%
+   rename(rest.date=vdate) %>%
    # TODO: maybe a function for all rest like inputs
    merge(sess %>%
          filter(vtype=="Scan") %>%

@@ -1,3 +1,4 @@
+site/
 *.nii.gz
 *.nii
 *HEAD
@@ -21,3 +22,4 @@ do_not_use/
 *mat
 \#*#
 moon_t2t2star
+!docs/imgs/*

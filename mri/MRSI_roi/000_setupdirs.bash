@@ -23,8 +23,9 @@ if [ $# -le 0 ]; then
    cat <<-EOF
    USAGE:
     $0 lunaid_date   # specify single subject
-    $0 all           # all subjects (print errors for missing)
+    $0 all           # all subjects (print errors for missing) with slice_PFC dir (../MRSI/01_get_slices.bash)
     $0 alldb         # search db (print errors for missing)
+    $0 alldb_visitlog # use db's parsed scanlog
     $0 have          # only what spreadsheet says we have
     SHOWFINISH="" $0 all # disable some messages, show only missing/failing
     # run the suggestsions 
@@ -36,30 +37,43 @@ if [ $# -le 0 ]; then
    exit 1
 fi
 
-if [ $1 == "all" ]; then
+case "$1" in 
+   # every slice_PFC directory
+   all)
    ls /Volumes/Hera/Projects/7TBrainMech/subjs/*/slice_PFC/ |
     perl -lne 'print $& if m/\d{5}_\d{8}/' |
     xargs -n1 $0
     #xargs -n1 echo $0
-   exit 0
-fi
-if [ $1 == "alldb" ]; then
+   exit 0;;
+
+  # every scan with a db entry
+  alldb)
    selld8 l |grep Scan.*Brain |
     perl -lne 'print $& if m/\d{5}_\d{8}/' |
     xargs -n1 $0
     #xargs -n1 echo $0
-   exit 0
-fi
+   exit 0;;
 
-# only preproc what the sheet says we have
-if [ $1 == "have" ]; then
+  # one in db visit scan log
+  alldb_visitlog)
+    scanlog_query="select id||'_'||to_char(vtimestamp,'YYYYMMDD'), measures->'PFC_Spectroscopy' from visit_task natural join visit join enroll on visit.pid = enroll.pid and etype like 'LunaID' where task like 'ScanLog';"
+    lncddb "$scanlog_query"|
+     grep -v null |
+     awk '{print $1}' |
+     xargs -n1 dryrun "$0"
+   exit 0;;
+
+  # only preproc what the sheet says we have
+  have)
    [ ! -r "$statusfile" ] && echo "missing status files, run ../900_status.R" && exit 1
    Rio -e 'df$ld8[!is.na(df$csipfc_raw)&!is.na(df$ld8)]' < "$statusfile" |
     sed 's/\\n/\n/g' |
     xargs -rn1 $0
     #xargs -rn1 echo $0
-   exit 0
-fi
+   exit 0;;
+  *) : ;;
+esac
+
 
 
 ## input is subject id
@@ -85,12 +99,12 @@ MRID="$(grep "$ld8" ../MRSI/txt/ids.txt|cut -d' ' -f2)"
 
 ## find mprage (output of 02_label_csivox.bash)
 roi_struct=/Volumes/Hera/Projects/7TBrainMech/subjs/$ld8/slice_PFC/MRSI/struct_ROI/
-[ ! -d $roi_struct ] && echo "cannot find $roi_struct; try: NOCSV=1 ../MRSI/02_label_csivox.bash $ld8" && exit 1
+[ ! -d $roi_struct ] && echo "cannot find $roi_struct; try: DISPLAY= NOCSV=1 ../MRSI/02_label_csivox.bash $ld8" && exit 1
 
 MPRAGE="$(find -L $roi_struct -maxdepth 1 -type f,l -iname '*_7_FlipLR.MPRAGE')"
-[ -z "$MPRAGE" ] && echo "cannot find '*_7_FlipLR.MPRAGE'; try: NOCSV=1 ../MRSI/02_label_csivox.bash $ld8" && exit 1
+[ -z "$MPRAGE" ] && echo "cannot find '*_7_FlipLR.MPRAGE'; try: DISPLAY= NOCSV=1 ../MRSI/02_label_csivox.bash $ld8" && exit 1
 parc_res="/Volumes/Hera/Projects/7TBrainMech/subjs/$ld8/slice_PFC/MRSI/parc_group/rorig.nii"
-[ ! -r "$parc_res" ] && echo "cannot find '$parc_res'; try: NOCSV=1 ../MRSI/02_label_csivox.bash $ld8" && exit 1
+[ ! -r "$parc_res" ] && echo "cannot find '$parc_res'; try: DISPLAY=  NOCSV=1 ../MRSI/02_label_csivox.bash $ld8" && exit 1
 
 ## use mprage to determine slice num (probably 17 or 21)
 slice_num=$(basename $MPRAGE | cut -f1 -d_)
@@ -138,12 +152,19 @@ SIARRAY="$(
   )"
 
 # 20201203 - for 11790_20190916. victors updated dirctory
-no_more_mrrc=/Volumes/Hera/Raw/MRprojects/7TBrainMech/Processed_Victor/$MRID/CSIPFC/
+no_more_mrrc="/Volumes/Hera/Raw/MRprojects/7TBrainMech/Processed_Victor/$MRID/CSIPFC/"
 [ -z "$SIARRAY" -o ! -d "$SIARRAY" ] &&
-   SIARRAY=$(find $no_more_mrrc -iname siarray.1.1|sed 1q|xargs -r dirname)
+   SIARRAY=$(find "$no_more_mrrc" -iname siarray.1.1|sed 1q|xargs -r dirname)
+
+# 20230317 - nested uploads from perm issues. no quotes b/c want to expand [34]
+extra_mrrc=/Volumes/Hera/Raw/MRprojects/7TBrainMech/2023021[34]/$MRID/Recon_CSI/CSIPFC/
+[ -z "$SIARRAY" -o ! -d "$SIARRAY" ] &&
+   SIARRAY=$(find $extra_mrrc -iname siarray.1.1|sed 1q|xargs -r dirname)
 
 if [ -z "$SIARRAY" -o ! -d "$SIARRAY" ]; then
-   echo "cannot find siarray files in $rawdir or $boxsiarray or $no_more_mrrc; Victor may need to reconstruct (synced from 7tlinux shim [20200304]; prev ../001_rsync_MRSI_from_box.bash)!"
+   echo "cannot find siarray files in
+   $rawdir $boxsiarray $no_more_mrrc $extra_mrrc
+Chan may need to resend/reconstruct (synced from 7tlinux shim [20200304]; prev ../001_rsync_MRSI_from_box.bash)!"
    # if we can use q to query the csv file w/sql, use it
    which q >/dev/null && [ -r "$statusfile" ] &&
       q -d, -H "select csipfc_raw from - where ld8 like '$ld8'" < $statusfile |

@@ -1,2 +1,2 @@
 # 7T BrainMechR01 Code repo
-[Hc MRSI](Hc_MRSI.md)
+[Hc MRSI](MRSI_Hc.md)

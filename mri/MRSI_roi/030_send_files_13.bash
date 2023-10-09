@@ -14,7 +14,7 @@ env |grep -q "^DRYRUN=" && DRYRUN="echo" || DRYRUN=""
 
 nspecfiles=13  # number of coords
 atlas=13MP20200207
-INPICKONLY="" # 1   # only copy if in pick_coords.txt?, ="" to disable, =1 enable
+INPICKONLY="" #1  # only copy if in pick_coords.txt?, ="" to disable, =1 enable
 
 subj_root=$(cd $(pwd)/../../../subjs/; pwd)
 # change me - outputfoldername version
@@ -30,7 +30,7 @@ _findspecs(){
    # pre 2020-04-13 - when coord_mover didn't also mkspectrum
    #find $subj_root/$id/slice_PFC/MRSI_roi/raw-v2idxfix/ -iname '*spectrum.[0-9]*' $newer -exec stat -c "%y %n" {} \+ 
    # now coord mover makes it's own spectrum files
-   find "$subj_root/$id/slice_PFC/MRSI_roi/$atlas/" -iname '*spectrum.[0-9]*' $newer -exec stat -c "%y %n" {} \+
+   find "$subj_root/"$id"/slice_PFC/MRSI_roi/$atlas/" -iname '*spectrum.[0-9]*' $newer -exec stat -c "%y %n" {} \+
 }
 usage(){ echo "USAGE: $0 new OR $0 20yy-mm-dd OR $0 ld8list.txt" && exit 1; }
 
@@ -39,7 +39,9 @@ if [[ "$1" == "new" ]]; then
    # didn't start creating 13 ROI spectrum files until after feb 24
    # will also check already recieved files
    #findspecs(){ _findspecs newer 2020-04-20;}
-   findspecs(){ _findspecs newer 2020-07-05;}
+   #findspecs(){ _findspecs newer 2020-07-05;}
+   findspecs(){ _findspecs newer 2021-10-15;} # 20220927
+   findspecs(){ _findspecs newer 2022-09-27;} # 20221202
 elif [[ "$1" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
    cmpdate="$1"
    findspecs(){ _findspecs newer $cmpdate;}
@@ -55,6 +57,8 @@ root_out=spectrum_out/${version}_${atlas}specs
 
 findspecs |
    grep -v 'spectrum.0.0' |
+   grep -Pv '/(CHECK|WF).*/' | # added 20221202
+   grep -Pv '_BAD/|/ignore/' | # added 20221202
    # eg 2019-11-26 17:03:31.155522625 -0500 /Volumes/Hera/Projects/7TBrainMech/subjs/11752_20190315/slice_PFC/MRSI_roi/raw/spectrum.100.121
    sed 's/-//;s/-//' | # 2019-11-21 -> 20191121
    # extract lunaid from path when first column (date) is newer than 8 digit "$newer" value

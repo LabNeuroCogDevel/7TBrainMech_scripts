@@ -15,8 +15,10 @@ roi-cnt/all_cube-4.5.nii.gz: onemask.bash
 	./mkTS_roi.bash all
 	mkls $@ '/Volumes/Hera/preproc/7TBrainMech_rest/MHRest_nost_nowarp/*/mrsipfc13_nzmean_ts.1D'
 
-stats/MRSI_pfc13_H.csv: hurst.m .make/mrsipfc13_ts.ls
-	matlab -nodisplay -r hurst.m
+# 20230927 - want no bandpass version
+.make/mrsipfc13_nsdkm_ts.ls: $(wildcard /Volumes/Hera/preproc/7TBrainMech_rest/MHRest_nost_nowarp/*/nsdkm_func_4.nii.gz)
+	TSSUFFIX=_nsdkm ./mkTS_roi.bash $^
+	mkls $@ '/Volumes/Hera/preproc/7TBrainMech_rest/MHRest_nost_nowarp/*/mrsipfc13_nzmean_nsdkm_ts.1D'
 
 .make:
 	@mkdir -p .make

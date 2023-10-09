@@ -57,6 +57,9 @@ _bad_to_hoby() {
   for f in "${bad_file_list[@]}"; do
      link_from_sid3 $f
   done
+  cd txt/to_hoby_20220315/
+  zip worst_20_ACC_year1VSyear2.zip -r 1*_2*/
+
   return 0
 }
 

@@ -14,14 +14,22 @@ undump_and_label(){
   test -r hc_aseg_roirat.csv -a -r hc_HBT_roirat.csv -a -r hc_gm_rat.csv && return 0
   ! test -r hc_loc_unrotated.1d && echo "ERROR: missing '$hcdir/$_'!" && return 1
   ! test -r FS_warp/*_aseg_scout.nii.gz && echo "ERROR: missing '$hcdir/$_'!" && return 1
+  ! test -r FS_warp/*_HBTlr500_scout.nii.gz  &&
+     echo "ERROR: missing '$hcdir/$_' see ./01.2.2_FS72_roimasks.bash spectrum/$(basename "$hcdir")" &&
+     return 1
   nk=$(3dinfo -nk FS_warp/*_aseg_scout.nii.gz)
-  awk  -v nk=$nk '{print $2,216-$1,nk/2,$5}' hc_loc_unrotated.1d | drytee hc_loc_ijk_afni.1d
+  awk  -v nk="$nk" '{print $2,216-$1,nk/2,$5}' hc_loc_unrotated.1d | drytee hc_loc_ijk_afni.1d
   dryrun 3dUndump -overwrite \
      -prefix placements.nii.gz \
      -master FS_warp/*_aseg_scout.nii.gz \
      -cubes -ijk -srad 4 \
      hc_loc_ijk_afni.1d
-  dryrun $IDV_R_LABEL # hc_aseg_roirat_highest.csv and hc_aseg_roirat.csv
+  # hc_aseg_roirat_highest.csv and hc_aseg_roirat.csv
+  dryrun $IDV_R_LABEL aseg
+  # hc_gm_rat.csv
+  dryrun $IDV_R_LABEL gm
+  # hc_HBT_roirat_highest.csv
+  dryrun $IDV_R_LABEL hbt
 }
 
 04_fslabels_main() {

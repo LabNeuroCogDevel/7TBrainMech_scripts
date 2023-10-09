@@ -136,7 +136,7 @@ d$`pfc_recieved`  <- nfiles(file.path('/Volumes/Hera/Projects/7TBrainMech/subjs/
 pfcfiles_list <-  system(
 "find /Volumes/Hera/Raw/MRprojects/7TBrainMech/MRSI_BrainMechR01/ \\
  -not -ipath '*/BAD_rowcol/*' \\
- -not -ipath '*_H[cC]/' \\
+ -not -ipath '*_H[cC]/*' \\
  -iname spreadsheet.csv",
  intern=T)
 

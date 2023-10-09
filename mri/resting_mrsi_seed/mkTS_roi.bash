@@ -1,13 +1,24 @@
 #!/usr/bin/env bash
 #
 # make timeseries from MRSI roi. used by hurst.m
-# also see
-# /Volumes/Hera/Projects/Maria/7Trest_mrsi/02_makeTS_roi.sh
-
-#   for f in /Volumes/Hera/preproc/7TBrainMech_rest/MHRest_nost_nowarp/1*_2*/bgrnsdkm_func_4.nii.gz; do
-#   using no-warp rest preproc. w/ Hc and ACC seeded
+# using no-warp rest preproc.
+#  1) 'flirt'  coord rois in mprage nifti to func/rest space
+#     - pfc13 scout->mprage file already exists as part of placement
+#     - use alt rest preprocessing to get affine .mat mprage->func
+#  2) 3dROIstats to mean rois into 220x13 timeseries 1D file
+#
+# **** NB. ****
+# roi coord positions are most recent! Likey a good proxy for what was used. but not guaranteed.
+# TODO:
+#   use e.g. ACC roi position in MRSI csv to get correct spec file
+#   ../MRSI_roi/gaba_glu_r/out/gaba_glu.csv 
+#   source mkseeds.bash; tp1subjs-spheres
+#
+# also see HPC and ACC seeded rois
+#  /Volumes/Hera/Projects/Maria/7Trest_mrsi/02_makeTS_roi.sh
 #
 # 20230508WF - init
+# 20230927WF - no bandpass option
 #
 
 
@@ -55,20 +66,25 @@ find_mrsi_roi(){
 }
 
 mkTS_roi_main() {
-   export AFNI_NO_OBLIQUE_WARNING=YES
+  export AFNI_NO_OBLIQUE_WARNING=YES
+  declare -g TSSUFFIX
 
   rest_glob='/Volumes/Hera/preproc/7TBrainMech_rest/MHRest_nost_nowarp/*/brnsdkm_func_4.nii.gz'
   [ $# -eq 0 ] && echo "USAGE: $0 ['all'|$rest_glob]" && exit 22
+  if [ $# -gt 1 ]; then
+     [ -z "${TSSUFFIX:-}" ] && echo "if manually running glob, must set TSSUFFIX" && exit 30
+  fi
+  TSSUFFIX=${TSSUFFIX:-} # if 'all' set to empty
   mapfile -t FILES < <(args-or-all-glob "$rest_glob" "$@")
    
   for rest in "${FILES[@]}"; do
-     tsout="$(dirname "$rest")"/mrsipfc13_nzmean_ts.1D
+     tsout="$(dirname "$rest")"/mrsipfc13_nzmean${TSSUFFIX}_ts.1D
      test -r "$tsout" && verb "# have $tsout; skipping" && continue
      echo "# $rest"
      roi=$(find_mrsi_roi "$rest" || echo -n)
      ! test -n "$roi" -a -r "$roi" && continue
      verb "# writting $tsout"
-     3dROIstats -nomeanout -1DRformat -quiet -numROI 13 -nzmean -mask "$roi" "$rest" > "$tsout"
+     dryrun 3dROIstats -nomeanout -1DRformat -quiet -numROI 13 -nzmean -mask "$roi" "$rest" |drytee "$tsout"
   done
 }
 

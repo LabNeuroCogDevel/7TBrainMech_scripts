@@ -26,6 +26,9 @@ getluna() {
         11653  20180608Luna1
         11741  20190209Luna1
         11739  20190429Luna1
+        11748  20190401Luna1 # also 11515
+        11632  20191017Luna1
+        11702  20230309Luna1 # 20230319. rushed, not sure why not in DB
         " \
      | grep "$1" |awk '{ print $1 }')"
    [ -n "$hardcode" ] && echo "$hardcode" && return 0
@@ -78,9 +81,9 @@ for anat in "${ANATS[@]}"; do
 
    [ -z "$anatdir" -o "$anatdir" == "." ] &&
       echo "#ERROR: cannot fidn link dir from '$anat_link' ('$anat')!?" && continue
-   t1=$(find "$anatdir" -maxdepth 1 -type f,l \( -iname '[^r]*MP*nii' -or -iname 'MP*nii' \) )
-   sct=$(find "$anatdir" -maxdepth 1 -type f,l \( -iname '*SCOUT*.nii' -or -iname '*grefieldmappingMCxxB0map33*' -or -iname 'hcslice_e*.nii'  \) -not -iname '*_resize.nii' -print -quit)
-   [ -z "$t1" ] && echo "#ERROR: $id: cannot find struct *MP*nii in '$anatdir'" && continue
+   t1=$(find -L "$anatdir" -maxdepth 1 -type f,l \( -iname '[^r]*MP*nii' -or -iname 'MP*nii' \) )
+   sct=$(find -L "$anatdir" -maxdepth 1 -type f,l \( -iname '*SCOUT*.nii' -or -iname '*grefieldmappingMCxxB0map33*' -or -iname 'hcslice_e*.nii'  \) -not -iname '*_resize.nii' -print -quit)
+   [ -z "$t1" ] && echo "#ERROR: $id: cannot find struct *MP*nii in '$anatdir' ($anat)" && continue
    [ -z "$sct" ] && echo "#ERROR: $id: cannot find scout *SCOUT*nii in '$anatdir'" && continue
 
    luna=$(getluna "$id"); ld8=${luna}_$yyymmdd

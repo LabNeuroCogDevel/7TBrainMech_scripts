@@ -6,7 +6,7 @@
 # also include same-file tests: bats --verbose-run decon_functions.bash
 # tasktr from txt/task_trs.txt (see ../Makefile)
 #
-
+verb() { [ -n "${VERBOSE:-}" ] && echo -e "$*" || :; }
 
 lookup_tr(){
    local ld8="$1"; shift
@@ -60,6 +60,7 @@ fd_censor(){
 }
 
 check_inputs(){
+   [ $# -eq 0 ] && warn "check_inputs needs example 1d and input4ds" && return 1
    local ex1dfile="$1"; shift
    local inputs4d=("$@")
    
@@ -67,6 +68,7 @@ check_inputs(){
       warn "$ld8 ERROR: missing  1d files (no $ex1dfile, see './020_task_onsets.R $ld8' and 'tree /Volumes/L/bea_res/Data/Tasks/MGSEncMem/7T/$ld8')" && return 1
    nb1d=$(wc -l < "$ex1dfile") # line per run on 1d file
    nbts=${#inputs4d[@]}
+   [ $nbts -le 0 ] && warn "ERROR: no nii inputs for $ex1dfile" && return 1
    [ ! -r "${inputs4d[0]}" ] && warn "ERROR: no nii inputs '${inputs4d[*]}'" && return 1
    [ "$nb1d" -ne "$nbts" ] &&
       warn "$ld8 ERROR: have $nb1d block onsets for $nbts files"  && return 1
@@ -75,7 +77,7 @@ check_inputs(){
 check_tr(){
    tr="$1"
    if [ -z "$tr" ] || [ "$tr" == "0" ]; then 
-      warn "# no tr for $ld8" 
+      warn "# $ld8 ERROR: no known tr in txt/task_trs.txt" 
       return 1
    fi
    return 0

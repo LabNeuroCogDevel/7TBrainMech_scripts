@@ -17,7 +17,7 @@ roi_locations/ROI_mni_13MP20200207.nii.gz: | roi_locations/20200207_rmsome.bash
 
 # rorig.nii.gz is freesurfer warpped to scout space
 .make/FS_scout_registration.ls: .make/slicepfc.ls
-	NOCSV="1" SHOWFINAL="" ../MRSI/02_label_csivox.bash ALL 
+	DISPLAY= NOCSV="1" SHOWFINAL="" ../MRSI/02_label_csivox.bash ALL 
 	@mkls $@ '/Volumes/Hera/Projects/7TBrainMech/subjs/*/slice_PFC/MRSI/parc_group/rorig.nii'
 
 .make/slice_roi.ls: .make/FS_scout_registration.ls atlas_roi

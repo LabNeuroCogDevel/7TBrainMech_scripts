@@ -3,6 +3,8 @@
 # 20221019WF - init
 #  add bottom and top slice options for espeically bad hc slices
 #  will later need to pull %GM/%FS label for coords
+# 20230303WF - input args can be YYYYMMDDLuna1
+#              run with 'V ./01.2_add_top_bottom_slice.bash' for verbose
 #
 
 mprage_neighbors(){
@@ -16,7 +18,13 @@ mprage_neighbors(){
 }
 
 neighborslices_all() {
-  for l in spectrum/20*L*/anat.mat; do
+  [ $# -eq 0 ] &&
+   FILES=(spectrum/20*L*/anat.mat) ||
+   mapfile -t FILES < <(printf "spectrum/%s/anat.mat\n" "$@")
+
+  echo "# running for ${#FILES[@]} ids (using anat.mat as ref)"
+  for l in "${FILES[@]}"; do
+     [ ! -r "$l" ] && warn "# no file like $l" && continue
      mapfile -t TOPBOT  < <(mprage_neighbors "$(readlink -f "$l")")
      top3="${TOPBOT[0]}"
      bottom3="${TOPBOT[1]}"
@@ -24,7 +32,8 @@ neighborslices_all() {
        test -z "${!v}" -o ! -r "${!v}" && warn "# missing $v: '$_'" && continue
        # link if we dont already have  top.mat or bottom.mat
        ! test -r "$(dirname $l)"/$v.mat &&
-           dryrun ln -s "${!v}" "$_"
+           dryrun ln -s "${!v}" "$_" ||
+           verb "# have $_"
      done
   done
   return 0

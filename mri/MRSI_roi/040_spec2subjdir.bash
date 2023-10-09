@@ -14,6 +14,10 @@ env |grep -q '^DRYRUN=' || DRYRUN=""
 #unzipfolder="/Volumes/Hera/Raw/MRprojects/7TBrainMech/MRSI_BrainMechR01/20200311_13specs_processed/"
 atlas=13MP20200207
 unzipfolder="/Volumes/Hera/Raw/MRprojects/7TBrainMech/MRSI_BrainMechR01/202*_$atlas*/"
+
+# 20230929 - updated to use 030a_lcmodel_diy.bash -- own lcmodel runs
+#            ie. no longer going back and forth to get lcmodel from MRRC
+unzipfolder="/Volumes/Hera/Raw/MRprojects/7TBrainMech/MRSI_BrainMechR01/DIY/PFC/"
 #
 # prereq:
 #  - position rois ./coord_builder.bash build rois
@@ -25,6 +29,10 @@ unzipfolder="/Volumes/Hera/Raw/MRprojects/7TBrainMech/MRSI_BrainMechR01/202*_$at
 #
 #  20200310WF  init
 #  20211109WF  add usage and for 'all' or directory/glob via FILES
+#  20221003WF rurerunning
+#    DRYRUN=1 ./040_spec2subjdir.bash /Volumes/Hera/Raw/MRprojects/7TBrainMech/MRSI_BrainMechR01/20220927_13MP20200207specs/spectrum_out/1*
+#  20230929WF update to DIY folder used by 030a_lcmodel_diy.bash
+
 
 usage(){
 cat <<HERE
@@ -36,6 +44,8 @@ EXAMPLES:
    $0 $unzipfolder/*/ # same as all
    # only one subject
    $0 /Volumes/Hera/Raw/MRprojects/7TBrainMech/MRSI_BrainMechR01/20211108_13MP20200207specs/10173_20210830-20210830Luna1
+   # 20221202
+   $0 /Volumes/Hera/Raw/MRprojects/7TBrainMech/MRSI_BrainMechR01/PFC/20221202_13MP20200207specs/spectrum_out/20221202_13MP20200207specs/1*/
 
 SYNOPSIS:
  copy LCmodel output to subject MRSI_roi directory 
@@ -73,9 +83,9 @@ showkeep(){
 
 [[ $# -eq 0 || $1 =~ ^-h ]] && usage 
 
-[ $1 == "all" ] && FILES=($unzipfolder/*/) || FILES=("$@")
+[ "$1" == "all" ] && FILES=($unzipfolder/*/) || FILES=("$@")
 
-for d in ${FILES[@]}; do
+for d in "${FILES[@]}"; do
    [ ! -d "$d" ] && echo "ERROR: '$d' is not a directory" && continue
    ld8=$(ld8 "$d")
    # where to put things
@@ -89,12 +99,15 @@ for d in ${FILES[@]}; do
       -mindepth 2 -maxdepth 2 \
       -iname picked_coords.txt \
       -not -ipath  '*/WF*' \
+      -not -ipath  '*/CHECK*' \
+      -not -ipath  '*_BAD*' \
+      -not -ipath  '*/ignore*' \
       -exec stat -c "%Y %n" {} \+ |
       while read t f; do
          echo $(showkeep $d $f|wc -l):::$t:::$f;
       done|sort -nr))
    # \( -ipath '*/MP/*' -or -ipath '*/JJ/*' -or -ipath '*/LT/*' -or -ipath '*/OR/*' \) \
-   [ -z "$cs" ] && echo "ERROR: no $o/*/picked_coords.txt" && continue
+   [ -z "${cs[*]}" ] && echo "ERROR: no $o/*/picked_coords.txt" && continue
    ncs=${#cs[@]}; neq13=$(for x in ${cs[@]}; do echo ${x/:::*}; done|grep 13 -c)
    [ $neq13 -ne 1 ] && echo "WARNING: have $ncs coord files ($neq13 w/13): ${cs[@]}"
    c=${cs[0]}; c=${c/*:::/} # remove timestamp
@@ -120,9 +133,13 @@ for d in ${FILES[@]}; do
    # copy
    test ! -r $M && $DRYRUN mkdir -p $_
    test ! -r $M/${atlas}_picked_coords.txt && $DRYRUN ln -s $c $_
-   for kd in ${keep[@]}; do
-      [ -r $M/$kd/spreadsheet.csv ] && continue
-      echo "copying to $M/$kd"
+   for kd in "${keep[@]}"; do
+      this_csv=$M/$kd/spreadsheet.csv
+      if [ -r $this_csv ]; then
+         [ -n "$VERBOSE" ] && echo "# have $this_csv"
+         continue
+      fi
+      echo "# copying to $M/$kd"
       $DRYRUN rsync -ravhi --size-only $d/$kd $M/
    done
 

@@ -32,7 +32,7 @@ n_visits = length(rest_niis)
 H_all=zeros([size(gm_mask) n_visits]);
 nvox = prod(size(gm_mask));
 for di=1:n_visits
-   outname=fullfile('hurst_nii', [ ld8s{di} '_H.nii.gz'])
+   outname=fullfile('hurst_nii/', [ ld8s{di} '/matlab_H.nii.gz'])
    if exist(outname,'file')
       tmp = niftiread(outname);
       H_all(:,:,:, di) = tmp;

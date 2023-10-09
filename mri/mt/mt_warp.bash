@@ -10,12 +10,12 @@ trap 'e=$?; [ $e -ne 0 ] && echo "$0 exited in error $e"' EXIT
 warn(){ echo "$@" >&2; }
 shot(){
  underlay=""
- f"=$1"; shift
+ f="$1"; shift
  [ $# -eq 1 ] && underaly="$1" && shift
  [ -z "$f" -o ! -r "$f" ] && warn "shots given bad input file" && return 1
  [ ! -d img ] && mkdir img
  output=img/$(basename $f .nii.gz).png
- [ -r $output ] && return 0
+ [ -r "$output" ] && return 0
 
  slicer $underlay "$f" -a >( convert - -background white label:"$(basename "$f" .nii.gz)" -gravity center -append "$output")
 }
@@ -100,6 +100,8 @@ _mtr(){
   #convert img/MT[12]al.png img/noMT[12]al.png img/all.gif
   calcmtr MT1al.nii.gz noMT1al.nii.gz "$anat" MTR1.nii.gz
 }
+
+# bids id to ld8 (sub-12345/yyyymmdd 12345_yyyymmdd)
 bids_id() { perl -plne 's/.*?sub-//; s/_.*//;s:/:_:g' <<< "$@";}
 
 # bids session folder with 'mt' folder
@@ -111,12 +113,18 @@ $0  /Volumes/Hera/Raw/BIDS/7TBrainMech/sub-10129/20180917/" && exit 1
    subdir="$1"; shift
    test ! -d "$subdir/mt"  && echo "$_ must exist" >&2 && exit 1
    subdir="$(cd "$subdir"; pwd)"
+   ld8="$(bids_id "$subdir")"
 
    # put into 7T 'subjs' folder as sibling to e.g tat2, slicePFC
-   test -d "/Volumes/Hera/Projects/7TBrainMech/subjs/$(bids_id "$subdir")/mt" ||
+   test -d "/Volumes/Hera/Projects/7TBrainMech/subjs/$ld8/mt" ||
       mkdir -p "$_"
    cd "$_"
 
+   # 20220315 - anat should be skullstripped! or, at least, it is in PET
+   # previosly used full brain "$subdir"/anat/*_T1w.nii.gz
+   mprage_bet="/Volumes/Hera/preproc/7TBrainMech_rest/MHT1_2mm/$ld8/mprage_bet.nii.gz"
+   [ ! -r "$mprage_bet" ] && echo "no skullstripped file for $ld8 @ '$mprage_bet'" && exit 1
+
    # run
-   _mtr "$subdir"/mt/*_MT_acq-yes.nii.gz "$subdir"/mt/*_MT_acq-no.nii.gz  "$subdir"/anat/*_T1w.nii.gz
+   _mtr "$subdir"/mt/*_MT_acq-yes.nii.gz "$subdir"/mt/*_MT_acq-no.nii.gz  "$mprage_bet"
 fi

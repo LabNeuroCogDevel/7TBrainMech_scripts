@@ -29,35 +29,62 @@
 #  https://onlinelibrary.wiley.com/doi/full/10.1002/hbm.25030
 
 
+# NB 20231002FC - variable TR could be a problem. dfa: make this seconds instead of nTRs
+# /home/ni_tools/python/userbase/lib/python3.11/site-packages/nolds/measures.py
+# poly = poly_fit(np.log(nvals), np.log(fluctuations), 1, fit=fit_exp)
+
 import nolds
 import numpy as np
 import multiprocessing
+from functools import partial
 import re
 import pandas as pd
 from glob import glob
 
-def dfa_roits(roi_fname):
+def roits_perroi_measure(roi_fname, func=nolds.dfa):
+    """roi mean time course (averaging/smoothing within roi may change high freq props) """
     ts = np.loadtxt(roi_fname)
     n_roi = ts.shape[1]
-    x = [nolds.dfa(ts[:,i]) for i in range(n_roi)]
+    x = [func(ts[:,i]) for i in range(n_roi)]
     return x
 
-ts1d = glob('/Volumes/Hera/preproc/7TBrainMech_rest/MHRest_nost_nowarp/*/mrsipfc13_nzmean_ts.1D');
+def glob_func(ts_filepatt, roi_labels, func=nolds.dfa):
+    ts1d=glob(ts_filepatt)
+    pool = multiprocessing.Pool(processes=72)
+    all_ts = pool.map(partial(roits_perroi_measure, func=func), ts1d)
+    
+    df = pd.DataFrame(all_ts)
+    
+    # more useful roi names are in the original label file
+    # use those to avoid losing track of indexes
+    df.columns = roi_labels
+    
+    # luna+8digit yyyymmdd visit date/session id
+    ld8 = [re.search('\d{5}_\d{8}',x)[0] for x in ts1d]
+    df.insert(0, 'ld8', ld8)
+    return df
 
-# run all all cores of rhea
-# this is relatively fast and there are only ~220 files
-pool = multiprocessing.Pool(processes=72)
-dfa_all_ts = pool.map(dfa_roits, ts1d)
 
-dfa_df = pd.DataFrame(dfa_all_ts)
+def run_all():
+    label_file = '../MRSI_roi/roi_locations/labels_13MP20200207.txt'
+    roi_labels_df =pd.read_table(label_file, sep=':', names=['roi','cord'])
+    roi_labels = [re.sub(' ','',roi) for roi in roi_labels_df.roi]
 
-# more useful roi names are in the original label file
-# use those to avoid losing track of indexes
-roi_labels =pd.read_table('../MRSI_roi/roi_locations/labels_13MP20200207.txt', sep=':', names=['roi','cord'])
-dfa_df.columns = [re.sub(' ','_',roi) for roi in roi_labels.roi]
+    subject_glob='/Volumes/Hera/preproc/7TBrainMech_rest/MHRest_nost_nowarp/*/'
+    for func in [nolds.hurst_rs,nolds.dfa]:
+        funcname=re.sub('.*\\.','',func.__name__)
+        for prefix in ['nsdkm','brnsdkm']:
+            if prefix=='brnsdkm':
+                in_prefix=''
+            else:
+                in_prefix=f'_{prefix}'
 
-# luna+8digit yyyymmdd visit date/session id
-ld8 = [re.search('\d{5}_\d{8}',x)[0] for x in ts1d]
-dfa_df.insert(0, 'ld8', ld8)
+            outname = f'stats/MRSI_pfc13_{prefix}_{funcname}.csv'
+            in_glob=f'{subject_glob}/mrsipfc13_nzmean{in_prefix}_ts.1D'
 
-dfa_df.to_csv('txt/nolds_dfa.csv', quoting=False, index=False)
+            print(f"making {outname}")
+            glob_func(in_glob, roi_labels).\
+              to_csv(outname, quoting=False, index=False)
+
+if __name__ == "__main__":
+    run_all()

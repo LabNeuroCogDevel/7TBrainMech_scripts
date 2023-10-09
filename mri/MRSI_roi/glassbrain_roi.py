@@ -37,6 +37,7 @@ def plot_rois(ax_roi, roi_idxs=[1, 2, 7, 8, 9, 10], display_mode='xz'):
     used_rois0 = [i-1 for i in roi_idxs]
     colors_used = [colors[i] for i in used_rois0]
     centers_used = [centers_ras[i] for i in used_rois0]
+    # no lines between rois
     n_roi = len(centers_used)
     adjmat0 = np.zeros((n_roi, n_roi))
     plotting.plot_connectome(adjacency_matrix=adjmat0,

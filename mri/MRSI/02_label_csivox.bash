@@ -143,7 +143,8 @@ csi_json="$scriptdir/csi_settings.json"
 FSlowres=$STUDYDIR/FS_lowres/$subj_date/ 
 
 # 20211103 - use lowres if it's all we have
-[ ! -r $FSdir/mri/aparc+aseg.mgz -a -r $FSlowres/mri/aparc+aseg.mgz ] && FSdir=$FSlowres
+test ! -r "$FSdir/mri/aparc+aseg.mgz" -a -r "$FSlowres/mri/aparc+aseg.mgz" && warn "# no $FSdir, have $FSlowres" && FSdir=$FSlowres
+test ! -r "$FSdir/mri/aparc+aseg.mgz" -a ! -r "$FSlowres/mri/aparc+aseg.mgz" && warn "# missing fs and lowres $_"
 
 check_file "$scout"                     "run ./01_get_slices.bash $subj_date"
 check_file "$FSdir/mri/aparc+aseg.mgz"  "run ../FS/001_runlocal.bash (or /Volumes/Hera/Projects/Collab/7TFF/scripts/030_FS.bash)"

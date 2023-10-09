@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 
-
 #
 # find slice per subject
 #  - no arguments, run for everyone
@@ -11,7 +10,7 @@
 # 3. bring slice roi atlas into mprage and slice space (nonlinear)
 # depends on preprocessFunctional having been already run
 
-lsscout(){ ls -d $1/*_66 2>/dev/null || ls -d $1/*_82 2>/dev/null ; }
+lsscout(){ ls -d $1/*PFC-gre-field-mapping-MCxx-B0map-33_165 2>/dev/null || ls -d $1/*_66 2>/dev/null || ls -d $1/*_82 2>/dev/null || :; }
 
 # run as lncd
 if [ "$(whoami)" != "lncd" -a $(hostname) == "rhea.wpic.upmc.edu" ]; then 
@@ -33,7 +32,7 @@ if [ $# -lt 1 ]; then
 USAGE:
   $0 10129_20180917 11299_20180511
   $0 /Volumes/Hera/Raw/BIDS/7TBrainMech/rawlinks/11299_20180511/
-  $0 all
+  $0 all # look in \$RAW_PATH/[12]*/
   $0 STUDY=FF 20180125FF
 HEREDOC
   exit 1
@@ -148,6 +147,31 @@ force_dir=( \
    # 20211123
    11683_20211106/0017_B0Scout33Slice_66   # only 1 exists. incomplete scan maybe okay. would be discared anway
 
+   # 20221004
+   11707_20201009/0017_B0Scout33Slice_66
+
+   # 20221012 - early in the sequence? before task. but later look like Hc
+   11801_20220602/0015_gre-field-mapping-MCxx-B0map-33_165
+
+   # 20221102 - 0007 is default but looks like Hc. use second scout (AO identified)
+   11834_20210524/0016_B0Scout33Slice_66
+
+   # 20221107
+   11751_20220618/0018_gre-field-mapping-MCxx-B0map-33_165
+   11818_20220609/0019_gre-field-mapping-MCxx-B0map-33_165
+   11716_20220616/0017_gre-field-mapping-MCxx-B0map-33_165
+   11734_20220610/0018_gre-field-mapping-MCxx-B0map-33_165
+
+   # 20221229. update 20230928
+   11823_20221202/0018_PFC-gre-field-mapping-MCxx-B0map-33_330 # repeat b/c motion on first
+
+   # 20230106
+   11715_20221118/0018_PFC-gre-field-mapping-MCxx-B0map-33_330 # 330 not 165, seqs 16 and 18
+
+   # 20230928 - picked second. assuming better than first
+   11770_20221208/0017_PFC-gre-field-mapping-MCxx-B0map-33_330
+   11810_20221117/0017_PFC-gre-field-mapping-MCxx-B0map-33_330
+
    # FF scans
    "20180824FF2/0023_B0Scout33Slice_66"
    )
@@ -159,17 +183,18 @@ skiplist=( "11793_20210726 2ndsession no PFC"
 "11695_20200904 cancelled"
 "11722_20200713 cancelled"
 "11716_20200904 cancelled"
+"11681_20181012 hc makeup but could not run hc"
 "11748_20201109 same subject as 11515_20201109 -- double lunaid")
 
-for sraw in ${list[@]}; do
+for sraw in "${list[@]}"; do
 
    # is this a luna_date
    if [[ $STUDY_PATH =~ 7TBrainMech ]]; then
-      ! [[ $(basename $sraw) =~ [0-9]{5}_[0-9]{8} ]] && echo "# no lunadate in '$sraw'" >&2 && continue
+      ! [[ $(basename "$sraw") =~ [0-9]{5}_[0-9]{8} ]] && echo "# no lunadate in '$sraw'" >&2 && continue
       ld8=$BASH_REMATCH
    else
       # Fabio subject
-      ld8=$(basename $sraw)
+      ld8=$(basename "$sraw")
    fi
 
    # skip known bad/missing
@@ -198,20 +223,23 @@ for sraw in ${list[@]}; do
    done
 
    # do we have a single scout to work with
-   n=$( (lsscout "$sraw" || echo -n) |wc -l ) 
+   slicedirs=($(lsscout "$sraw"))
+   n=${#slicedirs[@]}
    if [ -n "$slice_dcm_dir" ]; then 
       echo "# manually setting $ld8 $slice_dcm_dir" >&2
    elif [ $n -eq 2 ]; then
-      slice_dcm_dir=$(lsscout "$sraw" |sed 1q)
+      slice_dcm_dir=${slicedirs[0]}
+   elif [[ $n -eq 1 && ${slicedirs[*]} =~ PFC ]]; then
+      slice_dcm_dir=${slicedirs[0]}
    else
-      echo "# $ld8: bad slice raw dir num ($n of expect 2)" >&2
+      echo "# $ld8: bad slice raw dir num ($n of expect 2, '${slicedirs[*]}' not like PFC-)" >&2
       # if no matches. point to raw directory
       [ $n -eq 0 ] && echo "search for missing link in '$(dirname $(readlink -f $(ls -d $sraw/*|sed 1q)))';
         also ../BIDS/000_dcmfolder_201906fmt.bash" && continue
       echo "# 1. pick best using " >&2
       echo "  ../MRSI_roi/examine_prospect_slices $sraw/*{82,66}*" >&2
       echo " " >&2
-      (ls -d ${sraw}/*{82,66}*||:) |sed 's/^/\t/' >&2
+      (ls -d ${sraw}/*{82,66,PFC-*165}*||:) |sed 's/^/\t/' >&2
       echo "# 2. hardcode best protocol directory within 'force_dir' in $0" >&2
       echo "### for what it's worth" >&2
       echo "    from /Volumes/L/bea_res/7T/fMRI/7T_fMRI_Scan_Log.xlsx has this seq number+note:" >&2
@@ -247,14 +275,15 @@ for sraw in ${list[@]}; do
    #[ $(find . -maxdepth 1 -type f  -iname '*.nii.gz' |wc -l ) -gt 0 ] || dcm2niix_afni -o ./ -f slice_pfc $slice_dcm_dir
    cmd="dcm2niix_afni -o ./ -f slice_pfc $slice_dcm_dir"
    if [ ! -r slice_pfc.nii.gz ]; then 
-      [ -r slice_pfc_e2_ph.nii.gz ] && echo "# $ld8 $slice_dcm_dir scout is phase instead of mag?! consider hardcoding a different scout image in $0:force_dir?!" && continue
+      [ -r slice_pfc_e2_ph.nii.gz ] && echo "# $ld8 $slice_dcm_dir scout is phase instead of mag?! (b/c $this_dir/slice_pfc_e2_ph.nii.gz)  consider hardcoding a different scout image in $0:force_dir?!" && continue
       eval $cmd
       if [ -r slice_pfc_e2.nii.gz -a ! -r slice_pfc.nii.gz ]; then
-          mvcmd="mv slice_pfc_e2.nii.gz slice_pfc.nii.gz" 
+          mvcmd="cp slice_pfc_e1.nii.gz slice_pfc.nii.gz" 
           eval $mvcmd
           cmd="$cmd; $mvcmd" 
-          echo "WARNING: $ld8 has at least two different echos in scout. picked e2 because it had more contrast one time"
-          echo -e "$ld8\t$(date +%F)\tscout dcm2niix has 2 echos, picked _e2!" >> warning_note.txt
+          # 20221012 changing from e2 to e1.
+          echo "WARNING: $ld8 has at least two different echos in scout. picked e1 on CM's suggestion. prev used e2"
+          echo -e "$ld8\t$(date +%F)\tscout dcm2niix has 2 echos, picked _e1!" >> warning_note.txt
       elif find -maxdepth 1 -iname 'slice_pfc_*.nii.gz' -type f; then
          echo "# $ld8 BAD DCM2NII: $slice_dcm_dir has unexpected nii convertion: $(find -maxdepth 1 -iname 'slice_pfc_*.nii.gz' -type f)"
          continue

@@ -17,7 +17,7 @@ find_affine(){
    local fs_affine_l=("$specdir"/FS_warp/*_T1-HcScout_0GenericAffine.mat)
    fs_affine=${fs_affine_l[0]}
    [ -z "$fs_affine" -o ! -r "$fs_affine" ] &&
-      warn "ERROR: $specdir/FS_warp has no affine. check 01.2_FS_to_HcScout.bash" &&
+      warn "ERROR: $specdir/FS_warp has no affine '$PWD/$fs_affine'. check ./01.2.1_FS_to_HcScout.bash $(basename "$specdir")" &&
       return 1
    echo "$fs_affine"
 }
@@ -26,8 +26,10 @@ find_fsdir(){
    local FSdir_l=(/Volumes/Hera/preproc/7TBrainMech_rest/FS7.2/*/$ld8/mri/)
    local FSdir=${FSdir_l[0]}
    [ -z "$FSdir" -o ! -r "$FSdir" ] &&
-      warn "ERROR: $ld8 does not have a FS 7.2 dir (need for hippoamyg labels): ${FSdir_l[*]}" &&
+      warn "ERROR: $ld8 does not have a FS 7.2 dir (need for hippoamyg labels): ${FSdir_l[*]}. see '../FS/001c_FreeSurfer7.2.bash $ld8'" &&
       return 1
+   test ! -r "$FSdir/aseg.mgz"  && 
+      warn "ERROR: $ld8 FS did not finish (cant read '$_')!" && return 1
    echo "$FSdir"
 }
 
@@ -53,7 +55,7 @@ FS72_hippoAmyg_one() {
 
    hbts=("$FSdir/"[rl]h.hippoAmygLabels-T1.v21.HBT.FSvoxelSpace.mgz)
    [ ${#hbts[@]} -ne 2 ] &&
-      warn "# ERROR: $ld8 ${#hbts[@]} != 2 $FSdir/*hippoAmygLabels-T1.v21.HBT.FSvoxelSpacei* files!" &&
+      warn "# ERROR: $ld8 ${#hbts[@]} != 2 $FSdir/*hippoAmygLabels-T1.v21.HBT.FSvoxelSpacei* files! see /Volumes/Hera/Projects/7TBrainMech/scripts/mri/FS/020_segHA.bash" &&
       return 1
 
    tmpd=$(mktemp -d /tmp/hc/fsconv-XXXXX || echo /tmp/hc/fsconv)
@@ -129,11 +131,11 @@ FS72_hippoAmyg_main(){
       verb "$specdir"
       dryrun FS72_hippoAmyg_one "$specdir" & # || :
       FS72_gm_one "$specdir" &
-      waitforjobs 4
+      waitforjobs -j 4
    done
    wait
 }
-export -f FS72_hippoAmyg_one 
+export -f FS72_hippoAmyg_one find_affine find_fsdir FS72_gm_one
 
 # if not sourced (testing), run as command
 eval "$(iffmain "FS72_hippoAmyg_main")"
