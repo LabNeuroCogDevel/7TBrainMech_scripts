@@ -28,8 +28,11 @@ all_daw.csv: daw.R .make/task_txt.ls
 	mkls $@ '/Volumes/L/bea_res/Data/Temporary*Raw*Data/7T/*/*_selfreport.csv'
 
 svys.RData: .make/qualtrics.ls
-	# ./000_getQualtrics.R
+	echo ./000_getQualtrics.R # this takes a long time. unlikely to have new data
 	
+txt/puberty.csv: svys.RData
+	./puberty_from_rdata.R
+
 txt/asr_ysr.csv: svys.RData
 	./ASRYSR.R
 	
@@ -41,3 +44,8 @@ txt/ders.csv: .make/qualtrics.ls
 
 txt/dts.csv: txt/ders.csv
 	@echo dts.csv and ders.csv bouth from DERS_DTS.R
+
+# CANTAB finished. no depedencies b/c will not change
+txt/SSP.csv: 
+	Rscript SSP_Cantab_spatial.R
+

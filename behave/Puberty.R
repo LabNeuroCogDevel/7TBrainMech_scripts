@@ -1,6 +1,9 @@
 #!/usr/bin/env Rscript
 # pull puberty data from selfreport.csv sheets gernerated by RAs from qualtrics
 # 20200601WF (OR) - init
+# 20231009WF - see puberty_from_rdata.R
+
+Sys.exit(1)
 library(dplyr)
 
 
