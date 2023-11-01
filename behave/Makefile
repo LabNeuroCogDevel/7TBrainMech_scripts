@@ -49,3 +49,10 @@ txt/dts.csv: txt/ders.csv
 txt/SSP.csv: 
 	Rscript SSP_Cantab_spatial.R
 
+.make/anti_scored.ls: $(shell find "/Volumes/L/bea_res/Data/Temporary Raw Data/7T/" -iname '*anti*.eyd' | sed 's/ /\\ /g')
+	"/Volumes/L/bea_res/Data/Temporary Raw Data/copy7T.bash"
+	-/Volumes/Hera/Projects/autoeyescore/runme.bash -t anti
+	mkls $@ "/Volumes/L/bea_res/Data/Tasks/Anti/Basic/1*/2*/Scored/txt/1*.2*.1.summary.txt"
+
+txt/anti_scored.csv: .make/anti_scored.ls # $(wildcard  /Volumes/L/bea_res/Data/Tasks/Anti/Basic/1*/2*/Scored/txt/1*.2*.1.summary.txt)
+	Rscript anti_behave.R

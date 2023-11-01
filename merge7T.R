@@ -59,7 +59,8 @@ files <- list(
  ssp="behave/txt/SSP.csv",  # 20230717. from behave/SSP_Cantab_spatial.R
  sex="txt/db_sex.csv", # 20230718 all sex in DB
  adi="/Volumes/Hera/Projects/Maria/Census/parguard_luna_visit_adi.csv", # 20230807
- fd="mri/txt/rest_fd.csv" # 20230912 (but generated long ago)
+ fd="mri/txt/rest_fd.csv", # 20230912 (but generated long ago)
+ antiET="behave/txt/anti_scored.csv" # 20231101 (for MP)
 )
 
 sess <- read.table(files$sess, sep="\t", header=T) %>% rename(lunaid=`id`)
@@ -71,6 +72,11 @@ mrsi <- read.csv(files$mrsi)
 tat2 <- read.csv(files$tat2)
 fooof <- read.csv(files$fooof)
 fd <- read.table(files$fd,header=T) %>% rename(lunaid=id, date=d8) %>% addcolprefix('rest')
+antiET <- read.csv(files$antiET,header=T) %>%
+   separate(ld8,c('lunaid', 'behave.date')) %>%
+   rename_with(\(x) gsub('^AS','',x)) %>%
+   select(-age,-sex,-visitno) %>%
+   addcolprefix('antiET', preserve=c("lunaid", "behave.date"))
 mgs_eog_visit <- read.csv(files$mgs_eog)
 sr <- read.csv(files$sr) %>% addcolprefix('sr') %>%
       rename(screen.date=sr.date.screening, visitno=sr.visitno)
@@ -255,6 +261,7 @@ merged <- tat2_wide %>%
    merge_and_check(sex, by=c("lunaid"), all.x=T) %>%
    merge_and_check(adi, by=c("lunaid","visitno"), all.x=T) %>%
    merge_and_check(fd, by=c("lunaid","rest.date"), all.x=T) %>%
+   merge_and_check(antiET, by=c("lunaid","behave.date"),all.x=T) %>%
   unique # 11832 is repeated 2 twice?
 
 cat(glue("# merged: {nrow(merged)} rows with {ncol(merged)} columns"),"\n")
