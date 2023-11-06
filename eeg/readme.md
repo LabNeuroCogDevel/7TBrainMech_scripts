@@ -1,3 +1,25 @@
+# Merge 7T EEG 
+Merge 7T EEG combines all EEG data from the 7T grant on a per channel level. 
+Thus far it is incorporating the spectral event data, FOOOF data, and SNR. 
+Those files can be found in the following locations: 
+ * /Volumes/Hera/Projects/7TBrainMech/scripts/eeg/Shane/Results/Spectral_Analysis/Spectral_events_analysis/allChannels_averagedOverTrials.csv
+ * /Volumes/Hera/Projects/7TBrainMech/scripts/eeg/Shane/Results/FOOOF/allSubjectsAllChannelsFooofMeasures_20230911.csv
+ * /Volumes/Hera/Projects/7TBrainMech/scripts/eeg/Shane/Results/SNR/allSubjectsSNR.csv
+
+The code to combine all the files is merge7TEEG.R
+
+Information about each task: 
+ * Spectral Events
+  * Run on the delay and fixation epochs from the MGS task 
+  * Currently only includes visit no 1
+ * FOOOF 
+  * Run during resting state
+  * Has a eyes open and eyes closed condition
+ * SNR
+  * Run during the auditory steady state task during the 40Hz condition 
+  
+ 
+
 # Matlab toolboxes
 ## fieldtrip
 see 
