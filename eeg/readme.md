@@ -11,12 +11,12 @@ The code to combine all the files is merge7TEEG.R
 Information about each task: 
  * Spectral Events
     * Run on the delay and fixation epochs from the MGS task 
-  - Currently only includes visit no 1
+    * Currently only includes visit no 1
  * FOOOF 
-  - Run during resting state
-  - Has a eyes open and eyes closed condition
+    * Run during resting state
+    * Has a eyes open and eyes closed condition
  * SNR
-  - Run during the auditory steady state task during the 40Hz condition 
+    * Run during the auditory steady state task during the 40Hz condition 
   
  
 
