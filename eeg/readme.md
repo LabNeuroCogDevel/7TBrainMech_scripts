@@ -10,7 +10,7 @@ The code to combine all the files is merge7TEEG.R
 
 Information about each task: 
  * Spectral Events
-  - Run on the delay and fixation epochs from the MGS task 
+    * Run on the delay and fixation epochs from the MGS task 
   - Currently only includes visit no 1
  * FOOOF 
   - Run during resting state
