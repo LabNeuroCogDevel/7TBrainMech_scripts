@@ -60,7 +60,8 @@ files <- list(
  sex="txt/db_sex.csv", # 20230718 all sex in DB
  adi="/Volumes/Hera/Projects/Maria/Census/parguard_luna_visit_adi.csv", # 20230807
  fd="mri/txt/rest_fd.csv", # 20230912 (but generated long ago)
- antiET="behave/txt/anti_scored.csv" # 20231101 (for MP)
+ antiET="behave/txt/anti_scored.csv", # 20231101 (for MP)
+ eeg_dlpfc_snr="eeg/Shane/Results/SNR/allSubjectDLPFC_SNRMeasures_20231113.csv" # 20231113
 )
 
 sess <- read.table(files$sess, sep="\t", header=T) %>% rename(lunaid=`id`)
@@ -170,7 +171,15 @@ hurst_ses <- hursts %>%
          all.x=T, by.x=c("lunaid","rest.date"), by.y=c("lunaid","vdate"))
 
 #hurst_ses %>% filter(is.na(visitno))
+noX <- function(d) { if(names(d)[1] == "X") return(d[-1,]); return(d); }
 
+eeg_dlpfc_snr <- read.csv(files$eeg_dlpfc_snr) %>% noX %>%
+    select(-Subject, -age, -vdate) %>%
+    rename(lunaid=luna) %>%
+    pivot_wider(id_cols=c("lunaid","visitno"),
+                names_from=c("Freq","Region"),
+                values_from=c("ERSP","ITC","BaselinePower","Induced")) %>%
+    addcolprefix("eeg.snr", preserve=c("lunaid","visitno"))
 
 mgs_eog <- mgs_eog_visit %>%
    rename(lunaid=LunaID,date=ScanDate) %>%
@@ -262,6 +271,7 @@ merged <- tat2_wide %>%
    merge_and_check(adi, by=c("lunaid","visitno"), all.x=T) %>%
    merge_and_check(fd, by=c("lunaid","rest.date"), all.x=T) %>%
    merge_and_check(antiET, by=c("lunaid","behave.date"),all.x=T) %>%
+   merge_and_check(eeg_dlpfc_snr, by=c("lunaid","visitno"),all.x=T) %>%
   unique # 11832 is repeated 2 twice?
 
 cat(glue("# merged: {nrow(merged)} rows with {ncol(merged)} columns"),"\n")
