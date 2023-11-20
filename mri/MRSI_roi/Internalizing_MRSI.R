@@ -9,7 +9,7 @@ merge7T <- merge7T %>%
                 function(x) gsub('-[A-Z]','',x) |>
                   as.numeric()))
 
-###internalizing and age and sex###
+#1.0 Internalizing ~ age and sex####
 int_age_sex_fixed <- lmer(data=merge7T, sr.internalizing_probs_T ~ rest.age + sex + (1|lunaid)) #fixed model for age
 summary(int_age_sex_fixed)
 int_age_sex_interaction <- lmer(data=merge7T, sr.internalizing_probs_T ~ rest.age + rest.age*sex + (1|lunaid)) #interaction btwn age and sex
@@ -54,7 +54,7 @@ ASR_data<- ASR_data %>%
 
 ##internalizing by age#
 
-#YSR#
+##1.1 YSR ~ age and sex####
 int_age_YSR_fixed <- lmer(data=YSR_data, sr.internalizing_probs_T ~ rest.age + sex + (1|lunaid)) #fixed model for age
 summary(int_age_YSR_fixed)
 int_age_sex_interaction_YSR <- lmer(data=YSR_data, sr.internalizing_probs_T ~ rest.age + rest.age*sex + (1|lunaid)) #interaction btwn age and sex
@@ -72,262 +72,12 @@ AIC(int_age_YSR_fixed_inv)
 AIC(int_age_sex_interaction_YSR)
 AIC(int_age_sex_interaction_YSR_inv)
 
-##correlation btwn metabolites and internalizing##
-lmer(data = adult, int ~ MRSI + sex)
-ggplot(int, MRSI)
-
-####YSR####
-
-YSR_data<- YSR_data %>% 
-  mutate(NAA_ACC_z=scale(sipfc.ACC_NAA_gamadj, center=T, scale=T),
-         NAA_MPFC_z=scale(sipfc.MPFC_NAA_gamadj, center=T, scale=T),
-         NAA_DLPFC_z=scale(sipfc.DLPFC_NAA_gamadj, center=T, scale=T),
-         NAA_RDLPFC_z=scale(sipfc.RDLPFC_NAA_gamadj, center=T, scale=T),
-         NAA_LDLPFC_z=scale(sipfc.LDLPFC_NAA_gamadj, center=T, scale=T),
-         internalizing_probs_z=scale(sr.internalizing_probs_T, center=T, scale=T))
-
-YSR_int_NAA_ACC_z <- lmer(data=YSR_data, internalizing_probs_z ~ NAA_ACC_z + sex + (1|lunaid))
-summary(YSR_int_NAA_ACC_z)
-YSR_int_NAA_MPFC_z <- lmer(data=YSR_data, internalizing_probs_z ~ NAA_MPFC_z + sex + (1|lunaid))
-summary(YSR_int_NAA_MPFC_z)
-YSR_int_NAA_DLPFC_z <- lmer(data=YSR_data, internalizing_probs_z ~ NAA_DLPFC_z + sex + (1|lunaid))
-summary(YSR_int_NAA_DLPFC_z)
-YSR_int_NAA_RDLPFC_z <- lmer(data=YSR_data, internalizing_probs_z ~ NAA_RDLPFC_z + sex + (1|lunaid))
-summary(YSR_int_NAA_RDLPFC_z)
-YSR_int_NAA_LDLPFC_z <- lmer(data=YSR_data, internalizing_probs_z ~ NAA_LDLPFC_z + sex + (1|lunaid))
-summary(YSR_int_NAA_LDLPFC_z)
-
-#NAA ACC#
-YSR_int_NAA_ACC <- lmer(data=YSR_data, sr.internalizing_probs_T ~ sipfc.ACC_NAA_gamadj + sex + (1|lunaid))
-ggplot(data=YSR_data)+aes(x=sr.internalizing_probs_T, y=sipfc.ACC_NAA_gamadj, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("internalizing") + ylab("NAA ACC")
-summary(YSR_int_NAA_ACC)
-#NAA MPFC#
-YSR_int_NAA_MPFC <- lmer(data=YSR_data, sr.internalizing_probs_T ~ sipfc.MPFC_NAA_gamadj + sex + (1|lunaid))
-ggplot(data=YSR_data)+aes(x=sr.internalizing_probs_T, y=sipfc.MPFC_NAA_gamadj, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("internalizing") + ylab("NAA MPFC")
-summary(YSR_int_NAA_MPFC)
-#NAA DLPFC#
-YSR_int_NAA_DLPFC <- lmer(data=YSR_data, sr.internalizing_probs_T ~ sipfc.DLPFC_NAA_gamadj + sex + (1|lunaid))
-ggplot(data=YSR_data)+aes(x=sr.internalizing_probs_T, y=sipfc.DLPFC_NAA_gamadj, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("internalizing") + ylab("NAA DLPFC")
-summary(YSR_int_NAA_DLPFC)
-#NAA RDLPFC#
-YSR_int_NAA_RDLPFC <- lmer(data=YSR_data, sr.internalizing_probs_T ~ sipfc.RDLPFC_NAA_gamadj + sex + (1|lunaid))
-ggplot(data=YSR_data)+aes(x=sr.internalizing_probs_T, y=sipfc.RDLPFC_NAA_gamadj, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("internalizing") + ylab("NAA RDLPFC")
-summary(YSR_int_NAA_RDLPFC)
-#NAA LDLPFC#
-YSR_int_NAA_LDLPFC <- lmer(data=YSR_data, sr.internalizing_probs_T ~ sipfc.LDLPFC_NAA_gamadj + sex + (1|lunaid))
-ggplot(data=YSR_data)+aes(x=sr.internalizing_probs_T, y=sipfc.LDLPFC_NAA_gamadj, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("internalizing") + ylab("NAA LDLPFC")
-summary(YSR_int_NAA_LDLPFC)
-
-YSR_data<- YSR_data %>% 
-  mutate(mI_ACC_z=scale(sipfc.ACC_mI_gamadj, center=T, scale=T),
-         mI_MPFC_z=scale(sipfc.MPFC_mI_gamadj, center=T, scale=T),
-         mI_DLPFC_z=scale(sipfc.DLPFC_mI_gamadj, center=T, scale=T),
-         mI_RDLPFC_z=scale(sipfc.RDLPFC_mI_gamadj, center=T, scale=T),
-         mI_LDLPFC_z=scale(sipfc.LDLPFC_mI_gamadj, center=T, scale=T),
-         internalizing_probs_z=scale(sr.internalizing_probs_T, center=T, scale=T))
-
-YSR_int_mI_ACC_z <- lmer(data=YSR_data, internalizing_probs_z ~ mI_ACC_z + sex + (1|lunaid))
-summary(YSR_int_mI_ACC_z)
-YSR_int_mI_MPFC_z <- lmer(data=YSR_data, internalizing_probs_z ~ mI_MPFC_z + sex + (1|lunaid))
-summary(YSR_int_mI_MPFC_z)
-YSR_int_mI_DLPFC_z <- lmer(data=YSR_data, internalizing_probs_z ~ mI_DLPFC_z + sex + (1|lunaid))
-summary(YSR_int_mI_DLPFC_z)
-YSR_int_mI_RDLPFC_z <- lmer(data=YSR_data, internalizing_probs_z ~ mI_RDLPFC_z + sex + (1|lunaid))
-summary(YSR_int_mI_RDLPFC_z)
-YSR_int_mI_LDLPFC_z <- lmer(data=YSR_data, internalizing_probs_z ~ mI_LDLPFC_z + sex + (1|lunaid))
-summary(YSR_int_mI_LDLPFC_z)
-
-#mI ACC#
-YSR_int_mI_ACC <- lmer(data=YSR_data, sr.internalizing_probs_T ~ sipfc.ACC_mI_gamadj + sex + (1|lunaid))
-ggplot(data=YSR_data)+aes(x=sr.internalizing_probs_T, y=sipfc.ACC_mI_gamadj, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("internalizing") + ylab("mI ACC")
-summary(YSR_int_mI_ACC)
-#mI MPFC#
-YSR_int_mI_MPFC <- lmer(data=YSR_data, sr.internalizing_probs_T ~ sipfc.MPFC_mI_gamadj + sex + (1|lunaid))
-ggplot(data=YSR_data)+aes(x=sr.internalizing_probs_T, y=sipfc.MPFC_mI_gamadj, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("internalizing") + ylab("mI MPFC")
-summary(YSR_int_mI_MPFC)
-#mI DLPFC#
-YSR_int_mI_DLPFC <- lmer(data=YSR_data, sr.internalizing_probs_T ~ sipfc.DLPFC_mI_gamadj + sex + (1|lunaid))
-ggplot(data=YSR_data)+aes(x=sr.internalizing_probs_T, y=sipfc.DLPFC_mI_gamadj, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("internalizing") + ylab("mI DLPFC")
-summary(YSR_int_mI_DLPFC)
-#mI RDLPFC#
-YSR_int_mI_RDLPFC <- lmer(data=YSR_data, sr.internalizing_probs_T ~ sipfc.RDLPFC_mI_gamadj + sex + (1|lunaid))
-ggplot(data=YSR_data)+aes(x=sr.internalizing_probs_T, y=sipfc.RDLPFC_mI_gamadj, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("internalizing") + ylab("mI RDLPFC")
-summary(YSR_int_mI_RDLPFC)
-#mI LDLPFC#
-YSR_int_mI_LDLPFC <- lmer(data=YSR_data, sr.internalizing_probs_T ~ sipfc.LDLPFC_mI_gamadj + sex + (1|lunaid))
-ggplot(data=YSR_data)+aes(x=sr.internalizing_probs_T, y=sipfc.LDLPFC_mI_gamadj, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("internalizing") + ylab("mI LDLPFC")
-summary(YSR_int_mI_LDLPFC)
-
-YSR_data<- YSR_data %>% 
-  mutate(GSH_ACC_z=scale(sipfc.ACC_GSH_gamadj, center=T, scale=T),
-         GSH_MPFC_z=scale(sipfc.MPFC_GSH_gamadj, center=T, scale=T),
-         GSH_DLPFC_z=scale(sipfc.DLPFC_GSH_gamadj, center=T, scale=T),
-         GSH_RDLPFC_z=scale(sipfc.RDLPFC_GSH_gamadj, center=T, scale=T),
-         GSH_LDLPFC_z=scale(sipfc.LDLPFC_GSH_gamadj, center=T, scale=T),
-         internalizing_probs_z=scale(sr.internalizing_probs_T, center=T, scale=T))
-
-YSR_int_GSH_ACC_z <- lmer(data=YSR_data, internalizing_probs_z ~ GSH_ACC_z + sex + (1|lunaid))
-summary(YSR_int_GSH_ACC_z)
-YSR_int_GSH_MPFC_z <- lmer(data=YSR_data, internalizing_probs_z ~ GSH_MPFC_z + sex + (1|lunaid))
-summary(YSR_int_GSH_MPFC_z)
-YSR_int_GSH_DLPFC_z <- lmer(data=YSR_data, internalizing_probs_z ~ GSH_DLPFC_z + sex + (1|lunaid))
-summary(YSR_int_GSH_DLPFC_z)
-YSR_int_GSH_RDLPFC_z <- lmer(data=YSR_data, internalizing_probs_z ~ GSH_RDLPFC_z + sex + (1|lunaid))
-summary(YSR_int_GSH_RDLPFC_z)
-YSR_int_GSH_LDLPFC_z <- lmer(data=YSR_data, internalizing_probs_z ~ GSH_LDLPFC_z + sex + (1|lunaid))
-summary(YSR_int_GSH_LDLPFC_z)
-
-#GSH ACC#
-YSR_int_GSH_ACC <- lmer(data=YSR_data, sr.internalizing_probs_T ~ sipfc.ACC_GSH_gamadj + sex + (1|lunaid))
-ggplot(data=YSR_data)+aes(x=sr.internalizing_probs_T, y=sipfc.ACC_GSH_gamadj, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("internalizing") + ylab("GSH ACC")
-summary(YSR_int_GSH_ACC)
-#GSH MPFC#
-YSR_int_GSH_MPFC <- lmer(data=YSR_data, sr.internalizing_probs_T ~ sipfc.MPFC_GSH_gamadj + sex + (1|lunaid))
-ggplot(data=YSR_data)+aes(x=sr.internalizing_probs_T, y=sipfc.MPFC_GSH_gamadj, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("internalizing") + ylab("GSH MPFC")
-summary(YSR_int_GSH_MPFC)
-#GSH DLPFC#
-YSR_int_GSH_DLPFC <- lmer(data=YSR_data, sr.internalizing_probs_T ~ sipfc.DLPFC_GSH_gamadj + sex + (1|lunaid))
-ggplot(data=YSR_data)+aes(x=sr.internalizing_probs_T, y=sipfc.DLPFC_GSH_gamadj, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("internalizing") + ylab("GSH DLPFC")
-summary(YSR_int_GSH_DLPFC)
-#GSH RDLPFC#
-YSR_int_GSH_RDLPFC <- lmer(data=YSR_data, sr.internalizing_probs_T ~ sipfc.RDLPFC_GSH_gamadj + sex + (1|lunaid))
-ggplot(data=YSR_data)+aes(x=sr.internalizing_probs_T, y=sipfc.RDLPFC_GSH_gamadj, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("internalizing") + ylab("GSH RDLPFC")
-summary(YSR_int_GSH_RDLPFC)
-#GSH LDLPFC#
-YSR_int_GSH_LDLPFC <- lmer(data=YSR_data, sr.internalizing_probs_T ~ sipfc.LDLPFC_GSH_gamadj + sex + (1|lunaid))
-ggplot(data=YSR_data)+aes(x=sr.internalizing_probs_T, y=sipfc.LDLPFC_GSH_gamadj, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("internalizing") + ylab("GSH LDLPFC")
-summary(YSR_int_GSH_LDLPFC)
-
-
-####ASR####
-
-ASR_data<- ASR_data %>% 
-  mutate(NAA_ACC_z=scale(sipfc.ACC_NAA_gamadj, center=T, scale=T),
-         NAA_MPFC_z=scale(sipfc.MPFC_NAA_gamadj, center=T, scale=T),
-         NAA_DLPFC_z=scale(sipfc.DLPFC_NAA_gamadj, center=T, scale=T),
-         NAA_RDLPFC_z=scale(sipfc.RDLPFC_NAA_gamadj, center=T, scale=T),
-         NAA_LDLPFC_z=scale(sipfc.LDLPFC_NAA_gamadj, center=T, scale=T),
-         internalizing_probs_z=scale(sr.internalizing_probs_T, center=T, scale=T))
-
-ASR_int_NAA_ACC_z <- lmer(data=ASR_data, internalizing_probs_z ~ NAA_ACC_z + sex + (1|lunaid))
-summary(ASR_int_NAA_ACC_z)
-ASR_int_NAA_MPFC_z <- lmer(data=ASR_data, internalizing_probs_z ~ NAA_MPFC_z + sex + (1|lunaid))
-summary(ASR_int_NAA_MPFC_z)
-ASR_int_NAA_DLPFC_z <- lmer(data=ASR_data, internalizing_probs_z ~ NAA_DLPFC_z + sex + (1|lunaid))
-summary(ASR_int_NAA_DLPFC_z)
-ASR_int_NAA_RDLPFC_z <- lmer(data=ASR_data, internalizing_probs_z ~ NAA_RDLPFC_z + sex + (1|lunaid))
-summary(ASR_int_NAA_RDLPFC_z)
-ASR_int_NAA_LDLPFC_z <- lmer(data=ASR_data, internalizing_probs_z ~ NAA_LDLPFC_z + sex + (1|lunaid))
-summary(ASR_int_NAA_LDLPFC_z)
-
-#NAA ACC#
-ASR_int_NAA_ACC <- lmer(data=ASR_data, sr.internalizing_probs_T ~ sipfc.ACC_NAA_gamadj + sex + (1|lunaid))
-ggplot(data=ASR_data)+aes(x=sr.internalizing_probs_T, y=sipfc.ACC_NAA_gamadj, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("internalizing") + ylab("NAA ACC")
-summary(ASR_int_NAA_ACC)
-#NAA MPFC#
-ASR_int_NAA_MPFC <- lmer(data=ASR_data, sr.internalizing_probs_T ~ sipfc.MPFC_NAA_gamadj + sex + (1|lunaid))
-ggplot(data=ASR_data)+aes(x=sr.internalizing_probs_T, y=sipfc.MPFC_NAA_gamadj, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("internalizing") + ylab("NAA MPFC")
-summary(ASR_int_NAA_MPFC)
-#NAA DLPFC#
-ASR_int_NAA_DLPFC <- lmer(data=ASR_data, sr.internalizing_probs_T ~ sipfc.DLPFC_NAA_gamadj + sex + (1|lunaid))
-ggplot(data=ASR_data)+aes(x=sr.internalizing_probs_T, y=sipfc.DLPFC_NAA_gamadj, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("internalizing") + ylab("NAA DLPFC")
-summary(ASR_int_NAA_DLPFC)
-#NAA RDLPFC#
-ASR_int_NAA_RDLPFC <- lmer(data=ASR_data, sr.internalizing_probs_T ~ sipfc.RDLPFC_NAA_gamadj + sex + (1|lunaid))
-ggplot(data=ASR_data)+aes(x=sr.internalizing_probs_T, y=sipfc.RDLPFC_NAA_gamadj, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("internalizing") + ylab("NAA RDLPFC")
-summary(ASR_int_NAA_RDLPFC)
-#NAA LDLPFC#
-ASR_int_NAA_LDLPFC <- lmer(data=ASR_data, sr.internalizing_probs_T ~ sipfc.LDLPFC_NAA_gamadj + sex + (1|lunaid))
-ggplot(data=ASR_data)+aes(x=sr.internalizing_probs_T, y=sipfc.LDLPFC_NAA_gamadj, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("internalizing") + ylab("NAA LDLPFC")
-summary(ASR_int_NAA_LDLPFC)
-
-ASR_data<- ASR_data %>% 
-  mutate(mI_ACC_z=scale(sipfc.ACC_mI_gamadj, center=T, scale=T),
-         mI_MPFC_z=scale(sipfc.MPFC_mI_gamadj, center=T, scale=T),
-         mI_DLPFC_z=scale(sipfc.DLPFC_mI_gamadj, center=T, scale=T),
-         mI_RDLPFC_z=scale(sipfc.RDLPFC_mI_gamadj, center=T, scale=T),
-         mI_LDLPFC_z=scale(sipfc.LDLPFC_mI_gamadj, center=T, scale=T),
-         internalizing_probs_z=scale(sr.internalizing_probs_T, center=T, scale=T))
-
-ASR_int_mI_ACC_z <- lmer(data=ASR_data, internalizing_probs_z ~ mI_ACC_z + sex + (1|lunaid))
-summary(ASR_int_mI_ACC_z)
-ASR_int_mI_MPFC_z <- lmer(data=ASR_data, internalizing_probs_z ~ mI_MPFC_z + sex + (1|lunaid))
-summary(ASR_int_mI_MPFC_z)
-ASR_int_mI_DLPFC_z <- lmer(data=ASR_data, internalizing_probs_z ~ mI_DLPFC_z + sex + (1|lunaid))
-summary(ASR_int_mI_DLPFC_z)
-ASR_int_mI_RDLPFC_z <- lmer(data=ASR_data, internalizing_probs_z ~ mI_RDLPFC_z + sex + (1|lunaid))
-summary(ASR_int_mI_RDLPFC_z)
-ASR_int_mI_LDLPFC_z <- lmer(data=ASR_data, internalizing_probs_z ~ mI_LDLPFC_z + sex + (1|lunaid))
-summary(ASR_int_mI_LDLPFC_z)
-
-#mI ACC#
-ASR_int_mI_ACC <- lmer(data=ASR_data, sr.internalizing_probs_T ~ sipfc.ACC_mI_gamadj + sex + (1|lunaid))
-ggplot(data=ASR_data)+aes(x=sr.internalizing_probs_T, y=sipfc.ACC_mI_gamadj, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("internalizing") + ylab("mI ACC")
-summary(ASR_int_mI_ACC)
-#mI MPFC#
-ASR_int_mI_MPFC <- lmer(data=ASR_data, sr.internalizing_probs_T ~ sipfc.MPFC_mI_gamadj + sex + (1|lunaid))
-ggplot(data=ASR_data)+aes(x=sr.internalizing_probs_T, y=sipfc.MPFC_mI_gamadj, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("internalizing") + ylab("mI MPFC")
-summary(ASR_int_mI_MPFC)
-#mI DLPFC#
-ASR_int_mI_DLPFC <- lmer(data=ASR_data, sr.internalizing_probs_T ~ sipfc.DLPFC_mI_gamadj + sex + (1|lunaid))
-ggplot(data=ASR_data)+aes(x=sr.internalizing_probs_T, y=sipfc.DLPFC_mI_gamadj, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("internalizing") + ylab("mI DLPFC")
-summary(ASR_int_mI_DLPFC)
-#mI RDLPFC#
-ASR_int_mI_RDLPFC <- lmer(data=ASR_data, sr.internalizing_probs_T ~ sipfc.RDLPFC_mI_gamadj + sex + (1|lunaid))
-ggplot(data=ASR_data)+aes(x=sr.internalizing_probs_T, y=sipfc.RDLPFC_mI_gamadj, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("internalizing") + ylab("mI RDLPFC")
-summary(ASR_int_mI_RDLPFC)
-#mI LDLPFC#
-ASR_int_mI_LDLPFC <- lmer(data=ASR_data, sr.internalizing_probs_T ~ sipfc.LDLPFC_mI_gamadj + sex + (1|lunaid))
-ggplot(data=ASR_data)+aes(x=sr.internalizing_probs_T, y=sipfc.LDLPFC_mI_gamadj, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("internalizing") + ylab("mI LDLPFC")
-summary(ASR_int_mI_LDLPFC)
-
-ASR_data<- ASR_data %>% 
-  mutate(GSH_ACC_z=scale(sipfc.ACC_GSH_gamadj, center=T, scale=T),
-         GSH_MPFC_z=scale(sipfc.MPFC_GSH_gamadj, center=T, scale=T),
-         GSH_DLPFC_z=scale(sipfc.DLPFC_GSH_gamadj, center=T, scale=T),
-         GSH_RDLPFC_z=scale(sipfc.RDLPFC_GSH_gamadj, center=T, scale=T),
-         GSH_LDLPFC_z=scale(sipfc.LDLPFC_GSH_gamadj, center=T, scale=T),
-         internalizing_probs_z=scale(sr.internalizing_probs_T, center=T, scale=T))
-
-ASR_int_GSH_ACC_z <- lmer(data=ASR_data, internalizing_probs_z ~ GSH_ACC_z + sex + (1|lunaid))
-summary(ASR_int_GSH_ACC_z)
-ASR_int_GSH_MPFC_z <- lmer(data=ASR_data, internalizing_probs_z ~ GSH_MPFC_z + sex + (1|lunaid))
-summary(ASR_int_GSH_MPFC_z)
-ASR_int_GSH_DLPFC_z <- lmer(data=ASR_data, internalizing_probs_z ~ GSH_DLPFC_z + sex + (1|lunaid))
-summary(ASR_int_GSH_DLPFC_z)
-ASR_int_GSH_RDLPFC_z <- lmer(data=ASR_data, internalizing_probs_z ~ GSH_RDLPFC_z + sex + (1|lunaid))
-summary(ASR_int_GSH_RDLPFC_z)
-ASR_int_GSH_LDLPFC_z <- lmer(data=ASR_data, internalizing_probs_z ~ GSH_LDLPFC_z + sex + (1|lunaid))
-summary(ASR_int_GSH_LDLPFC_z)
-
-#GSH ACC#
-ASR_int_GSH_ACC <- lmer(data=ASR_data, sr.internalizing_probs_T ~ sipfc.ACC_GSH_gamadj + sex + (1|lunaid))
-ggplot(data=ASR_data)+aes(x=sr.internalizing_probs_T, y=sipfc.ACC_GSH_gamadj, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("internalizing") + ylab("GSH ACC")
-summary(ASR_int_GSH_ACC)
-#GSH MPFC#
-ASR_int_GSH_MPFC <- lmer(data=ASR_data, sr.internalizing_probs_T ~ sipfc.MPFC_GSH_gamadj + sex + (1|lunaid))
-ggplot(data=ASR_data)+aes(x=sr.internalizing_probs_T, y=sipfc.MPFC_GSH_gamadj, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("internalizing") + ylab("GSH MPFC")
-summary(ASR_int_GSH_MPFC)
-#GSH DLPFC#
-ASR_int_GSH_DLPFC <- lmer(data=ASR_data, sr.internalizing_probs_T ~ sipfc.DLPFC_GSH_gamadj + sex + (1|lunaid))
-ggplot(data=ASR_data)+aes(x=sr.internalizing_probs_T, y=sipfc.DLPFC_GSH_gamadj, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("internalizing") + ylab("GSH DLPFC")
-summary(ASR_int_GSH_DLPFC)
-#GSH RDLPFC#
-ASR_int_GSH_RDLPFC <- lmer(data=ASR_data, sr.internalizing_probs_T ~ sipfc.RDLPFC_GSH_gamadj + sex + (1|lunaid))
-ggplot(data=ASR_data)+aes(x=sr.internalizing_probs_T, y=sipfc.RDLPFC_GSH_gamadj, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("internalizing") + ylab("GSH RDLPFC")
-summary(ASR_int_GSH_RDLPFC)
-#GSH LDLPFC#
-ASR_int_GSH_LDLPFC <- lmer(data=ASR_data, sr.internalizing_probs_T ~ sipfc.LDLPFC_GSH_gamadj + sex + (1|lunaid))
-ggplot(data=ASR_data)+aes(x=sr.internalizing_probs_T, y=sipfc.LDLPFC_GSH_gamadj, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("internalizing") + ylab("GSH LDLPFC")
-summary(ASR_int_GSH_LDLPFC)
-
-
 int_age_YSR_fixed_inv_z <- lmer(data_YSR_data, internalizing_probs_z ~ rest.invage_z + sex + (1|lunaid)) #fixed model for age
 summary(int_age_YSR_fixed_inv_z)
 int_age_sex_interaction_YSR_inv_z <- lmer(data=YSR_data, internalizing_probs_z ~ rest.invage_z + rest.invage_z*sex + (1|lunaid)) #interaction btwn age and sex
 summary(int_age_sex_interaction_YSR_inv_z)
 
-#ASR#
+##1.2 ASR ~ age and sex####
 int_age_ASR_fixed <- lmer(data=ASR_data, sr.internalizing_probs_T ~ rest.age + sex + (1|lunaid)) #fixed model for age
 summary(int_age_ASR_fixed)
 int_age_sex_interaction_ASR <- lmer(data=ASR_data, sr.internalizing_probs_T ~ rest.age + rest.age*sex + (1|lunaid)) #interaction btwn age and sex
@@ -349,3 +99,820 @@ int_age_ASR_fixed_inv_z <- lmer(data=ASR_data, internalizing_probs_z ~ rest.inva
 summary(int_age_ASR_fixed_inv_z)
 int_age_sex_interaction_ASR_inv_z <- lmer(data=ASR_data, internalizing_probs_z ~ rest.invage_z + rest.invage_z*sex + (1|lunaid)) #interaction btwn age and sex
 summary(int_age_sex_interaction_ASR_inv_z)
+
+#2.0 Metabolites ~ internalizing####
+
+##2.1 merge7T####
+###a. NAA####
+merge7T<- merge7T %>% 
+  mutate(NAA_ACC_z=scale(sipfc.ACC_NAA_gamadj, center=T, scale=T),
+         NAA_MPFC_z=scale(sipfc.MPFC_NAA_gamadj, center=T, scale=T),
+         NAA_DLPFC_z=scale(sipfc.DLPFC_NAA_gamadj, center=T, scale=T),
+         NAA_RDLPFC_z=scale(sipfc.RDLPFC_NAA_gamadj, center=T, scale=T),
+         NAA_LDLPFC_z=scale(sipfc.LDLPFC_NAA_gamadj, center=T, scale=T),
+         internalizing_probs_z=scale(sr.internalizing_probs_T, center=T, scale=T))
+
+int_NAA_ACC_z <- lmer(data=merge7T, internalizing_probs_z ~ NAA_ACC_z + sex + (1|lunaid))
+summary(int_NAA_ACC_z)
+int_NAA_MPFC_z <- lmer(data=merge7T, internalizing_probs_z ~ NAA_MPFC_z + sex + (1|lunaid))
+summary(int_NAA_MPFC_z)
+int_NAA_DLPFC_z <- lmer(data=merge7T, internalizing_probs_z ~ NAA_DLPFC_z + sex + (1|lunaid))
+summary(int_NAA_DLPFC_z)
+int_NAA_RDLPFC_z <- lmer(data=merge7T, internalizing_probs_z ~ NAA_RDLPFC_z + sex + (1|lunaid))
+summary(int_NAA_RDLPFC_z)
+int_NAA_LDLPFC_z <- lmer(data=merge7T, internalizing_probs_z ~ NAA_LDLPFC_z + sex + (1|lunaid))
+summary(int_NAA_LDLPFC_z)
+
+#NAA ACC#
+#sex#
+int_NAA_ACC <- lmer(data=merge7T, sr.internalizing_probs_T ~ sipfc.ACC_NAA_gamadj + sex + (1|lunaid))
+ggplot(data=merge7T)+aes(x=sipfc.ACC_NAA_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("NAA ACC") + ylab("Internalizing")
+summary(int_NAA_ACC)
+#age#
+int_NAA_ACC_age <- lmer(data=merge7T, sr.internalizing_probs_T ~ sipfc.ACC_NAA_gamadj + rest.age + (1|lunaid))
+ggplot(data=merge7T)+aes(x=sipfc.ACC_NAA_gamadj, y=sr.internalizing_probs_T) +geom_point() + stat_smooth(method = lm) + theme_classic(base_size=15) + xlab("NAA ACC") + ylab("Internalizing")
+summary(int_NAA_ACC_age)
+#age interaction#
+int_NAA_ACC_age_int <- lmer(data=merge7T, sr.internalizing_probs_T ~ sipfc.ACC_NAA_gamadj * rest.age + (1|lunaid))
+ggplot(data=merge7T)+aes(x=sipfc.ACC_NAA_gamadj, y=sr.internalizing_probs_T) +geom_point() + stat_smooth(method = lm) + theme_classic(base_size=15) + xlab("NAA ACC") + ylab("Internalizing")
+summary(int_NAA_ACC_age_int)
+
+#NAA MPFC#
+#sex#
+int_NAA_MPFC <- lmer(data=merge7T, sr.internalizing_probs_T ~ sipfc.MPFC_NAA_gamadj + sex + (1|lunaid))
+ggplot(data=merge7T)+aes(x=sipfc.MPFC_NAA_gamadj,y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("NAA MPFC") + ylab("Internalizing")
+summary(int_NAA_MPFC)
+#age#
+int_NAA_MPFC_age <- lmer(data=merge7T, sr.internalizing_probs_T ~ sipfc.MPFC_NAA_gamadj + rest.age + (1|lunaid))
+ggplot(data=merge7T)+aes(x=sipfc.MPFC_NAA_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("NAA MPFC") + ylab("Internalizing")
+summary(int_NAA_MPFC_age)
+#age interaction#
+int_NAA_MPFC_age_int <- lmer(data=merge7T, sr.internalizing_probs_T ~ sipfc.MPFC_NAA_gamadj * rest.age + (1|lunaid))
+ggplot(data=merge7T)+aes(x=sipfc.MPFC_NAA_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("NAA MPFC") + ylab("Internalizing")
+summary(int_NAA_MPFC_age_int)
+
+#NAA DLPFC#
+#sex#
+int_NAA_DLPFC <- lmer(data=merge7T, sr.internalizing_probs_T ~ sipfc.DLPFC_NAA_gamadj + sex + (1|lunaid))
+ggplot(data=merge7T)+aes(x=y=sipfc.DLPFC_NAA_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("NAA DLPFC") + ylab("Internalizing")
+summary(int_NAA_DLPFC)
+#age#
+int_NAA_DLPFC_age <- lmer(data=merge7T, sr.internalizing_probs_T ~ sipfc.DLPFC_NAA_gamadj + rest.age + (1|lunaid))
+ggplot(data=merge7T)+aes(x=sipfc.DLPFC_NAA_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("NAA DLPFC") + ylab("Internalizing")
+summary(int_NAA_DLPFC_age)
+#age interaction#
+int_NAA_DLPFC_age_int <- lmer(data=merge7T, sr.internalizing_probs_T ~ sipfc.DLPFC_NAA_gamadj * rest.age + (1|lunaid))
+ggplot(data=merge7T)+aes(x=sipfc.DLPFC_NAA_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("NAA DLPFC") + ylab("Internalizing")
+summary(int_NAA_DLPFC_age_int)
+
+#NAA RDLPFC#
+#sex#
+int_NAA_RDLPFC <- lmer(data=merge7T, sr.internalizing_probs_T ~ sipfc.RDLPFC_NAA_gamadj + sex + (1|lunaid))
+ggplot(data=merge7T)+aes(x=sipfc.RDLPFC_NAA_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("NAA RDLPFC") + ylab("NAA internalizing")
+summary(int_NAA_RDLPFC)
+#age#
+int_NAA_RDLPFC_age <- lmer(data=merge7T, sr.internalizing_probs_T ~ sipfc.RDLPFC_NAA_gamadj + rest.age + (1|lunaid))
+ggplot(data=merge7T)+aes(x=sipfc.RDLPFC_NAA_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("NAA RDLPFC") + ylab("NAA internalizing")
+summary(int_NAA_RDLPFC_age)
+#age interaction#
+int_NAA_RDLPFC_age_int <- lmer(data=merge7T, sr.internalizing_probs_T ~ sipfc.RDLPFC_NAA_gamadj * rest.age + (1|lunaid))
+ggplot(data=merge7T)+aes(x=sipfc.RDLPFC_NAA_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("NAA RDLPFC") + ylab("NAA internalizing")
+summary(int_NAA_RDLPFC_age_int)
+
+#NAA LDLPFC#
+#sex#
+int_NAA_LDLPFC <- lmer(data=merge7T, sr.internalizing_probs_T ~ sipfc.LDLPFC_NAA_gamadj + sex + (1|lunaid))
+ggplot(data=merge7T)+aes(x=sipfc.LDLPFC_NAA_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("NAA LDLPFC") + ylab("Internalizing")
+summary(int_NAA_LDLPFC)
+#age#
+int_NAA_LDLPFC_age <- lmer(data=merge7T, sr.internalizing_probs_T ~ sipfc.LDLPFC_NAA_gamadj + rest.age + (1|lunaid))
+ggplot(data=merge7T)+aes(x=sipfc.LDLPFC_NAA_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("NAA LDLPFC") + ylab("Internalizing")
+summary(int_NAA_LDLPFC_age)
+#age interaction#
+int_NAA_LDLPFC_age_int <- lmer(data=merge7T, sr.internalizing_probs_T ~ sipfc.LDLPFC_NAA_gamadj * rest.age + (1|lunaid))
+ggplot(data=merge7T)+aes(x=sipfc.LDLPFC_NAA_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("NAA LDLPFC") + ylab("Internalizing")
+summary(int_NAA_LDLPFC_age_int)
+
+###b. mI####
+data<- data %>% 
+  mutate(mI_ACC_z=scale(sipfc.ACC_mI_gamadj, center=T, scale=T),
+         mI_MPFC_z=scale(sipfc.MPFC_mI_gamadj, center=T, scale=T),
+         mI_DLPFC_z=scale(sipfc.DLPFC_mI_gamadj, center=T, scale=T),
+         mI_RDLPFC_z=scale(sipfc.RDLPFC_mI_gamadj, center=T, scale=T),
+         mI_LDLPFC_z=scale(sipfc.LDLPFC_mI_gamadj, center=T, scale=T),
+         internalizing_probs_z=scale(sr.internalizing_probs_T, center=T, scale=T))
+
+int_mI_ACC_z <- lmer(data=merge7T, internalizing_probs_z ~ mI_ACC_z + sex + (1|lunaid))
+summary(int_mI_ACC_z)
+int_mI_MPFC_z <- lmer(data=merge7T, internalizing_probs_z ~ mI_MPFC_z + sex + (1|lunaid))
+summary(int_mI_MPFC_z)
+int_mI_DLPFC_z <- lmer(data=merge7T, internalizing_probs_z ~ mI_DLPFC_z + sex + (1|lunaid))
+summary(int_mI_DLPFC_z)
+int_mI_RDLPFC_z <- lmer(data=merge7T, internalizing_probs_z ~ mI_RDLPFC_z + sex + (1|lunaid))
+summary(int_mI_RDLPFC_z)
+int_mI_LDLPFC_z <- lmer(data=merge7T, internalizing_probs_z ~ mI_LDLPFC_z + sex + (1|lunaid))
+summary(int_mI_LDLPFC_z)
+
+#mI ACC#
+#sex#
+int_mI_ACC <- lmer(data=merge7T, sr.internalizing_probs_T ~ sipfc.ACC_mI_gamadj + sex + (1|lunaid))
+ggplot(data=merge7T)+aes(x=sipfc.ACC_mI_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("mI ACC") + ylab("Internalizing")
+summary(int_mI_ACC)
+#age#
+int_mI_ACC_age <- lmer(data=merge7T, sr.internalizing_probs_T ~ sipfc.ACC_mI_gamadj + rest.age + (1|lunaid))
+ggplot(data=merge7T)+aes(x=sipfc.ACC_mI_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("mI ACC") + ylab("Internalizing")
+summary(int_mI_ACC_age)
+#age interaction
+int_mI_ACC_age_int <- lmer(data=merge7T, sr.internalizing_probs_T ~ sipfc.ACC_mI_gamadj * rest.age + (1|lunaid))
+ggplot(data=merge7T)+aes(x=sipfc.ACC_mI_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("mI ACC") + ylab("Internalizing")
+summary(int_mI_ACC_age_int)
+
+#mI MPFC#
+#sex#
+int_mI_MPFC <- lmer(data=merge7T, sr.internalizing_probs_T ~ sipfc.MPFC_mI_gamadj + sex + (1|lunaid))
+ggplot(data=merge7T)+aes(x=sipfc.MPFC_mI_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("mI MPFC") + ylab("Internalizing")
+summary(int_mI_MPFC)
+#age#
+int_mI_MPFC_age <- lmer(data=merge7T, sr.internalizing_probs_T ~ sipfc.MPFC_mI_gamadj + rest.age + (1|lunaid))
+ggplot(data=merge7T)+aes(x=sipfc.MPFC_mI_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("mI MPFC") + ylab("Internalizing")
+summary(int_mI_MPFC_age)
+#age interaction#
+int_mI_MPFC_age_int <- lmer(data=merge7T, sr.internalizing_probs_T ~ sipfc.MPFC_mI_gamadj * rest.age + (1|lunaid))
+ggplot(data=merge7T)+aes(x=sipfc.MPFC_mI_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("mI MPFC") + ylab("Internalizing")
+summary(int_mI_MPFC_age_int)
+
+#mI DLPFC#
+#sex#
+int_mI_DLPFC <- lmer(data=merge7T, sr.internalizing_probs_T ~ sipfc.DLPFC_mI_gamadj + sex + (1|lunaid))
+ggplot(data=merge7T)+aes(x=sipfc.DLPFC_mI_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("mI DLPFC") + ylab("Internalizing")
+summary(int_mI_DLPFC)
+#age#
+int_mI_DLPFC_age <- lmer(data=merge7T, sr.internalizing_probs_T ~ sipfc.DLPFC_mI_gamadj + rest.age + (1|lunaid))
+ggplot(data=merge7T)+aes(x=sipfc.DLPFC_mI_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("mI DLPFC") + ylab("Internalizing")
+summary(int_mI_DLPFC_age)
+#age interaction
+int_mI_DLPFC_age_int <- lmer(data=merge7T, sr.internalizing_probs_T ~ sipfc.DLPFC_mI_gamadj * rest.age + (1|lunaid))
+ggplot(data=merge7T)+aes(x=sipfc.DLPFC_mI_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("mI DLPFC") + ylab("Internalizing")
+summary(int_mI_DLPFC_age_int)
+
+#mI RDLPFC#
+#sex#
+int_mI_RDLPFC <- lmer(data=merge7T, sr.internalizing_probs_T ~ sipfc.RDLPFC_mI_gamadj + sex + (1|lunaid))
+ggplot(data=merge7T)+aes(x=sipfc.RDLPFC_mI_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("mI RDLPFC") + ylab("Internalizing")
+summary(int_mI_RDLPFC)
+#age#
+int_mI_RDLPFC_age <- lmer(data=merge7T, sr.internalizing_probs_T ~ sipfc.RDLPFC_mI_gamadj + rest.age + (1|lunaid))
+ggplot(data=merge7T)+aes(x=sipfc.RDLPFC_mI_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("mI RDLPFC") + ylab("Internalizing")
+summary(int_mI_RDLPFC_age)
+#age interaction#
+int_mI_RDLPFC_age_int <- lmer(data=merge7T, sr.internalizing_probs_T ~ sipfc.RDLPFC_mI_gamadj * rest.age + (1|lunaid))
+ggplot(data=merge7T)+aes(x=sipfc.RDLPFC_mI_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("mI RDLPFC") + ylab("Internalizing")
+summary(int_mI_RDLPFC_age_int)
+
+#mI LDLPFC#
+#sex#
+int_mI_LDLPFC <- lmer(data=merge7T, sr.internalizing_probs_T ~ sipfc.LDLPFC_mI_gamadj + sex + (1|lunaid))
+ggplot(data=merge7T)+aes(x=sipfc.LDLPFC_mI_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth(method = lm) + theme_classic(base_size=15) + xlab("mI LDLPFC") + ylab("Internalizing")
+summary(int_mI_LDLPFC)
+#age#
+int_mI_LDLPFC_age <- lmer(data=merge7T, sr.internalizing_probs_T ~ sipfc.LDLPFC_mI_gamadj + rest.age + (1|lunaid))
+ggplot(data=merge7T)+aes(x=sipfc.LDLPFC_mI_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth(method = lm) + theme_classic(base_size=15) + xlab("mI LDLPFC") + ylab("Internalizing")
+summary(int_mI_LDLPFC_age)
+#age interaction#
+int_mI_LDLPFC_age_int <- lmer(data=merge7T, sr.internalizing_probs_T ~ sipfc.LDLPFC_mI_gamadj * rest.age + (1|lunaid))
+ggplot(data=merge7T)+aes(x=sipfc.LDLPFC_mI_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth(method = lm) + theme_classic(base_size=15) + xlab("mI LDLPFC") + ylab("Internalizing")
+summary(int_mI_LDLPFC_age_int)
+
+###c. GSH####
+data<- data %>% 
+  mutate(GSH_ACC_z=scale(sipfc.ACC_GSH_gamadj, center=T, scale=T),
+         GSH_MPFC_z=scale(sipfc.MPFC_GSH_gamadj, center=T, scale=T),
+         GSH_DLPFC_z=scale(sipfc.DLPFC_GSH_gamadj, center=T, scale=T),
+         GSH_RDLPFC_z=scale(sipfc.RDLPFC_GSH_gamadj, center=T, scale=T),
+         GSH_LDLPFC_z=scale(sipfc.LDLPFC_GSH_gamadj, center=T, scale=T),
+         internalizing_probs_z=scale(sr.internalizing_probs_T, center=T, scale=T))
+
+int_GSH_ACC_z <- lmer(data=merge7T, internalizing_probs_z ~ GSH_ACC_z + sex + (1|lunaid))
+summary(int_GSH_ACC_z)
+int_GSH_MPFC_z <- lmer(data=merge7T, internalizing_probs_z ~ GSH_MPFC_z + sex + (1|lunaid))
+summary(int_GSH_MPFC_z)
+int_GSH_DLPFC_z <- lmer(data=merge7T, internalizing_probs_z ~ GSH_DLPFC_z + sex + (1|lunaid))
+summary(int_GSH_DLPFC_z)
+int_GSH_RDLPFC_z <- lmer(data=merge7T, internalizing_probs_z ~ GSH_RDLPFC_z + sex + (1|lunaid))
+summary(int_GSH_RDLPFC_z)
+int_GSH_LDLPFC_z <- lmer(data=merge7T, internalizing_probs_z ~ GSH_LDLPFC_z + sex + (1|lunaid))
+summary(int_GSH_LDLPFC_z)
+
+#GSH ACC#
+#sex#
+int_GSH_ACC <- lmer(data=merge7T, sr.internalizing_probs_T ~ sipfc.ACC_GSH_gamadj + sex + (1|lunaid))
+ggplot(data=merge7T)+aes(x=sipfc.ACC_GSH_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("GSH ACC") + ylab("Internalizing")
+summary(int_GSH_ACC)
+#age#
+int_GSH_ACC_age <- lmer(data=merge7T, sr.internalizing_probs_T ~ sipfc.ACC_GSH_gamadj + rest.age + (1|lunaid))
+ggplot(data=merge7T)+aes(x=sipfc.ACC_GSH_gamadj, y=sr.internalizing_probs_T) +geom_point() + stat_smooth(method = lm) + theme_classic(base_size=15) + xlab("GSH ACC") + ylab("Internalizing")
+summary(int_GSH_ACC_age)
+#age interaction#
+int_GSH_ACC_age_int <- lmer(data=merge7T, sr.internalizing_probs_T ~ sipfc.ACC_GSH_gamadj * rest.age + (1|lunaid))
+ggplot(data=merge7T)+aes(x=sipfc.ACC_GSH_gamadj, y=sr.internalizing_probs_T) +geom_point() + stat_smooth(method = lm) + theme_classic(base_size=15) + xlab("GSH ACC") + ylab("Internalizing")
+summary(int_GSH_ACC_age_int)
+
+#GSH MPFC#
+#sex#
+int_GSH_MPFC <- lmer(data=merge7T, sr.internalizing_probs_T ~ sipfc.MPFC_GSH_gamadj + sex + (1|lunaid))
+ggplot(data=merge7T)+aes(x=sipfc.MPFC_GSH_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("GSH MPFC") + ylab("Internalizing")
+summary(int_GSH_MPFC)
+#age#
+int_GSH_MPFC_age <- lmer(data=merge7T, sr.internalizing_probs_T ~ sipfc.MPFC_GSH_gamadj + rest.age + (1|lunaid))
+ggplot(data=merge7T)+aes(x=sipfc.MPFC_GSH_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("GSH MPFC") + ylab("Internalizing")
+summary(int_GSH_MPFC_age)
+#age interaction#
+int_GSH_MPFC_age_int <- lmer(data=merge7T, sr.internalizing_probs_T ~ sipfc.MPFC_GSH_gamadj * rest.age + (1|lunaid))
+ggplot(data=merge7T)+aes(x=sipfc.MPFC_GSH_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("GSH MPFC") + ylab("Internalizing")
+summary(int_GSH_MPFC_age_int)
+
+#GSH DLPFC#
+#sex#
+int_GSH_DLPFC <- lmer(data=merge7T, sr.internalizing_probs_T ~ sipfc.DLPFC_GSH_gamadj + sex + (1|lunaid))
+ggplot(data=merge7T)+aes(x=sipfc.DLPFC_GSH_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("GSH DLPFC") + ylab("Internalizing")
+summary(int_GSH_DLPFC)
+#age#
+int_GSH_DLPFC_age <- lmer(data=merge7T, sr.internalizing_probs_T ~ sipfc.DLPFC_GSH_gamadj + rest.age + (1|lunaid))
+ggplot(data=merge7T)+aes(x=sipfc.DLPFC_GSH_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("GSH DLPFC") + ylab("Internalizing")
+summary(int_GSH_DLPFC_age)
+#age interaction#
+int_GSH_DLPFC_age_int <- lmer(data=merge7T, sr.internalizing_probs_T ~ sipfc.DLPFC_GSH_gamadj * rest.age + (1|lunaid))
+ggplot(data=merge7T)+aes(x=sipfc.DLPFC_GSH_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("GSH DLPFC") + ylab("Internalizing")
+summary(int_GSH_DLPFC_age_int)
+
+#GSH RDLPFC#
+#sex#
+int_GSH_RDLPFC <- lmer(data=merge7T, sr.internalizing_probs_T ~ sipfc.RDLPFC_GSH_gamadj + sex + (1|lunaid))
+ggplot(data=merge7T)+aes(x=sipfc.RDLPFC_GSH_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth(method = lm) + theme_classic(base_size=15) + xlab("GSH RDLPFC") + ylab("Internalizing")
+summary(int_GSH_RDLPFC)
+#age#
+int_GSH_RDLPFC_age <- lmer(data=merge7T, sr.internalizing_probs_T ~ sipfc.RDLPFC_GSH_gamadj + rest.age + (1|lunaid))
+ggplot(data=merge7T)+aes(x=sipfc.RDLPFC_GSH_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth(method = lm) + theme_classic(base_size=15) + xlab("GSH RDLPFC") + ylab("Internalizing")
+summary(int_GSH_RDLPFC_age)
+#age interaction#
+int_GSH_RDLPFC_age_int <- lmer(data=merge7T, sr.internalizing_probs_T ~ sipfc.RDLPFC_GSH_gamadj * rest.age + (1|lunaid))
+ggplot(data=merge7T)+aes(x=sipfc.RDLPFC_GSH_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth(method = lm) + theme_classic(base_size=15) + xlab("GSH RDLPFC") + ylab("Internalizing")
+summary(int_GSH_RDLPFC_age_int)
+
+#GSH LDLPFC#
+#sex#
+int_GSH_LDLPFC <- lmer(data=merge7T, sr.internalizing_probs_T ~ sipfc.LDLPFC_GSH_gamadj + sex + (1|lunaid))
+ggplot(data=merge7T)+aes(x=sipfc.LDLPFC_GSH_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("GSH LDLPC") + ylab("Internalizing")
+summary(int_GSH_LDLPFC)
+#age#
+int_GSH_LDLPFC_age <- lmer(data=merge7T, sr.internalizing_probs_T ~ sipfc.LDLPFC_GSH_gamadj + rest.age + (1|lunaid))
+ggplot(data=merge7T)+aes(x=sipfc.LDLPFC_GSH_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("GSH LDLPC") + ylab("Internalizing")
+summary(int_GSH_LDLPFC_age)
+#age interaction#
+int_GSH_LDLPFC_age_int <- lmer(data=merge7T, sr.internalizing_probs_T ~ sipfc.LDLPFC_GSH_gamadj * rest.age + (1|lunaid))
+ggplot(data=merge7T)+aes(x=sipfc.LDLPFC_GSH_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("GSH LDLPC") + ylab("Internalizing")
+summary(int_GSH_LDLPFC_age_int)
+
+
+##2.2 YSR####
+###a. NAA####
+YSR_data<- YSR_data %>% 
+  mutate(NAA_ACC_z=scale(sipfc.ACC_NAA_gamadj, center=T, scale=T),
+         NAA_MPFC_z=scale(sipfc.MPFC_NAA_gamadj, center=T, scale=T),
+         NAA_DLPFC_z=scale(sipfc.DLPFC_NAA_gamadj, center=T, scale=T),
+         NAA_RDLPFC_z=scale(sipfc.RDLPFC_NAA_gamadj, center=T, scale=T),
+         NAA_LDLPFC_z=scale(sipfc.LDLPFC_NAA_gamadj, center=T, scale=T),
+         internalizing_probs_z=scale(sr.internalizing_probs_T, center=T, scale=T))
+
+YSR_int_NAA_ACC_z <- lmer(data=YSR_data, internalizing_probs_z ~ NAA_ACC_z + sex + (1|lunaid))
+summary(YSR_int_NAA_ACC_z)
+YSR_int_NAA_MPFC_z <- lmer(data=YSR_data, internalizing_probs_z ~ NAA_MPFC_z + sex + (1|lunaid))
+summary(YSR_int_NAA_MPFC_z)
+YSR_int_NAA_DLPFC_z <- lmer(data=YSR_data, internalizing_probs_z ~ NAA_DLPFC_z + sex + (1|lunaid))
+summary(YSR_int_NAA_DLPFC_z)
+YSR_int_NAA_RDLPFC_z <- lmer(data=YSR_data, internalizing_probs_z ~ NAA_RDLPFC_z + sex + (1|lunaid))
+summary(YSR_int_NAA_RDLPFC_z)
+YSR_int_NAA_LDLPFC_z <- lmer(data=YSR_data, internalizing_probs_z ~ NAA_LDLPFC_z + sex + (1|lunaid))
+summary(YSR_int_NAA_LDLPFC_z)
+
+#NAA ACC#
+#sex#
+int_NAA_ACC <- lmer(data=YSR_data, sr.internalizing_probs_T ~ sipfc.ACC_NAA_gamadj + sex + (1|lunaid))
+ggplot(data=YSR_data)+aes(x=sipfc.ACC_NAA_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("NAA ACC") + ylab("Internalizing")
+summary(int_NAA_ACC)
+#age#
+int_NAA_ACC_age <- lmer(data=YSR_data, sr.internalizing_probs_T ~ sipfc.ACC_NAA_gamadj + rest.age + (1|lunaid))
+ggplot(data=YSR_data)+aes(x=sipfc.ACC_NAA_gamadj, y=sr.internalizing_probs_T) +geom_point() + stat_smooth(method = lm) + theme_classic(base_size=15) + xlab("NAA ACC") + ylab("Internalizing")
+summary(int_NAA_ACC_age)
+#age interaction#
+int_NAA_ACC_age_int <- lmer(data=YSR_data, sr.internalizing_probs_T ~ sipfc.ACC_NAA_gamadj * rest.age + (1|lunaid))
+ggplot(data=YSR_data)+aes(x=sipfc.ACC_NAA_gamadj, y=sr.internalizing_probs_T) +geom_point() + stat_smooth(method = lm) + theme_classic(base_size=15) + xlab("NAA ACC") + ylab("Internalizing")
+summary(int_NAA_ACC_age_int)
+
+#NAA MPFC#
+#sex#
+int_NAA_MPFC <- lmer(data=YSR_data, sr.internalizing_probs_T ~ sipfc.MPFC_NAA_gamadj + sex + (1|lunaid))
+ggplot(data=YSR_data)+aes(x=sipfc.MPFC_NAA_gamadj,y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("NAA MPFC") + ylab("Internalizing")
+summary(int_NAA_MPFC)
+#age#
+int_NAA_MPFC_age <- lmer(data=YSR_data, sr.internalizing_probs_T ~ sipfc.MPFC_NAA_gamadj + rest.age + (1|lunaid))
+ggplot(data=YSR_data)+aes(x=sipfc.MPFC_NAA_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("NAA MPFC") + ylab("Internalizing")
+summary(int_NAA_MPFC_age)
+#age interaction#
+int_NAA_MPFC_age_int <- lmer(data=YSR_data, sr.internalizing_probs_T ~ sipfc.MPFC_NAA_gamadj * rest.age + (1|lunaid))
+ggplot(data=YSR_data)+aes(x=sipfc.MPFC_NAA_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("NAA MPFC") + ylab("Internalizing")
+summary(int_NAA_MPFC_age_int)
+
+#NAA DLPFC#
+#sex#
+int_NAA_DLPFC <- lmer(data=YSR_data, sr.internalizing_probs_T ~ sipfc.DLPFC_NAA_gamadj + sex + (1|lunaid))
+ggplot(data=YSR_data)+aes(x=y=sipfc.DLPFC_NAA_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("NAA DLPFC") + ylab("Internalizing")
+summary(int_NAA_DLPFC)
+#age#
+int_NAA_DLPFC_age <- lmer(data=YSR_data, sr.internalizing_probs_T ~ sipfc.DLPFC_NAA_gamadj + rest.age + (1|lunaid))
+ggplot(data=YSR_data)+aes(x=sipfc.DLPFC_NAA_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("NAA DLPFC") + ylab("Internalizing")
+summary(int_NAA_DLPFC_age)
+#age interaction#
+int_NAA_DLPFC_age_int <- lmer(data=YSR_data, sr.internalizing_probs_T ~ sipfc.DLPFC_NAA_gamadj * rest.age + (1|lunaid))
+ggplot(data=YSR_data)+aes(x=sipfc.DLPFC_NAA_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("NAA DLPFC") + ylab("Internalizing")
+summary(int_NAA_DLPFC_age_int)
+
+#NAA RDLPFC#
+#sex#
+int_NAA_RDLPFC <- lmer(data=YSR_data, sr.internalizing_probs_T ~ sipfc.RDLPFC_NAA_gamadj + sex + (1|lunaid))
+ggplot(data=YSR_data)+aes(x=sipfc.RDLPFC_NAA_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("NAA RDLPFC") + ylab("NAA internalizing")
+summary(int_NAA_RDLPFC)
+#age#
+int_NAA_RDLPFC_age <- lmer(data=YSR_data, sr.internalizing_probs_T ~ sipfc.RDLPFC_NAA_gamadj + rest.age + (1|lunaid))
+ggplot(data=YSR_data)+aes(x=sipfc.RDLPFC_NAA_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("NAA RDLPFC") + ylab("NAA internalizing")
+summary(int_NAA_RDLPFC_age)
+#age interaction#
+int_NAA_RDLPFC_age_int <- lmer(data=YSR_data, sr.internalizing_probs_T ~ sipfc.RDLPFC_NAA_gamadj * rest.age + (1|lunaid))
+ggplot(data=YSR_data)+aes(x=sipfc.RDLPFC_NAA_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("NAA RDLPFC") + ylab("NAA internalizing")
+summary(int_NAA_RDLPFC_age_int)
+
+#NAA LDLPFC#
+#sex#
+int_NAA_LDLPFC <- lmer(data=YSR_data, sr.internalizing_probs_T ~ sipfc.LDLPFC_NAA_gamadj + sex + (1|lunaid))
+ggplot(data=YSR_data)+aes(x=sipfc.LDLPFC_NAA_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("NAA LDLPFC") + ylab("Internalizing")
+summary(int_NAA_LDLPFC)
+#age#
+int_NAA_LDLPFC_age <- lmer(data=YSR_data, sr.internalizing_probs_T ~ sipfc.LDLPFC_NAA_gamadj + rest.age + (1|lunaid))
+ggplot(data=YSR_data)+aes(x=sipfc.LDLPFC_NAA_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("NAA LDLPFC") + ylab("Internalizing")
+summary(int_NAA_LDLPFC_age)
+#age interaction#
+int_NAA_LDLPFC_age_int <- lmer(data=YSR_data, sr.internalizing_probs_T ~ sipfc.LDLPFC_NAA_gamadj * rest.age + (1|lunaid))
+ggplot(data=YSR_data)+aes(x=sipfc.LDLPFC_NAA_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("NAA LDLPFC") + ylab("Internalizing")
+summary(int_NAA_LDLPFC_age_int)
+
+###b. mI####
+data<- data %>% 
+  mutate(mI_ACC_z=scale(sipfc.ACC_mI_gamadj, center=T, scale=T),
+         mI_MPFC_z=scale(sipfc.MPFC_mI_gamadj, center=T, scale=T),
+         mI_DLPFC_z=scale(sipfc.DLPFC_mI_gamadj, center=T, scale=T),
+         mI_RDLPFC_z=scale(sipfc.RDLPFC_mI_gamadj, center=T, scale=T),
+         mI_LDLPFC_z=scale(sipfc.LDLPFC_mI_gamadj, center=T, scale=T),
+         internalizing_probs_z=scale(sr.internalizing_probs_T, center=T, scale=T))
+
+int_mI_ACC_z <- lmer(data=YSR_data, internalizing_probs_z ~ mI_ACC_z + sex + (1|lunaid))
+summary(int_mI_ACC_z)
+int_mI_MPFC_z <- lmer(data=YSR_data, internalizing_probs_z ~ mI_MPFC_z + sex + (1|lunaid))
+summary(int_mI_MPFC_z)
+int_mI_DLPFC_z <- lmer(data=YSR_data, internalizing_probs_z ~ mI_DLPFC_z + sex + (1|lunaid))
+summary(int_mI_DLPFC_z)
+int_mI_RDLPFC_z <- lmer(data=YSR_data, internalizing_probs_z ~ mI_RDLPFC_z + sex + (1|lunaid))
+summary(int_mI_RDLPFC_z)
+int_mI_LDLPFC_z <- lmer(data=YSR_data, internalizing_probs_z ~ mI_LDLPFC_z + sex + (1|lunaid))
+summary(int_mI_LDLPFC_z)
+
+#mI ACC#
+#sex#
+int_mI_ACC <- lmer(data=YSR_data, sr.internalizing_probs_T ~ sipfc.ACC_mI_gamadj + sex + (1|lunaid))
+ggplot(data=YSR_data)+aes(x=sipfc.ACC_mI_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("mI ACC") + ylab("Internalizing")
+summary(int_mI_ACC)
+#age#
+int_mI_ACC_age <- lmer(data=YSR_data, sr.internalizing_probs_T ~ sipfc.ACC_mI_gamadj + rest.age + (1|lunaid))
+ggplot(data=YSR_data)+aes(x=sipfc.ACC_mI_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("mI ACC") + ylab("Internalizing")
+summary(int_mI_ACC_age)
+#age interaction
+int_mI_ACC_age_int <- lmer(data=YSR_data, sr.internalizing_probs_T ~ sipfc.ACC_mI_gamadj * rest.age + (1|lunaid))
+ggplot(data=YSR_data)+aes(x=sipfc.ACC_mI_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("mI ACC") + ylab("Internalizing")
+summary(int_mI_ACC_age_int)
+
+#mI MPFC#
+#sex#
+int_mI_MPFC <- lmer(data=YSR_data, sr.internalizing_probs_T ~ sipfc.MPFC_mI_gamadj + sex + (1|lunaid))
+ggplot(data=YSR_data)+aes(x=sipfc.MPFC_mI_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("mI MPFC") + ylab("Internalizing")
+summary(int_mI_MPFC)
+#age#
+int_mI_MPFC_age <- lmer(data=YSR_data, sr.internalizing_probs_T ~ sipfc.MPFC_mI_gamadj + rest.age + (1|lunaid))
+ggplot(data=YSR_data)+aes(x=sipfc.MPFC_mI_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("mI MPFC") + ylab("Internalizing")
+summary(int_mI_MPFC_age)
+#age interaction#
+int_mI_MPFC_age_int <- lmer(data=YSR_data, sr.internalizing_probs_T ~ sipfc.MPFC_mI_gamadj * rest.age + (1|lunaid))
+ggplot(data=YSR_data)+aes(x=sipfc.MPFC_mI_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("mI MPFC") + ylab("Internalizing")
+summary(int_mI_MPFC_age_int)
+
+#mI DLPFC#
+#sex#
+int_mI_DLPFC <- lmer(data=YSR_data, sr.internalizing_probs_T ~ sipfc.DLPFC_mI_gamadj + sex + (1|lunaid))
+ggplot(data=YSR_data)+aes(x=sipfc.DLPFC_mI_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("mI DLPFC") + ylab("Internalizing")
+summary(int_mI_DLPFC)
+#age#
+int_mI_DLPFC_age <- lmer(data=YSR_data, sr.internalizing_probs_T ~ sipfc.DLPFC_mI_gamadj + rest.age + (1|lunaid))
+ggplot(data=YSR_data)+aes(x=sipfc.DLPFC_mI_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("mI DLPFC") + ylab("Internalizing")
+summary(int_mI_DLPFC_age)
+#age interaction
+int_mI_DLPFC_age_int <- lmer(data=YSR_data, sr.internalizing_probs_T ~ sipfc.DLPFC_mI_gamadj * rest.age + (1|lunaid))
+ggplot(data=YSR_data)+aes(x=sipfc.DLPFC_mI_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("mI DLPFC") + ylab("Internalizing")
+summary(int_mI_DLPFC_age_int)
+
+#mI RDLPFC#
+#sex#
+int_mI_RDLPFC <- lmer(data=YSR_data, sr.internalizing_probs_T ~ sipfc.RDLPFC_mI_gamadj + sex + (1|lunaid))
+ggplot(data=YSR_data)+aes(x=sipfc.RDLPFC_mI_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("mI RDLPFC") + ylab("Internalizing")
+summary(int_mI_RDLPFC)
+#age#
+int_mI_RDLPFC_age <- lmer(data=YSR_data, sr.internalizing_probs_T ~ sipfc.RDLPFC_mI_gamadj + rest.age + (1|lunaid))
+ggplot(data=YSR_data)+aes(x=sipfc.RDLPFC_mI_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("mI RDLPFC") + ylab("Internalizing")
+summary(int_mI_RDLPFC_age)
+#age interaction#
+int_mI_RDLPFC_age_int <- lmer(data=YSR_data, sr.internalizing_probs_T ~ sipfc.RDLPFC_mI_gamadj * rest.age + (1|lunaid))
+ggplot(data=YSR_data)+aes(x=sipfc.RDLPFC_mI_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("mI RDLPFC") + ylab("Internalizing")
+summary(int_mI_RDLPFC_age_int)
+
+#mI LDLPFC#
+#sex#
+int_mI_LDLPFC <- lmer(data=YSR_data, sr.internalizing_probs_T ~ sipfc.LDLPFC_mI_gamadj + sex + (1|lunaid))
+ggplot(data=YSR_data)+aes(x=sipfc.LDLPFC_mI_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth(method = lm) + theme_classic(base_size=15) + xlab("mI LDLPFC") + ylab("Internalizing")
+summary(int_mI_LDLPFC)
+#age#
+int_mI_LDLPFC_age <- lmer(data=YSR_data, sr.internalizing_probs_T ~ sipfc.LDLPFC_mI_gamadj + rest.age + (1|lunaid))
+ggplot(data=YSR_data)+aes(x=sipfc.LDLPFC_mI_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth(method = lm) + theme_classic(base_size=15) + xlab("mI LDLPFC") + ylab("Internalizing")
+summary(int_mI_LDLPFC_age)
+#age interaction#
+int_mI_LDLPFC_age_int <- lmer(data=YSR_data, sr.internalizing_probs_T ~ sipfc.LDLPFC_mI_gamadj * rest.age + (1|lunaid))
+ggplot(data=YSR_data)+aes(x=sipfc.LDLPFC_mI_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth(method = lm) + theme_classic(base_size=15) + xlab("mI LDLPFC") + ylab("Internalizing")
+summary(int_mI_LDLPFC_age_int)
+
+###c. GSH####
+data<- data %>% 
+  mutate(GSH_ACC_z=scale(sipfc.ACC_GSH_gamadj, center=T, scale=T),
+         GSH_MPFC_z=scale(sipfc.MPFC_GSH_gamadj, center=T, scale=T),
+         GSH_DLPFC_z=scale(sipfc.DLPFC_GSH_gamadj, center=T, scale=T),
+         GSH_RDLPFC_z=scale(sipfc.RDLPFC_GSH_gamadj, center=T, scale=T),
+         GSH_LDLPFC_z=scale(sipfc.LDLPFC_GSH_gamadj, center=T, scale=T),
+         internalizing_probs_z=scale(sr.internalizing_probs_T, center=T, scale=T))
+
+int_GSH_ACC_z <- lmer(data=YSR_data, internalizing_probs_z ~ GSH_ACC_z + sex + (1|lunaid))
+summary(int_GSH_ACC_z)
+int_GSH_MPFC_z <- lmer(data=YSR_data, internalizing_probs_z ~ GSH_MPFC_z + sex + (1|lunaid))
+summary(int_GSH_MPFC_z)
+int_GSH_DLPFC_z <- lmer(data=YSR_data, internalizing_probs_z ~ GSH_DLPFC_z + sex + (1|lunaid))
+summary(int_GSH_DLPFC_z)
+int_GSH_RDLPFC_z <- lmer(data=YSR_data, internalizing_probs_z ~ GSH_RDLPFC_z + sex + (1|lunaid))
+summary(int_GSH_RDLPFC_z)
+int_GSH_LDLPFC_z <- lmer(data=YSR_data, internalizing_probs_z ~ GSH_LDLPFC_z + sex + (1|lunaid))
+summary(int_GSH_LDLPFC_z)
+
+#GSH ACC#
+#sex#
+int_GSH_ACC <- lmer(data=YSR_data, sr.internalizing_probs_T ~ sipfc.ACC_GSH_gamadj + sex + (1|lunaid))
+ggplot(data=YSR_data)+aes(x=sipfc.ACC_GSH_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("GSH ACC") + ylab("Internalizing")
+summary(int_GSH_ACC)
+#age#
+int_GSH_ACC_age <- lmer(data=YSR_data, sr.internalizing_probs_T ~ sipfc.ACC_GSH_gamadj + rest.age + (1|lunaid))
+ggplot(data=YSR_data)+aes(x=sipfc.ACC_GSH_gamadj, y=sr.internalizing_probs_T) +geom_point() + stat_smooth(method = lm) + theme_classic(base_size=15) + xlab("GSH ACC") + ylab("Internalizing")
+summary(int_GSH_ACC_age)
+#age interaction#
+int_GSH_ACC_age_int <- lmer(data=YSR_data, sr.internalizing_probs_T ~ sipfc.ACC_GSH_gamadj * rest.age + (1|lunaid))
+ggplot(data=YSR_data)+aes(x=sipfc.ACC_GSH_gamadj, y=sr.internalizing_probs_T) +geom_point() + stat_smooth(method = lm) + theme_classic(base_size=15) + xlab("GSH ACC") + ylab("Internalizing")
+summary(int_GSH_ACC_age_int)
+
+#GSH MPFC#
+#sex#
+int_GSH_MPFC <- lmer(data=YSR_data, sr.internalizing_probs_T ~ sipfc.MPFC_GSH_gamadj + sex + (1|lunaid))
+ggplot(data=YSR_data)+aes(x=sipfc.MPFC_GSH_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("GSH MPFC") + ylab("Internalizing")
+summary(int_GSH_MPFC)
+#age#
+int_GSH_MPFC_age <- lmer(data=YSR_data, sr.internalizing_probs_T ~ sipfc.MPFC_GSH_gamadj + rest.age + (1|lunaid))
+ggplot(data=YSR_data)+aes(x=sipfc.MPFC_GSH_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("GSH MPFC") + ylab("Internalizing")
+summary(int_GSH_MPFC_age)
+#age interaction#
+int_GSH_MPFC_age_int <- lmer(data=YSR_data, sr.internalizing_probs_T ~ sipfc.MPFC_GSH_gamadj * rest.age + (1|lunaid))
+ggplot(data=YSR_data)+aes(x=sipfc.MPFC_GSH_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("GSH MPFC") + ylab("Internalizing")
+summary(int_GSH_MPFC_age_int)
+
+#GSH DLPFC#
+#sex#
+int_GSH_DLPFC <- lmer(data=YSR_data, sr.internalizing_probs_T ~ sipfc.DLPFC_GSH_gamadj + sex + (1|lunaid))
+ggplot(data=YSR_data)+aes(x=sipfc.DLPFC_GSH_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("GSH DLPFC") + ylab("Internalizing")
+summary(int_GSH_DLPFC)
+#age#
+int_GSH_DLPFC_age <- lmer(data=YSR_data, sr.internalizing_probs_T ~ sipfc.DLPFC_GSH_gamadj + rest.age + (1|lunaid))
+ggplot(data=YSR_data)+aes(x=sipfc.DLPFC_GSH_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("GSH DLPFC") + ylab("Internalizing")
+summary(int_GSH_DLPFC_age)
+#age interaction#
+int_GSH_DLPFC_age_int <- lmer(data=YSR_data, sr.internalizing_probs_T ~ sipfc.DLPFC_GSH_gamadj * rest.age + (1|lunaid))
+ggplot(data=YSR_data)+aes(x=sipfc.DLPFC_GSH_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("GSH DLPFC") + ylab("Internalizing")
+summary(int_GSH_DLPFC_age_int)
+
+#GSH RDLPFC#
+#sex#
+int_GSH_RDLPFC <- lmer(data=YSR_data, sr.internalizing_probs_T ~ sipfc.RDLPFC_GSH_gamadj + sex + (1|lunaid))
+ggplot(data=YSR_data)+aes(x=sipfc.RDLPFC_GSH_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth(method = lm) + theme_classic(base_size=15) + xlab("GSH RDLPFC") + ylab("Internalizing")
+summary(int_GSH_RDLPFC)
+#age#
+int_GSH_RDLPFC_age <- lmer(data=YSR_data, sr.internalizing_probs_T ~ sipfc.RDLPFC_GSH_gamadj + rest.age + (1|lunaid))
+ggplot(data=YSR_data)+aes(x=sipfc.RDLPFC_GSH_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth(method = lm) + theme_classic(base_size=15) + xlab("GSH RDLPFC") + ylab("Internalizing")
+summary(int_GSH_RDLPFC_age)
+#age interaction#
+int_GSH_RDLPFC_age_int <- lmer(data=YSR_data, sr.internalizing_probs_T ~ sipfc.RDLPFC_GSH_gamadj * rest.age + (1|lunaid))
+ggplot(data=YSR_data)+aes(x=sipfc.RDLPFC_GSH_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth(method = lm) + theme_classic(base_size=15) + xlab("GSH RDLPFC") + ylab("Internalizing")
+summary(int_GSH_RDLPFC_age_int)
+
+#GSH LDLPFC#
+#sex#
+int_GSH_LDLPFC <- lmer(data=YSR_data, sr.internalizing_probs_T ~ sipfc.LDLPFC_GSH_gamadj + sex + (1|lunaid))
+ggplot(data=YSR_data)+aes(x=sipfc.LDLPFC_GSH_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("GSH LDLPC") + ylab("Internalizing")
+summary(int_GSH_LDLPFC)
+#age#
+int_GSH_LDLPFC_age <- lmer(data=YSR_data, sr.internalizing_probs_T ~ sipfc.LDLPFC_GSH_gamadj + rest.age + (1|lunaid))
+ggplot(data=YSR_data)+aes(x=sipfc.LDLPFC_GSH_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("GSH LDLPC") + ylab("Internalizing")
+summary(int_GSH_LDLPFC_age)
+#age interaction#
+int_GSH_LDLPFC_age_int <- lmer(data=YSR_data, sr.internalizing_probs_T ~ sipfc.LDLPFC_GSH_gamadj * rest.age + (1|lunaid))
+ggplot(data=YSR_data)+aes(x=sipfc.LDLPFC_GSH_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("GSH LDLPC") + ylab("Internalizing")
+summary(int_GSH_LDLPFC_age_int)
+
+
+##2.3 ASR####
+###a. NAA####
+ASR_data<- ASR_data %>% 
+  mutate(NAA_ACC_z=scale(sipfc.ACC_NAA_gamadj, center=T, scale=T),
+         NAA_MPFC_z=scale(sipfc.MPFC_NAA_gamadj, center=T, scale=T),
+         NAA_DLPFC_z=scale(sipfc.DLPFC_NAA_gamadj, center=T, scale=T),
+         NAA_RDLPFC_z=scale(sipfc.RDLPFC_NAA_gamadj, center=T, scale=T),
+         NAA_LDLPFC_z=scale(sipfc.LDLPFC_NAA_gamadj, center=T, scale=T),
+         internalizing_probs_z=scale(sr.internalizing_probs_T, center=T, scale=T))
+
+ASR_int_NAA_ACC_z <- lmer(data=ASR_data, internalizing_probs_z ~ NAA_ACC_z + sex + (1|lunaid))
+summary(ASR_int_NAA_ACC_z)
+ASR_int_NAA_MPFC_z <- lmer(data=ASR_data, internalizing_probs_z ~ NAA_MPFC_z + sex + (1|lunaid))
+summary(ASR_int_NAA_MPFC_z)
+ASR_int_NAA_DLPFC_z <- lmer(data=ASR_data, internalizing_probs_z ~ NAA_DLPFC_z + sex + (1|lunaid))
+summary(ASR_int_NAA_DLPFC_z)
+ASR_int_NAA_RDLPFC_z <- lmer(data=ASR_data, internalizing_probs_z ~ NAA_RDLPFC_z + sex + (1|lunaid))
+summary(ASR_int_NAA_RDLPFC_z)
+ASR_int_NAA_LDLPFC_z <- lmer(data=ASR_data, internalizing_probs_z ~ NAA_LDLPFC_z + sex + (1|lunaid))
+summary(ASR_int_NAA_LDLPFC_z)
+
+#NAA ACC#
+#sex#
+int_NAA_ACC <- lmer(data=ASR_data, sr.internalizing_probs_T ~ sipfc.ACC_NAA_gamadj + sex + (1|lunaid))
+ggplot(data=ASR_data)+aes(x=sipfc.ACC_NAA_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("NAA ACC") + ylab("Internalizing")
+summary(int_NAA_ACC)
+#age#
+int_NAA_ACC_age <- lmer(data=ASR_data, sr.internalizing_probs_T ~ sipfc.ACC_NAA_gamadj + rest.age + (1|lunaid))
+ggplot(data=ASR_data)+aes(x=sipfc.ACC_NAA_gamadj, y=sr.internalizing_probs_T) +geom_point() + stat_smooth(method = lm) + theme_classic(base_size=15) + xlab("NAA ACC") + ylab("Internalizing")
+summary(int_NAA_ACC_age)
+#age interaction#
+int_NAA_ACC_age_int <- lmer(data=ASR_data, sr.internalizing_probs_T ~ sipfc.ACC_NAA_gamadj * rest.age + (1|lunaid))
+ggplot(data=ASR_data)+aes(x=sipfc.ACC_NAA_gamadj, y=sr.internalizing_probs_T) +geom_point() + stat_smooth(method = lm) + theme_classic(base_size=15) + xlab("NAA ACC") + ylab("Internalizing")
+summary(int_NAA_ACC_age_int)
+
+#NAA MPFC#
+#sex#
+int_NAA_MPFC <- lmer(data=ASR_data, sr.internalizing_probs_T ~ sipfc.MPFC_NAA_gamadj + sex + (1|lunaid))
+ggplot(data=ASR_data)+aes(x=sipfc.MPFC_NAA_gamadj,y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("NAA MPFC") + ylab("Internalizing")
+summary(int_NAA_MPFC)
+#age#
+int_NAA_MPFC_age <- lmer(data=ASR_data, sr.internalizing_probs_T ~ sipfc.MPFC_NAA_gamadj + rest.age + (1|lunaid))
+ggplot(data=ASR_data)+aes(x=sipfc.MPFC_NAA_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("NAA MPFC") + ylab("Internalizing")
+summary(int_NAA_MPFC_age)
+#age interaction#
+int_NAA_MPFC_age_int <- lmer(data=ASR_data, sr.internalizing_probs_T ~ sipfc.MPFC_NAA_gamadj * rest.age + (1|lunaid))
+ggplot(data=ASR_data)+aes(x=sipfc.MPFC_NAA_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("NAA MPFC") + ylab("Internalizing")
+summary(int_NAA_MPFC_age_int)
+
+#NAA DLPFC#
+#sex#
+int_NAA_DLPFC <- lmer(data=ASR_data, sr.internalizing_probs_T ~ sipfc.DLPFC_NAA_gamadj + sex + (1|lunaid))
+ggplot(data=ASR_data)+aes(x=y=sipfc.DLPFC_NAA_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("NAA DLPFC") + ylab("Internalizing")
+summary(int_NAA_DLPFC)
+#age#
+int_NAA_DLPFC_age <- lmer(data=ASR_data, sr.internalizing_probs_T ~ sipfc.DLPFC_NAA_gamadj + rest.age + (1|lunaid))
+ggplot(data=ASR_data)+aes(x=sipfc.DLPFC_NAA_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("NAA DLPFC") + ylab("Internalizing")
+summary(int_NAA_DLPFC_age)
+#age interaction#
+int_NAA_DLPFC_age_int <- lmer(data=ASR_data, sr.internalizing_probs_T ~ sipfc.DLPFC_NAA_gamadj * rest.age + (1|lunaid))
+ggplot(data=ASR_data)+aes(x=sipfc.DLPFC_NAA_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("NAA DLPFC") + ylab("Internalizing")
+summary(int_NAA_DLPFC_age_int)
+
+#NAA RDLPFC#
+#sex#
+int_NAA_RDLPFC <- lmer(data=ASR_data, sr.internalizing_probs_T ~ sipfc.RDLPFC_NAA_gamadj + sex + (1|lunaid))
+ggplot(data=ASR_data)+aes(x=sipfc.RDLPFC_NAA_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("NAA RDLPFC") + ylab("NAA internalizing")
+summary(int_NAA_RDLPFC)
+#age#
+int_NAA_RDLPFC_age <- lmer(data=ASR_data, sr.internalizing_probs_T ~ sipfc.RDLPFC_NAA_gamadj + rest.age + (1|lunaid))
+ggplot(data=ASR_data)+aes(x=sipfc.RDLPFC_NAA_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("NAA RDLPFC") + ylab("NAA internalizing")
+summary(int_NAA_RDLPFC_age)
+#age interaction#
+int_NAA_RDLPFC_age_int <- lmer(data=ASR_data, sr.internalizing_probs_T ~ sipfc.RDLPFC_NAA_gamadj * rest.age + (1|lunaid))
+ggplot(data=ASR_data)+aes(x=sipfc.RDLPFC_NAA_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("NAA RDLPFC") + ylab("NAA internalizing")
+summary(int_NAA_RDLPFC_age_int)
+
+#NAA LDLPFC#
+#sex#
+int_NAA_LDLPFC <- lmer(data=ASR_data, sr.internalizing_probs_T ~ sipfc.LDLPFC_NAA_gamadj + sex + (1|lunaid))
+ggplot(data=ASR_data)+aes(x=sipfc.LDLPFC_NAA_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("NAA LDLPFC") + ylab("Internalizing")
+summary(int_NAA_LDLPFC)
+#age#
+int_NAA_LDLPFC_age <- lmer(data=ASR_data, sr.internalizing_probs_T ~ sipfc.LDLPFC_NAA_gamadj + rest.age + (1|lunaid))
+ggplot(data=ASR_data)+aes(x=sipfc.LDLPFC_NAA_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("NAA LDLPFC") + ylab("Internalizing")
+summary(int_NAA_LDLPFC_age)
+#age interaction#
+int_NAA_LDLPFC_age_int <- lmer(data=ASR_data, sr.internalizing_probs_T ~ sipfc.LDLPFC_NAA_gamadj * rest.age + (1|lunaid))
+ggplot(data=ASR_data)+aes(x=sipfc.LDLPFC_NAA_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("NAA LDLPFC") + ylab("Internalizing")
+summary(int_NAA_LDLPFC_age_int)
+
+###b. mI####
+ASR_data<- ASR_data %>% 
+  mutate(mI_ACC_z=scale(sipfc.ACC_mI_gamadj, center=T, scale=T),
+         mI_MPFC_z=scale(sipfc.MPFC_mI_gamadj, center=T, scale=T),
+         mI_DLPFC_z=scale(sipfc.DLPFC_mI_gamadj, center=T, scale=T),
+         mI_RDLPFC_z=scale(sipfc.RDLPFC_mI_gamadj, center=T, scale=T),
+         mI_LDLPFC_z=scale(sipfc.LDLPFC_mI_gamadj, center=T, scale=T),
+         internalizing_probs_z=scale(sr.internalizing_probs_T, center=T, scale=T))
+
+int_mI_ACC_z <- lmer(data=ASR_data, internalizing_probs_z ~ mI_ACC_z + sex + (1|lunaid))
+summary(int_mI_ACC_z)
+int_mI_MPFC_z <- lmer(data=ASR_data, internalizing_probs_z ~ mI_MPFC_z + sex + (1|lunaid))
+summary(int_mI_MPFC_z)
+int_mI_DLPFC_z <- lmer(data=ASR_data, internalizing_probs_z ~ mI_DLPFC_z + sex + (1|lunaid))
+summary(int_mI_DLPFC_z)
+int_mI_RDLPFC_z <- lmer(data=ASR_data, internalizing_probs_z ~ mI_RDLPFC_z + sex + (1|lunaid))
+summary(int_mI_RDLPFC_z)
+int_mI_LDLPFC_z <- lmer(data=ASR_data, internalizing_probs_z ~ mI_LDLPFC_z + sex + (1|lunaid))
+summary(int_mI_LDLPFC_z)
+
+#mI ACC#
+#sex#
+int_mI_ACC <- lmer(data=ASR_data, sr.internalizing_probs_T ~ sipfc.ACC_mI_gamadj + sex + (1|lunaid))
+ggplot(data=ASR_data)+aes(x=sipfc.ACC_mI_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("mI ACC") + ylab("Internalizing")
+summary(int_mI_ACC)
+#age#
+int_mI_ACC_age <- lmer(data=ASR_data, sr.internalizing_probs_T ~ sipfc.ACC_mI_gamadj + rest.age + (1|lunaid))
+ggplot(data=ASR_data)+aes(x=sipfc.ACC_mI_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("mI ACC") + ylab("Internalizing")
+summary(int_mI_ACC_age)
+#age interaction
+int_mI_ACC_age_int <- lmer(data=ASR_data, sr.internalizing_probs_T ~ sipfc.ACC_mI_gamadj * rest.age + (1|lunaid))
+ggplot(data=ASR_data)+aes(x=sipfc.ACC_mI_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("mI ACC") + ylab("Internalizing")
+summary(int_mI_ACC_age_int)
+
+#mI MPFC#
+#sex#
+int_mI_MPFC <- lmer(data=ASR_data, sr.internalizing_probs_T ~ sipfc.MPFC_mI_gamadj + sex + (1|lunaid))
+ggplot(data=ASR_data)+aes(x=sipfc.MPFC_mI_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("mI MPFC") + ylab("Internalizing")
+summary(int_mI_MPFC)
+#age#
+int_mI_MPFC_age <- lmer(data=ASR_data, sr.internalizing_probs_T ~ sipfc.MPFC_mI_gamadj + rest.age + (1|lunaid))
+ggplot(data=ASR_data)+aes(x=sipfc.MPFC_mI_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("mI MPFC") + ylab("Internalizing")
+summary(int_mI_MPFC_age)
+#age interaction#
+int_mI_MPFC_age_int <- lmer(data=ASR_data, sr.internalizing_probs_T ~ sipfc.MPFC_mI_gamadj * rest.age + (1|lunaid))
+ggplot(data=ASR_data)+aes(x=sipfc.MPFC_mI_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("mI MPFC") + ylab("Internalizing")
+summary(int_mI_MPFC_age_int)
+
+#mI DLPFC#
+#sex#
+int_mI_DLPFC <- lmer(data=ASR_data, sr.internalizing_probs_T ~ sipfc.DLPFC_mI_gamadj + sex + (1|lunaid))
+ggplot(data=ASR_data)+aes(x=sipfc.DLPFC_mI_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("mI DLPFC") + ylab("Internalizing")
+summary(int_mI_DLPFC)
+#age#
+int_mI_DLPFC_age <- lmer(data=ASR_data, sr.internalizing_probs_T ~ sipfc.DLPFC_mI_gamadj + rest.age + (1|lunaid))
+ggplot(data=ASR_data)+aes(x=sipfc.DLPFC_mI_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("mI DLPFC") + ylab("Internalizing")
+summary(int_mI_DLPFC_age)
+#age interaction
+int_mI_DLPFC_age_int <- lmer(data=ASR_data, sr.internalizing_probs_T ~ sipfc.DLPFC_mI_gamadj * rest.age + (1|lunaid))
+ggplot(data=ASR_data)+aes(x=sipfc.DLPFC_mI_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("mI DLPFC") + ylab("Internalizing")
+summary(int_mI_DLPFC_age_int)
+
+#mI RDLPFC#
+#sex#
+int_mI_RDLPFC <- lmer(data=ASR_data, sr.internalizing_probs_T ~ sipfc.RDLPFC_mI_gamadj + sex + (1|lunaid))
+ggplot(data=ASR_data)+aes(x=sipfc.RDLPFC_mI_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("mI RDLPFC") + ylab("Internalizing")
+summary(int_mI_RDLPFC)
+#age#
+int_mI_RDLPFC_age <- lmer(data=ASR_data, sr.internalizing_probs_T ~ sipfc.RDLPFC_mI_gamadj + rest.age + (1|lunaid))
+ggplot(data=ASR_data)+aes(x=sipfc.RDLPFC_mI_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("mI RDLPFC") + ylab("Internalizing")
+summary(int_mI_RDLPFC_age)
+#age interaction#
+int_mI_RDLPFC_age_int <- lmer(data=ASR_data, sr.internalizing_probs_T ~ sipfc.RDLPFC_mI_gamadj * rest.age + (1|lunaid))
+ggplot(data=ASR_data)+aes(x=sipfc.RDLPFC_mI_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("mI RDLPFC") + ylab("Internalizing")
+summary(int_mI_RDLPFC_age_int)
+
+#mI LDLPFC#
+#sex#
+int_mI_LDLPFC <- lmer(data=ASR_data, sr.internalizing_probs_T ~ sipfc.LDLPFC_mI_gamadj + sex + (1|lunaid))
+ggplot(data=ASR_data)+aes(x=sipfc.LDLPFC_mI_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth(method = lm) + theme_classic(base_size=15) + xlab("mI LDLPFC") + ylab("Internalizing")
+summary(int_mI_LDLPFC)
+#age#
+int_mI_LDLPFC_age <- lmer(data=ASR_data, sr.internalizing_probs_T ~ sipfc.LDLPFC_mI_gamadj + rest.age + (1|lunaid))
+ggplot(data=ASR_data)+aes(x=sipfc.LDLPFC_mI_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth(method = lm) + theme_classic(base_size=15) + xlab("mI LDLPFC") + ylab("Internalizing")
+summary(int_mI_LDLPFC_age)
+#age interaction#
+int_mI_LDLPFC_age_int <- lmer(data=ASR_data, sr.internalizing_probs_T ~ sipfc.LDLPFC_mI_gamadj * rest.age + (1|lunaid))
+ggplot(data=ASR_data)+aes(x=sipfc.LDLPFC_mI_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth(method = lm) + theme_classic(base_size=15) + xlab("mI LDLPFC") + ylab("Internalizing")
+summary(int_mI_LDLPFC_age_int)
+
+###c. GSH####
+ASR_data<- ASR_data %>% 
+  mutate(GSH_ACC_z=scale(sipfc.ACC_GSH_gamadj, center=T, scale=T),
+         GSH_MPFC_z=scale(sipfc.MPFC_GSH_gamadj, center=T, scale=T),
+         GSH_DLPFC_z=scale(sipfc.DLPFC_GSH_gamadj, center=T, scale=T),
+         GSH_RDLPFC_z=scale(sipfc.RDLPFC_GSH_gamadj, center=T, scale=T),
+         GSH_LDLPFC_z=scale(sipfc.LDLPFC_GSH_gamadj, center=T, scale=T),
+         internalizing_probs_z=scale(sr.internalizing_probs_T, center=T, scale=T))
+
+int_GSH_ACC_z <- lmer(data=ASR_data, internalizing_probs_z ~ GSH_ACC_z + sex + (1|lunaid))
+summary(int_GSH_ACC_z)
+int_GSH_MPFC_z <- lmer(data=ASR_data, internalizing_probs_z ~ GSH_MPFC_z + sex + (1|lunaid))
+summary(int_GSH_MPFC_z)
+int_GSH_DLPFC_z <- lmer(data=ASR_data, internalizing_probs_z ~ GSH_DLPFC_z + sex + (1|lunaid))
+summary(int_GSH_DLPFC_z)
+int_GSH_RDLPFC_z <- lmer(data=ASR_data, internalizing_probs_z ~ GSH_RDLPFC_z + sex + (1|lunaid))
+summary(int_GSH_RDLPFC_z)
+int_GSH_LDLPFC_z <- lmer(data=ASR_data, internalizing_probs_z ~ GSH_LDLPFC_z + sex + (1|lunaid))
+summary(int_GSH_LDLPFC_z)
+
+#GSH ACC#
+#sex#
+int_GSH_ACC <- lmer(data=ASR_data, sr.internalizing_probs_T ~ sipfc.ACC_GSH_gamadj + sex + (1|lunaid))
+ggplot(data=ASR_data)+aes(x=sipfc.ACC_GSH_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("GSH ACC") + ylab("Internalizing")
+summary(int_GSH_ACC)
+#age#
+int_GSH_ACC_age <- lmer(data=ASR_data, sr.internalizing_probs_T ~ sipfc.ACC_GSH_gamadj + rest.age + (1|lunaid))
+ggplot(data=ASR_data)+aes(x=sipfc.ACC_GSH_gamadj, y=sr.internalizing_probs_T) +geom_point() + stat_smooth(method = lm) + theme_classic(base_size=15) + xlab("GSH ACC") + ylab("Internalizing")
+summary(int_GSH_ACC_age)
+#age interaction#
+int_GSH_ACC_age_int <- lmer(data=ASR_data, sr.internalizing_probs_T ~ sipfc.ACC_GSH_gamadj * rest.age + (1|lunaid))
+ggplot(data=ASR_data)+aes(x=sipfc.ACC_GSH_gamadj, y=sr.internalizing_probs_T) +geom_point() + stat_smooth(method = lm) + theme_classic(base_size=15) + xlab("GSH ACC") + ylab("Internalizing")
+summary(int_GSH_ACC_age_int)
+
+#GSH MPFC#
+#sex#
+int_GSH_MPFC <- lmer(data=ASR_data, sr.internalizing_probs_T ~ sipfc.MPFC_GSH_gamadj + sex + (1|lunaid))
+ggplot(data=ASR_data)+aes(x=sipfc.MPFC_GSH_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("GSH MPFC") + ylab("Internalizing")
+summary(int_GSH_MPFC)
+#age#
+int_GSH_MPFC_age <- lmer(data=ASR_data, sr.internalizing_probs_T ~ sipfc.MPFC_GSH_gamadj + rest.age + (1|lunaid))
+ggplot(data=ASR_data)+aes(x=sipfc.MPFC_GSH_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("GSH MPFC") + ylab("Internalizing")
+summary(int_GSH_MPFC_age)
+#age interaction#
+int_GSH_MPFC_age_int <- lmer(data=ASR_data, sr.internalizing_probs_T ~ sipfc.MPFC_GSH_gamadj * rest.age + (1|lunaid))
+ggplot(data=ASR_data)+aes(x=sipfc.MPFC_GSH_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("GSH MPFC") + ylab("Internalizing")
+summary(int_GSH_MPFC_age_int)
+
+#GSH DLPFC#
+#sex#
+int_GSH_DLPFC <- lmer(data=ASR_data, sr.internalizing_probs_T ~ sipfc.DLPFC_GSH_gamadj + sex + (1|lunaid))
+ggplot(data=ASR_data)+aes(x=sipfc.DLPFC_GSH_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("GSH DLPFC") + ylab("Internalizing")
+summary(int_GSH_DLPFC)
+#age#
+int_GSH_DLPFC_age <- lmer(data=ASR_data, sr.internalizing_probs_T ~ sipfc.DLPFC_GSH_gamadj + rest.age + (1|lunaid))
+ggplot(data=ASR_data)+aes(x=sipfc.DLPFC_GSH_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("GSH DLPFC") + ylab("Internalizing")
+summary(int_GSH_DLPFC_age)
+#age interaction#
+int_GSH_DLPFC_age_int <- lmer(data=ASR_data, sr.internalizing_probs_T ~ sipfc.DLPFC_GSH_gamadj * rest.age + (1|lunaid))
+ggplot(data=ASR_data)+aes(x=sipfc.DLPFC_GSH_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("GSH DLPFC") + ylab("Internalizing")
+summary(int_GSH_DLPFC_age_int)
+
+#GSH RDLPFC#
+#sex#
+int_GSH_RDLPFC <- lmer(data=ASR_data, sr.internalizing_probs_T ~ sipfc.RDLPFC_GSH_gamadj + sex + (1|lunaid))
+ggplot(data=ASR_data)+aes(x=sipfc.RDLPFC_GSH_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth(method = lm) + theme_classic(base_size=15) + xlab("GSH RDLPFC") + ylab("Internalizing")
+summary(int_GSH_RDLPFC)
+#age#
+int_GSH_RDLPFC_age <- lmer(data=ASR_data, sr.internalizing_probs_T ~ sipfc.RDLPFC_GSH_gamadj + rest.age + (1|lunaid))
+ggplot(data=ASR_data)+aes(x=sipfc.RDLPFC_GSH_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth(method = lm) + theme_classic(base_size=15) + xlab("GSH RDLPFC") + ylab("Internalizing")
+summary(int_GSH_RDLPFC_age)
+#age interaction#
+int_GSH_RDLPFC_age_int <- lmer(data=ASR_data, sr.internalizing_probs_T ~ sipfc.RDLPFC_GSH_gamadj * rest.age + (1|lunaid))
+ggplot(data=ASR_data)+aes(x=sipfc.RDLPFC_GSH_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth(method = lm) + theme_classic(base_size=15) + xlab("GSH RDLPFC") + ylab("Internalizing")
+summary(int_GSH_RDLPFC_age_int)
+
+#GSH LDLPFC#
+#sex#
+int_GSH_LDLPFC <- lmer(data=ASR_data, sr.internalizing_probs_T ~ sipfc.LDLPFC_GSH_gamadj + sex + (1|lunaid))
+ggplot(data=ASR_data)+aes(x=sipfc.LDLPFC_GSH_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("GSH LDLPC") + ylab("Internalizing")
+summary(int_GSH_LDLPFC)
+#age#
+int_GSH_LDLPFC_age <- lmer(data=ASR_data, sr.internalizing_probs_T ~ sipfc.LDLPFC_GSH_gamadj + rest.age + (1|lunaid))
+ggplot(data=ASR_data)+aes(x=sipfc.LDLPFC_GSH_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("GSH LDLPC") + ylab("Internalizing")
+summary(int_GSH_LDLPFC_age)
+#age interaction#
+int_GSH_LDLPFC_age_int <- lmer(data=ASR_data, sr.internalizing_probs_T ~ sipfc.LDLPFC_GSH_gamadj * rest.age + (1|lunaid))
+ggplot(data=ASR_data)+aes(x=sipfc.LDLPFC_GSH_gamadj, y=sr.internalizing_probs_T, color=sex) +geom_point() + stat_smooth() + theme_classic(base_size=15) + xlab("GSH LDLPC") + ylab("Internalizing")
+summary(int_GSH_LDLPFC_age_int)
