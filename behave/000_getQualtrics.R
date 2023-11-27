@@ -237,6 +237,54 @@ PSS <- function(svys=NULL){
   return(pss)
 }
 
+
+# bind suveys together and cast type
+subset_survey_bind <- function(srvy, match_names=names(srvy), name_pattern='.*') {
+   matchi <- match_names %>% grep(pattern=name_pattern,value=T,perl=T)
+   svys[matchi] %>%
+      lapply(name_from_label) %>%
+      bind_rows %>%
+      readr::type_convert()
+}
+
+get_demog <- function(svys, question_patttern='drawing on this page|any skin changes') {
+  has_Q <- lapply(svys,
+                  function(x) grep(question_pattern, get_labels(x),
+                                   ignore.case=T,perl=T,value=T))
+  names_has_data <- svys[sapply(has_Q,function(x) length(x)>=1)] %>%
+     lapply(nrow) %>%
+     Filter(f=function(x) x>=1) %>%
+     names  
+
+  # what surveys match?
+  svys[names_has_data] %>%
+     lapply(function(x) rbind(min(as.character(x$StartDate)),max(as.character(x$EndDate)),nrow(x))) %>%
+     data.frame %>%
+     t %>%
+     print
+
+  return(list(
+  adolbatF  = subset_survey_bind(srvys, names_has_data,'Adol.*Female'),
+  adolbatM  = subset_survey_bind(srvys, names_has_data,'Adol.*Male'),
+  youthbatF = subset_survey_bind(srvys, names_has_data,'Female.*Youth'),
+  youthbatM = subset_survey_bind(srvys, names_has_data,'Male.*Youth')
+  ))
+}
+
+# given list like "question label"="colname"
+# rename columns based on question
+rename_questions <- function(df_names, q_to_column=list("External Data Reference"="id", "Recorded Date"="vdate")){
+  for(qname in names(q_to_column)) {
+    mi <- grep(qname,df_names)
+    if(length(mi)>0L) {
+       newname <- q_to_column[[qname]]
+       #cat("match '",qname,"' at",mi[1], "now '",newname ,"'\n")
+       df_names[mi[1]] <- newname
+    }
+  }
+  return(df_names)
+}
+
 if (sys.nframe() == 0){
 
    inargs <- commandArgs(trailingOnly=TRUE)
