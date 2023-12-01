@@ -44,7 +44,8 @@ files <- list(
  #fooof="eeg/Shane/fooof/Results/allSubjectsFooofMeasures_20230516.csv", # channel no region
  fooof="eeg/Shane/Results/FOOOF/Results/allSubjectsDLPFCfooofMeasures_20230523.csv", # region no channel
  # eeg/Shane/Rscripts/spectral_events_wide.R # 20230623
- eegspec="eeg/Shane/Results/Power_Analysis/Spectral_events_analysis/Gamma/Gamma_DLPFCs_spectralEvents_wide.csv",
+ #  Gamma eeg file renamed, updated 20231117
+ eegspec="eeg/Shane/Results/Spectral_Analysis/Spectral_events_analysis/Gamma/Gamma_DLPFCs_spectralEvents_wide.csv",
  # 20231009 - switch to python for hurst and dfa
  # see mri/hurst/hurst_nolds.py
  hurst_brns="mri/hurst/stats/MRSI_pfc13_brnsdkm_hurst_rs.csv",
@@ -61,7 +62,9 @@ files <- list(
  adi="/Volumes/Hera/Projects/Maria/Census/parguard_luna_visit_adi.csv", # 20230807
  fd="mri/txt/rest_fd.csv", # 20230912 (but generated long ago)
  antiET="behave/txt/anti_scored.csv", # 20231101 (for MP)
- eeg_dlpfc_snr="eeg/Shane/Results/SNR/allSubjectDLPFC_SNRMeasures_20231113.csv" # 20231113
+ # eeg_dlpfc_snr="eeg/Shane/Results/SNR/allSubjectDLPFC_SNRMeasures_20231113.csv" # 20231113
+ #eeg_dlpfc_snr="eeg/Shane/Results/SNR/individual_subject_files_doesntIncludeEvoked/allSubjectsSNR.csv" # 20231117
+ eeg_dlpfc_snr="eeg/Shane/Results/SNR/allSubjectDLPFC_SNRMeasures_20231201.csv" # 20231201
 )
 
 sess <- read.table(files$sess, sep="\t", header=T) %>% rename(lunaid=`id`)
@@ -74,6 +77,7 @@ tat2 <- read.csv(files$tat2)
 fooof <- read.csv(files$fooof)
 fd <- read.table(files$fd,header=T) %>% rename(lunaid=id, date=d8) %>% addcolprefix('rest')
 antiET <- read.csv(files$antiET,header=T) %>%
+   filter(! ld8 %in% c("11786_20210310")) %>% # beh visit with no imaging data. redone in 2022
    separate(ld8,c('lunaid', 'behave.date')) %>%
    rename_with(\(x) gsub('^AS','',x)) %>%
    select(-age,-sex,-visitno) %>%
@@ -173,13 +177,20 @@ hurst_ses <- hursts %>%
 #hurst_ses %>% filter(is.na(visitno))
 noX <- function(d) { if(names(d)[1] == "X") return(d[-1,]); return(d); }
 
+#ignoreSNR=TRUE # 20231117 ignore eeg SNR per shane
+ignoreSNR=FALSE # 20231129 back up
+#
+if(!ignoreSNR){
+   # "","Subject","luna","vdate","Region","ERSP","ITC","BaselinePower","Induced","Evoked","age","visitno","Freq"
 eeg_dlpfc_snr <- read.csv(files$eeg_dlpfc_snr) %>% noX %>%
     select(-Subject, -age, -vdate) %>%
     rename(lunaid=luna) %>%
     pivot_wider(id_cols=c("lunaid","visitno"),
                 names_from=c("Freq","Region"),
-                values_from=c("ERSP","ITC","BaselinePower","Induced")) %>%
+                values_from=c("ERSP","ITC","BaselinePower",
+                              "Induced","Evoked")) %>%
     addcolprefix("eeg.snr", preserve=c("lunaid","visitno"))
+}
 
 mgs_eog <- mgs_eog_visit %>%
    rename(lunaid=LunaID,date=ScanDate) %>%
@@ -272,6 +283,9 @@ merged <- tat2_wide %>%
    merge_and_check(fd, by=c("lunaid","rest.date"), all.x=T) %>%
    merge_and_check(antiET, by=c("lunaid","behave.date"),all.x=T) %>%
    merge_and_check(eeg_dlpfc_snr, by=c("lunaid","visitno"),all.x=T) %>%
+
+   # beh visit with no imaging data. redone in 2022
+   filter(! paste0(lunaid,'_',behave.date) %in% c("11786_20210310")) %>% 
   unique # 11832 is repeated 2 twice?
 
 cat(glue("# merged: {nrow(merged)} rows with {ncol(merged)} columns"),"\n")
