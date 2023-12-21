@@ -25,13 +25,29 @@ regressors_in_use(){
       xargs sed 's/ /,/g;s/\[\([0-9]\)\]/_\1/g;s/\.//g'|uniq|paste -sd:o
 }
 
+preproc_final_file(){
+   # 20231221WF - nosmooth pipeline is different enough it needs its own glob
+   case "${1:?preproc directory}" in
+      *nowarp*nosmooth*) echo   "nfdkm_func.nii.gz";;
+      *nowarp*)          echo  "nfsdkm_func_4.nii.gz";;
+      *nosmooth*)        echo  "nfwdkm_func.nii.gz";;
+      *)                 echo "nfswdkm_func_4.nii.gz";;
+   esac
+   return 0
+}
+
 list_inputs(){
    # 20230105: look for either W prefix (_nowarp) for mprage aligned functional (from 011_nowarp_to_t1.bash)
    #           or standard nfswdkm with warp to mni (default preprocessFunctional)
    local preproc_glob="$1"; shift
+   fileglob="$(preproc_final_file "$preproc_glob")"
+
+   # not warped by default? see 011_nowarp_to_t1.bash for added W
+   ! [[ "$fileglob" =~ wd ]] && fileglob="W${fileglob}"
+
    # nfswdkm for warp,Wnfsdkm for nowarp T1-aligned 
    # shellcheck disable=SC2086,SC2010 # want globbing, so no quote
-   ls $preproc_glob/*nfs*dkm_func_4.nii.gz | grep -Pi 'Wn|wd'
+   ls $preproc_glob/$fileglob | grep -Pi 'Wn|wd'
 }
 
 concat_indir(){
@@ -85,6 +101,7 @@ check_tr(){
 
 decon_dir(){
    case $1 in
+      */MHTask_nost_nowarp_nosmooth/*) echo MGSEncMem/nowarpnosmooth;;
       */MHTask_nost_nowarp/*) echo MGSEncMem/nowarp;;
       */MHTask_nost/*) echo MGSEncMem/mni;;
       *) warn "don't know how to derive decon dir from '$1'"; return 1;;
@@ -107,6 +124,7 @@ decon_all_nost() {
   case "$1" in
      all) preproc_dirs=(/Volumes/Hera/Projects/7TBrainMech/pipelines/MHTask_nost{,_nowarp}/1*_2*/);;
      nowarp) preproc_dirs=(/Volumes/Hera/Projects/7TBrainMech/pipelines/MHTask_nost_nowarp/1*_2*/);;
+     nosmooth) preproc_dirs=(/Volumes/Hera/Projects/7TBrainMech/pipelines/MHTask_nost_nowarp_nosmooth/1*_2*/);;
      mni) preproc_dirs=(/Volumes/Hera/Projects/7TBrainMech/pipelines/MHTask_nost/1*_2*/);;
      procdir) preproc_dirs=(/Volumes/Hera/Projects/7TBrainMech/pipelines/"$PROCDIR"/1*_2*/);;
      *) preproc_dirs=("$@");;
@@ -192,6 +210,9 @@ function decon_dir_test { #@test
 
   run decon_dir /Volumes/Hera/preproc/7TBrainMech_mgsencmem/MHTask_nost_nowarp/10173_20180802/
   [[  $output == MGSEncMem/nowarp ]]
+
+  run decon_dir /Volumes/Hera/preproc/7TBrainMech_mgsencmem/MHTask_nost_nowarp_nosmooth/10173_20180802/
+  [[  $output == MGSEncMem/nowarpnosmooth ]]
 }
 function list_inputs_test { #@test
    run list_inputs  "/Volumes/Hera/Projects/7TBrainMech/pipelines/MHTask_nost_nowarp/10173_20180802/0*/" 
@@ -200,6 +221,11 @@ function list_inputs_test { #@test
    run list_inputs  "/Volumes/Hera/Projects/7TBrainMech/pipelines/MHTask_nost/10173_20180802/0*/" 
    [[ $(grep -c '\n' <<< "$output") == 3 ]]
    [[ $output =~ nfswdkm_func_4.nii.gz ]]
+}
+function list_inputs_nosmooth { #@test
+   run list_inputs  "/Volumes/Hera/Projects/7TBrainMech/pipelines/MHTask_nost_nowarp_nosmooth/10173_20180802/0*/"
+   [[ $(grep -c '\n' <<< "$output") == 3 ]]
+   [[ $output =~ nfdkm_func.nii.gz ]]
    
 }
 function regressors_in_use_test { #@test
