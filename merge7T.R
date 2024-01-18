@@ -59,12 +59,11 @@ files <- list(
  sr="behave/txt/SR.csv", # 20230620. pulled from db from RA matained sheets
  ssp="behave/txt/SSP.csv",  # 20230717. from behave/SSP_Cantab_spatial.R
  sex="txt/db_sex.csv", # 20230718 all sex in DB
- adi="/Volumes/Hera/Projects/Maria/Census/parguard_luna_visit_adi.csv", # 20230807
+ adi="/Volumes/Hera/Projects/Maria/Census/parguard_luna_visit_adi.csv", # 20230807, updated 20240118
  fd="mri/txt/rest_fd.csv", # 20230912 (but generated long ago)
  antiET="behave/txt/anti_scored.csv", # 20231101 (for MP)
  # eeg_dlpfc_snr="eeg/Shane/Results/SNR/allSubjectDLPFC_SNRMeasures_20231113.csv" # 20231113
- #eeg_dlpfc_snr="eeg/Shane/Results/SNR/individual_subject_files_doesntIncludeEvoked/allSubjectsSNR.csv" # 20231117
- eeg_dlpfc_snr="eeg/Shane/Results/SNR/allSubjectDLPFC_SNRMeasures_20231201.csv" # 20231201
+ eeg_dlpfc_snr="eeg/Shane/Results/SNR/allSubjectDLPFC_SNRMeasures.csv" # 20231204
 )
 
 sess <- read.table(files$sess, sep="\t", header=T) %>% rename(lunaid=`id`)
@@ -178,18 +177,21 @@ hurst_ses <- hursts %>%
 noX <- function(d) { if(names(d)[1] == "X") return(d[-1,]); return(d); }
 
 #ignoreSNR=TRUE # 20231117 ignore eeg SNR per shane
-ignoreSNR=FALSE # 20231129 back up
+#ignoreSNR=FALSE # 20231129 back up
+ignoreSNR=!file.exists(files$eeg_dlpfc_snr) # 20240118 down again
 #
 if(!ignoreSNR){
-   # "","Subject","luna","vdate","Region","ERSP","ITC","BaselinePower","Induced","Evoked","age","visitno","Freq"
+   # "","Subject","luna","vdate","Region","ERSP","ITC","BaselinePower","Induced","Evoked","InducedDB","EvokedDB","age","visitno","Freq"
 eeg_dlpfc_snr <- read.csv(files$eeg_dlpfc_snr) %>% noX %>%
     select(-Subject, -age, -vdate) %>%
     rename(lunaid=luna) %>%
     pivot_wider(id_cols=c("lunaid","visitno"),
                 names_from=c("Freq","Region"),
                 values_from=c("ERSP","ITC","BaselinePower",
-                              "Induced","Evoked")) %>%
+                              "Induced","Evoked","InducedDB","EvokedDB")) %>%
     addcolprefix("eeg.snr", preserve=c("lunaid","visitno"))
+} else {
+   eeg_dlpfc_snr <- NULL
 }
 
 mgs_eog <- mgs_eog_visit %>%
@@ -230,6 +232,7 @@ sessid <- function(d)
    gsub(' ','',.)
 
 merge_and_check <- function(big, d, ...) {
+   if(is.null(d)) return(big)
    big.new <- merge(big, d, ...) %>% unique # 11832 is repeated 2 twice?
 
    bs <- sessid(big)

@@ -36,6 +36,7 @@ behave/txt/SR.csv:
 behave/txt/SSP.csv:
 	make -C behave txt/SSP.csv
 
+# 20240118: updated some address, no new rows
 /Volumes/Hera/Projects/Maria/Census/parguard_luna_visit_adi.csv:
 	make -C $(dir $@) $(notdir $@)
 
