@@ -1,0 +1,6 @@
+11662_20188614 not a lunaid
+11796_20210719 fs fails. TODO: recover with manual watershed skullstrip?
+11668_20180723 no csi (but maybe have in early 20180702)
+11681_20200731 no CSI
+11689_20180920 have 11689_20181029 11690_20180920
+11808_20220110 typo? 20200110 not 2022. second scan is 20220825
