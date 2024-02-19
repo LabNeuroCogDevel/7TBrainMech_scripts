@@ -29,4 +29,4 @@ paths <- all_visits %>%
   filter(file.exists(path))
 
 anti_scored <- merge(paths, lapply(paths$path, read_scored) %>% bind_rows, by="path") %>% select(-path)
-write.csv(anti_scored, 'txt/anti_scored.csv')
+write.csv(anti_scored, 'txt/anti_scored.csv', quote=F,row.names=F)

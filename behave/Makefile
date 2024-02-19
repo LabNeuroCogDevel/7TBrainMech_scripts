@@ -6,6 +6,8 @@ all: all_daw.csv txt/upps_scored.csv txt/SR.csv
 .make:
 	mkdir .make
 
+txt/7T_packet.xlsx:
+	wget 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR2-clq04Tnw0BWICY5PiEP5DlHoKuEsPuuaOnT3TKeSjfwpYxMViaw8LxVipq0NQ/pub?output=xlsx'
 # single file to represent all the raw task data
 .make/task_mats.ls: alwaysrun | .make
 	mkls $@ "/Volumes/L/bea_res/Data/Temporary*Raw*Data/7T/1*_2*/*_task.mat"

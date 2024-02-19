@@ -3,6 +3,7 @@
 # 20200601WF (OR) - init
 # 20231009WF - see puberty_from_rdata.R
 
+cat("USE: puberty_from_rdata.R\n")
 Sys.exit(1)
 library(dplyr)
 
