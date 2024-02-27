@@ -448,6 +448,9 @@ merged <-
    merge_and_check(ssp, by=c("lunaid","behave.date"),all.x=T) %>%
    merge_and_check(sex, by=c("lunaid"), all.x=T) %>%
    merge_and_check(adi, by=c("lunaid","visitno"), all.x=T) %>%
+      # 20240227 - misisng future vists assigned ADI at last known
+      group_by(lunaid) %>% arrange(visitno) %>%
+      fill(matches('^ADI_.*RANK'),.direction="down") %>% ungroup() %>%
    merge_and_check(fd, by=c("lunaid","rest.date"), all.x=T) %>%
    merge_and_check(antiET, by=c("lunaid","behave.date"),all.x=T) %>%
    merge_and_check(eeg_dlpfc_snr, by=c("lunaid","visitno"),all.x=T) %>%

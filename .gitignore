@@ -13,7 +13,7 @@ junk/
 do_not_use/
 *png
 *ps
-*txt
+*.txt
 *csv
 *.ini
 *jpeg
@@ -23,3 +23,4 @@ do_not_use/
 \#*#
 moon_t2t2star
 !docs/imgs/*
+!txt/merged_7t.csv
