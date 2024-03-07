@@ -51,8 +51,25 @@ txt/putamen_gm.csv: $(wildcard ../../../subjs/1*_2*/slice_PFC/MRSI_roi/putamen2/
 txt/putamen_lcmodel.csv: .make/putamen_lcmodel.ls txt/putamen_gm.csv
 	./putamen_lcmodel2csv.R
 
+all_13MP20200207_cnt.nii.gz:
+	./all_coverage.bash
+
 all_13MP20200207_cnt_roimaxima.txt: all_13MP20200207_cnt.nii.gz roi_locations/ROI_mni_13MP20200207.nii.gz
 	for mi in {1..13}; do 3dmaxima -min_dist 1000 -input "3dcalc( -a ./all_13MP20200207_cnt.nii.gz -b roi_locations/ROI_mni_13MP20200207.nii.gz -expr a*amongst(b,$$mi) -short )" 2>/dev/null|grep -Po '([-0-9.]{2,}( +|\))){3}'|tr '[)\n]' ' '; echo " $$mi"; done > $@
 
 all_13MP20200207_centered.nii.gz: all_13MP20200207_cnt.nii.gz ./all_13MP20200207_cnt_roimaxima.txt  
 	3dUndump -prefix $@ -master all_13MP20200207_cnt.nii.gz  -xyz -srad 5 -orient RAI ./all_13MP20200207_cnt_roimaxima.txt  -overwrite
+
+13MP20200207_cnt_vol-per-roi.nii.gz: all_13MP20200207.nii.gz
+	./coverage_roi4d.py 
+
+SHELL:=/usr/bin/bash
+13MP20200207_covcentered.nii.gz:  13MP20200207_cnt_vol-per-roi.nii.gz
+	3dExtrema -sep_dist 40 -volume 13MP20200207_cnt_vol-per-roi.nii.gz |& \
+		perl -slane '$$roi=$$1+1 if m/for Volume .(\d+)/; print "@F[2..4] $$roi" if m/^\s+1\s/' \
+		> txt/cm-extrema_per-roi.txt
+	3dUndump -prefix $@ -master 13MP20200207_cnt_vol-per-roi.nii.gz -xyz -srad 5 -orient RAI \
+		txt/cm-extrema_per-roi.txt -overwrite
+
+13MP20200207_mancov-centered.nii.gz: txt/MP_manual_coverage_center.txt
+	3dUndump -prefix $@ -master 13MP20200207_cnt_vol-per-roi.nii.gz -xyz -srad 5 -orient RAI $< -overwrite
