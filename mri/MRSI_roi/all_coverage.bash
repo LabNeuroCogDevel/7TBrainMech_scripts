@@ -20,7 +20,7 @@ rm /tmp/x.nii.gz
 # make an ROI masked version for easy viewing
 3dcalc -overwrite -r ./roi_locations/ROI_mni_13MP20200207.nii.gz -c all_13MP20200207_cnt.nii.gz -expr 'step(r)*c' -prefix  all_13MP20200207_cnt_masked.nii.gz
 
-Rscript -e "library(dplyr);library(tidyr);library(reshape2);system('3dROIstats -minmax -sigma -mask roi_locations/ROI_mni_13MP20200207.nii.gz all_13MP20200207_cnt.nii.gz', intern=T) %>% read.table(text=.) %>% melt() %>% separate(variable, c('measure','roi'))  %>% select(-File,-Sub.brick) %>% spread(measure, value) %>% mutate(roi=as.numeric(roi)) %>% inner_join(read.table('roi_locations/labels_13MP20200207.txt',sep=':') %>% mutate(roi=1:n()) %>% select(label=V1, roi)) %>% arrange(roi) %>% print.data.frame(row.names=F)"
+Rscript -e "library(dplyr);library(tidyr);library(reshape2);system('3dROIstats -minmax -sigma -mask roi_locations/ROI_mni_13MP20200207.nii.gz all_13MP20200207_cnt.nii.gz', intern=T) %>% read.table(text=.) %>% melt() %>% separate(variable, c('measure','roi'))  %>% select(-File,-Sub.brick) %>% spread(measure, value) %>% mutate(roi=as.numeric(roi)) %>% inner_join(read.table('roi_locations/labels_13MP20200207.txt',sep=':') %>% mutate(roi=1:n()) %>% select(label=V1, roi)) %>% arrange(roi) %>% print.data.frame(row.names=F)" | tee txt/13MP20200207_withIdeal-coverageStats.txt
 #Using File, Sub.brick as id variables
 #Joining, by = "roi"
 #   roi Max     Mean Min    Sigma              label
