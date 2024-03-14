@@ -58,3 +58,8 @@ txt/SSP.csv:
 
 txt/anti_scored.csv: .make/anti_scored.ls # $(wildcard  /Volumes/L/bea_res/Data/Tasks/Anti/Basic/1*/2*/Scored/txt/1*.2*.1.summary.txt)
 	Rscript anti_behave.R
+
+# added 20240314
+txt/rt18.csv: .make/qualtrics.ls
+	./RT18.R
+
