@@ -41,26 +41,40 @@ import re
 import pandas as pd
 from glob import glob
 
-def roits_perroi_measure(roi_fname, func=nolds.dfa):
+def roits_perroi_measure(roi_fname, func):
     """roi mean time course (averaging/smoothing within roi may change high freq props) """
     ts = np.loadtxt(roi_fname)
+
+    # single column input needs to be forced to matrix
+    if len(ts.shape)==1:
+        ts = np.reshape(ts,(ts.shape[0],1))
+
     n_roi = ts.shape[1]
     x = [func(ts[:,i]) for i in range(n_roi)]
     return x
 
-def glob_func(ts_filepatt, roi_labels, func=nolds.dfa):
+def match_or_na(instr: str, pat):
+    "Wrap bad match to return NA if None"
+    match = re.search(pat, instr)
+    if match is None:
+        return "NA"
+    return match[0]
+
+def glob_func(ts_filepatt, roi_labels, func, idpatt=r'\d{5}_\d{8}'):
     ts1d=glob(ts_filepatt)
     pool = multiprocessing.Pool(processes=72)
     all_ts = pool.map(partial(roits_perroi_measure, func=func), ts1d)
     
     df = pd.DataFrame(all_ts)
+    print(f"have {len(ts1d)} files like {ts_filepatt}. dataframe is {df.shape}. running {func.__name__}")
     
     # more useful roi names are in the original label file
     # use those to avoid losing track of indexes
-    df.columns = roi_labels
+    if roi_labels is not None:
+        df.columns = roi_labels
     
     # luna+8digit yyyymmdd visit date/session id
-    ld8 = [re.search('\d{5}_\d{8}',x)[0] for x in ts1d]
+    ld8 = [match_or_na(x,idpatt) for x in ts1d]
     df.insert(0, 'ld8', ld8)
     return df
 
@@ -70,20 +84,27 @@ def run_all():
     roi_labels_df =pd.read_table(label_file, sep=':', names=['roi','cord'])
     roi_labels = [re.sub(' ','',roi) for roi in roi_labels_df.roi]
 
-    subject_glob='/Volumes/Hera/preproc/7TBrainMech_rest/MHRest_nost_nowarp/*/'
+    print(f"# running hurst and dfa for rois {label_file}")
     for func in [nolds.hurst_rs,nolds.dfa]:
         funcname=re.sub('.*\\.','',func.__name__)
-        for prefix in ['nsdkm','brnsdkm']:
+        for prefix in ['nsdkm','brnsdkm', 'nswdkm']:
             if prefix=='brnsdkm':
                 in_prefix=''
             else:
                 in_prefix=f'_{prefix}'
 
+            # warp files are in different preproc directory
+            # /Volumes/Hera/preproc/7TBrainMech_rest/MHRest_nost/11868_20211025/mrsipfc13_nzmean_nswdkm_ts.1D
+            if prefix=='nswdkm':
+                subject_glob = '/Volumes/Hera/preproc/7TBrainMech_rest/MHRest_nost/1*_2*/'
+            else:
+                subject_glob='/Volumes/Hera/preproc/7TBrainMech_rest/MHRest_nost_nowarp/*/'
+
             outname = f'stats/MRSI_pfc13_{prefix}_{funcname}.csv'
             in_glob=f'{subject_glob}/mrsipfc13_nzmean{in_prefix}_ts.1D'
 
             print(f"making {outname}")
-            glob_func(in_glob, roi_labels).\
+            glob_func(in_glob, roi_labels, func).\
               to_csv(outname, quoting=False, index=False)
 
 if __name__ == "__main__":
