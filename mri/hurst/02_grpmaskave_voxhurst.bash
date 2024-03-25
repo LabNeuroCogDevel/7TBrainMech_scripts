@@ -14,10 +14,18 @@
 # NB. gm_mask.bash need to remove what would be zeros from roi averages?
 #
 # original MNI atlas center seeds (before placment and coverage re-adjustment)
-#     7	ACC:	2 -34 22
-#     8	MPFC:	0 -54 28
-#     9	R DLPFC:	-46 -38 24
-#    10	L DLPFC:	42 -42 28
+#
+#cat -n ../MRSI_roi/roi_locations/labels_13MP20200207.txt 
+#    1  R Anterior Insula:      -37.9948 -2.04134 14.0155
+#    2  L Anterior Insula:      38 -6 14
+#    3  R Posterior Insula:     -40 14 8
+#    4  L Posterior Insula:     44 14 8
+#    5  R Caudate:      -10 -12 16
+#    6  L Caudate:      16 -12 16
+#    7  ACC:	2 -34 22
+#    8  MPFC:	0 -54 28
+#    9  R DLPFC:	-46 -38 24
+#   10  L DLPFC:	42 -42 28
 outcsv=${1:?need first argument as output csv file, e.g. stats/voxelwise_py_dlpfc-acc-mpfc.csv};
 inmask=${2:?need second argument to be input ROI mask. probably atlas/13MP20200207_mancov-centered_GMgt0.5-mask.nii.gz};
 ! test -r "$inmask" && warn "cannot find input mask $_" && exit 1
@@ -31,6 +39,8 @@ shift 2; # remove first 2 required args.
 3dmaskave_grp \
    -roistats 1 \
    -csv "$outcsv" \
+   -m "LPostInsula=$inmask<4>" \
+   -m "RCaudate=$inmask<5>" \
    -m "ACC=$inmask<7>" \
    -m "MPFC=$inmask<8>" \
    -m "RDLPFC=$inmask<9>" \
