@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 # nolds dfa into  'txt/nolds_dfa.csv'
 # 20230926WF - init (MP<-JH<-DL)
+# 20240324WF - use 02_roimean_hurst.bash via Makfile instead! 
+#              this file imported by hurst_1d.py and used by 02_roimean_hurst.bash
+#              but files saved by run_all() are obsolute
 
 # nolds suggested from MP via JH via Dan Luri
 # >  two methods for calculating the Hurst *things*:
@@ -102,6 +105,9 @@ def run_all():
             else:
                 subject_glob='/Volumes/Hera/preproc/7TBrainMech_rest/MHRest_nost_nowarp/*/'
 
+            # eg.
+            # stats/MRSI_pfc13_brnsdkm_hurst_rs.csv
+            # stats/MRSI_pfc13_brnsdkm_dfa.csv
             outname = f'stats/MRSI_pfc13_{prefix}_{funcname}.csv'
             in_glob=f'{subject_glob}/mrsipfc13_nzmean{in_prefix}_ts.1D'
 
