@@ -62,15 +62,17 @@ def match_or_na(instr: str, pat):
 
 def glob_func(ts_filepatt, roi_labels, func, idpatt=r'\d{5}_\d{8}'):
     ts1d=glob(ts_filepatt)
+    print(f"# have {len(ts1d)} files like {ts_filepatt}. running {func.__name__}")
     pool = multiprocessing.Pool(processes=72)
     all_ts = pool.map(partial(roits_perroi_measure, func=func), ts1d)
     
     df = pd.DataFrame(all_ts)
-    print(f"have {len(ts1d)} files like {ts_filepatt}. dataframe is {df.shape}. running {func.__name__}")
+    print(f"#   dataframe is {df.shape}.")
     
     # more useful roi names are in the original label file
     # use those to avoid losing track of indexes
     if roi_labels is not None:
+        print(f"#   setting {len(roi_labels)} labels to columnnames: {', '.join(roi_labels)}")
         df.columns = roi_labels
     
     # luna+8digit yyyymmdd visit date/session id
