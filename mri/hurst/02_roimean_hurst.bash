@@ -45,7 +45,7 @@ parse_hurst_args(){
    [[ -z "$ATLAS" || -z "$INDIR" || -z "$METHOD" || -z "$OUTPUT" ]] &&
       echo "-atlas, -method, -output and -indir are all required!" && exit 1
    ! [[ $METHOD =~ ^(hurst_rs|dfa)$ ]] && echo "method '$METHOD' must be hurst_rs or dfa" && exit 1
-   [ ! -r "$ATLAS" ] && echo "Cannot read atlas file '$ATLAS'" && exit 2
+   [[ ! -r "$ATLAS" && ! $ATLAS =~ mrsi13 ]] && echo "Cannot read atlas file '$ATLAS'" && exit 2
    return 0
 }
 
@@ -56,12 +56,16 @@ calc_hurst(){
     local atlas="${4:?roi atlas nifti file}"
     case $atlas in
        *mancov*) roi_labels=(4_LPostInsula 5_RCaudate 7_ACC 8_MPFC 9_RDLPFC 10_LDLPFC);;
-       *13MP*)   roi_labels=(1_RAntInsula 2_LAntInsula 3_RPostInsula 4_LPostInsula 5_RCaudate 6_LCaudate 7_ACC 8_MPFC 9_RDLPFC 10_LDLPFC 11_RSTS 12_LSTS 13_RThal);;
+       #{subject_glob}/mrsipfc13_nzmean{in_prefix}_ts.1D
+       *13MP*|*pfc13*|*mrsi13*)
+                  roi_labels=(1_RAntInsula 2_LAntInsula 3_RPostInsula 4_LPostInsula 5_RCaudate 6_LCaudate 7_ACC 8_MPFC 9_RDLPFC 10_LDLPFC 11_RSTS 12_LSTS 13_RThal);;
        *mni_gm50_mask.nii.gz)
                  roi_labels=(all_gm);;
        *) echo "unknown atlas '$atlas', want to match mancov, 13MP or mni_gm"; exit 3;;
     esac
-    ./hurst_1d.py  --input "$ts_folder/1*_2*.1D" --output "$saveas" --method "$method" --roilabels "${roi_labels[@]}"
+    # newer ts calc in local ts/ . native space mrsi13 is within preproc dir
+    [ -d "$ts_folder" ] && glob="$ts_folder/1*_2*.1D" || glob="$ts_folder"
+    ./hurst_1d.py  --input "$glob" --output "$saveas" --method "$method" --roilabels "${roi_labels[@]}"
 }
 
 main_roimean_hurst(){
