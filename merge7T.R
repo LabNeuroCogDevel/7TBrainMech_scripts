@@ -45,6 +45,7 @@ RM_LUNA <- c('11467') # one visit sneaking in on eeg data. not a 7T participant
 # these are dropped after disclosing/discovering exclusion criteria
 RM_LUNA <- c(RM_LUNA, "11646", "11659", "11800", "11653", "11690", "11812")
 rewrite_luna<-function(d, id_col='lunaid', same_luna=SAME_LUNA){
+   d <- as.data.frame(d)
    d$lunaid <- gsub('11748; 11515','11515', d$lunaid)
 
    bad_luna_row<-d[,id_col] %in% RM_LUNA
@@ -101,10 +102,11 @@ files <- list(
  eegspec="eeg/Shane/Results/Spectral_Analysis/Spectral_events_analysis/Gamma/Gamma_DLPFCs_spectralEvents_wide.csv",
  # 20231009 - switch to python for hurst and dfa
  # see mri/hurst/hurst_nolds.py
- hurst_brns="mri/hurst/stats/MRSI_pfc13_brnsdkm_hurst_rs.csv",
- hurst_ns="mri/hurst/stats/MRSI_pfc13_nsdkm_hurst_rs.csv",
- dfa_brns="mri/hurst/stats/MRSI_pfc13_brnsdkm_dfa.csv",
- dfa_ns="mri/hurst/stats/MRSI_pfc13_nsdkm_dfa.csv",
+ hurst="mri/hurst/stats/dfa_mean-roi_atlas-mrsi13GM_prefix-brnasw.csv",
+ #hurst_brns="mri/hurst/stats/MRSI_pfc13_brnsdkm_hurst_rs.csv",
+ #hurst_ns="mri/hurst/stats/MRSI_pfc13_nsdkm_hurst_rs.csv",
+ #dfa_brns="mri/hurst/stats/MRSI_pfc13_brnsdkm_dfa.csv",
+ #dfa_ns="mri/hurst/stats/MRSI_pfc13_nsdkm_dfa.csv",
  #hurst="mri/hurst/stats/MRSI_pfc13_H.csv", #remove matlab hurst see mri/hurst/hurst.m
 
  #mgs_eog="eeg/eog_cal/eye_scored_mgs_eog.csv" # 20230612
@@ -118,8 +120,11 @@ files <- list(
  # eeg_dlpfc_snr="eeg/Shane/Results/SNR/allSubjectDLPFC_SNRMeasures_20231113.csv" # 20231113
  eeg_dlpfc_snr="eeg/Shane/Results/SNR/allSubjectDLPFC_SNRMeasures.csv", # 20231204
  eeg_pc1_snr="eeg/Shane/Results/SNR/SNRmeasures_PC1_allStim.csv", # 20240214 #eeg/Shane/Rscripts/SNR/createImputed_PCAdataframes.R
- lost_rest="txt/WF_rest_file_QC.tsv" # 20240216 - hand annotated rest data notes
-
+ lost_rest="txt/WF_rest_file_QC.tsv", # 20240216 - hand annotated rest data notes
+ ders="behave/txt/ders.csv", # 20240314
+ dts="behave/txt/dts.csv", # 20240314
+ rt18="behave/txt/rt18.csv", # 20240314
+ mp2rage="/Volumes/Hera/Projects/corticalmyelin_development/sample_info/7T_MP2RAGE_curation_QC.csv" # 20240422
 )
 
 ## 7T "Packet". RA organized "ground truth" for study visits
@@ -174,6 +179,7 @@ sex <- read.table(files$sex,col.names=c("lunaid","sex"))
 behave <- sess %>%
          filter(vtype=="Behavioral",!is.na(visitno)) %>%
          select(lunaid,visitno,behave.date=vdate, behave.age=age) %>%
+         filter(! paste0(lunaid,"_",behave.date) %in% c("11786_20210310")) %>% # beh visit with no imaging data. redone in 2022
          merge(topsheet %>% select(lunaid,visitno,top.behave.date) %>% filter(!is.na(visitno)),
                all=T, by=c("lunaid","visitno")) %>% 
          mutate(behave.date=ifelse(is.na(behave.date),top.behave.date,behave.date)) %>% select(-top.behave.date)
@@ -274,9 +280,13 @@ fooof_wide$eeg.date[fooof_wide$lunaid == "11668"&fooof_wide$eeg.date == "2017071
 ## Hurst will use tat2's rest.date to merge
 #  dont need session info -- should already have. but just incase
 
-hursts <- lapply(list("hurst_brns","hurst_ns","dfa_brns","dfa_ns"),
-                 \(x) read.csv(files[[x]]) %>% addcolprefix(x, preserve='ld8')) %>%
-          Reduce(f=\(x,y) merge(x,y,by='ld8'))
+#hursts <- lapply(list("hurst_brns","hurst_ns","dfa_brns","dfa_ns"),
+#                 \(x) read.csv(files[[x]]) %>% addcolprefix(x, preserve='ld8')) %>%
+#          Reduce(f=\(x,y) merge(x,y,by='ld8'))
+# 20240325WF/MP - only dfa on mrsi placed native space.
+hursts <- read.csv(files$hurst) %>%
+   rename_with(function(x)gsub('^X[0-9]*_','',x), .cols=matches("^X")) %>%
+   addcolprefix("rest.hurst", preserve='ld8')
 
 hurst_ses <- hursts %>%
    separate(ld8,c('lunaid','vdate')) %>%
@@ -340,6 +350,36 @@ eeg_date <- sess %>%
          select(lunaid,visitno,eeg.date=vdate,eeg.age=age,eeg.vscore=vscore)
 
 
+# 20240314. qualtircs for AO
+DERS_names <- c("1_clearAboutFeelings",	"1_REVERSESCORE",	"2_payAttentionFeel",	"2_REVERSESCORE",	"3_emoOverwhelming",	"4_noIdeaFeeling",	"5_difficultySenseOfFeelings",	"6_attentiveToFeelings",	"6_REVERSESCORE",	"7_knowHowFeeling",	"7_REVERSESCORE",	"8_careAboutFeeling",	"8_REVERSESCORE",	"9_confusedHowFeel",	"10_acknowledgeEmo",	"10_REVERSESCORE",	"11_becomeAngry",	"12_becomeEmbarassed",	"13_difficultyWorking",	"14_outOfControl",	"15_believeLongTime",	"16_believeEndUpDepressed",	"17_believeFeelingsValid",	"17_REVERSESCORE",	"18_difficultyFocusing",	"19_feelOutOfControl",	"20_getThingsDone",	"20_REVERSESCORE",	"21_feelAshamed",	"22_findWayFeelBetter",	"22_REVERSESCORE",	"23_feelWeak",	"24_feelInControl",	"24_REVERSESCORE",	"25_feelGuilty",	"26_difficultyConcentrating",	"27_difficultyControllingBehav",	"28_believeNothingFeelBetter",	"29_becomeIrritated",	"30_feelBad",	"31_believeWallowing",	"32_loseControlBehav",	"33_difficultyThinking",	"34_takeTime",	"34_REVERSESCORE",	"35_takesLongTimeFeelBetter",	"36_emoFeelOverwhelming")
+
+# 20240422 UNIT1 from VS
+mp2rage <- read.csv(files$mp2rage,sep="\t") %>%
+   # BIDS -> merge7T (remove sub- and ses-, rename columns)
+   mutate(across(c(subject_id, session_id), \(x) gsub('^(sub|ses)-','',x))) %>%
+   rename(lunaid=subject_id, date=session_id) %>%
+   # done by merge_and check
+   #rewrite_luna() %>% # 11748 to 11515; removes excluded: 11653_20180608, 11690_20180920, 11812_20200227
+   # 'mp2rage.' to all columns, remove column name prefix already given to most
+   rename_with(\(x) gsub('MP2RAGE_','',x)) %>%
+   addcolprefix('mp2rage',preserve=c("lunaid")) %>%
+   # add visitno
+   merge(sess %>%
+         filter(vtype=="Scan") %>%
+         select(lunaid,visitno,vdate),
+         all.x=T, by.x=c("lunaid","mp2rage.date"), by.y=c("lunaid","vdate"))
+
+# remove if lower QC or farther from EEG date
+# https://github.com/LabNeuroCogDevel/corticalmyelin_maturation/tree/main/sample_construction
+mp2rage_lowqc_repeat_visit <- c("11668_20180702", "11716_20221118", "11818_20221117", "11822_20210412", "11681_20181012")
+mp2rage_filtered <- mp2rage %>%
+   # hard coded drop repeated QC 
+   filter(!paste0(lunaid,"_",mp2rage.date) %in% mp2rage_lowqc_repeat_visit) %>%
+   # drop if more than 2 but failed QC
+   group_by(lunaid,visitno) %>% mutate(n=n()) %>%
+   filter(n==1|mp2rage.collected==1) %>% #mp2rage.QC_passfail==1) %>%
+   filter(mp2rage.QC_rating == max(mp2rage.QC_rating)) %>% select(-n)
+
 #####
 sessid <- function(d)
    apply(d,1,function(x)
@@ -365,6 +405,14 @@ merge_and_check <- function(big, d, ...) {
 
    # did 2 IDs come in? maybe b/c rewrite_luna
    check_date_dups(d)
+
+   # 20240411 -- stricter check for duplicated visit rows
+   if('lunaid' %in% names(d) & 'visitno' %in% names(d)) {
+      all_visits <- paste0(d$lunaid,"_",d$visitno)
+      dup_visits <- duplicated(all_visits)
+      if(any(dup_visits)) stop("ERROR: duplicated visits: ", all_visits[dup_visits])
+   }
+
 
    big.new <- merge(big, d, ...)
    big.new.uniq <- big.new %>% unique # 11832 is repeated 2 twice?
@@ -455,6 +503,8 @@ merged <-
    merge_and_check(antiET, by=c("lunaid","behave.date"),all.x=T) %>%
    merge_and_check(eeg_dlpfc_snr, by=c("lunaid","visitno"),all.x=T) %>%
    merge_and_check(lost_rest_to_merge, by=c("lunaid","visitno"),all.x=T) %>%
+   # 20240422 UNIT1
+   merge_and_check(mp2rage_filtered, by=c("lunaid","visitno"),all.x=T) %>%
 
    # beh visit with no imaging data. redone in 2022
    filter(! paste0(lunaid,'_',behave.date) %in% c("11786_20210310")) %>% 
@@ -462,6 +512,7 @@ merged <-
    filter(!(is.na(rest.date) & is.na(eeg.date)  &is.na(top.eeg.date) & is.na(top.mri.date) & is.na(behave.date))) %>%
    merge(SAME_LUNA_df, all.x=T, by='lunaid') %>%
    # TODO: where does this bad eeg date come from!? also 11665 without session number w/eeg.date
+   # 20240422 -- was data.table instead of dataframe. fixed?
    #   lunaid alt.lunaid visitno behave.date rest.date eeg.date top.behave.date top.mri.date top.eeg.date sipfc.date screen.date
    # 1  11748       <NA>      NA        <NA>      <NA> 20190429            <NA>         <NA>         <NA>       <NA>        <NA> 
    filter(!lunaid %in% c(11748)) %>%
