@@ -19,6 +19,7 @@ suppressPackageStartupMessages({
 library(dplyr); library(tidyr)})
 library(glue)
 source('merge_funcs.R') # addcolprefix, lunadatemerge, check_datecol
+source("mrsi/calc_asymmetry_and_ratio.R") # gaba_glu_asymmetry 
 
 # eeg file names have date typo. eeg.date extracted from that. corrected here
 rewrite_date<-function(d,l, datecol='eeg.date'){
@@ -525,6 +526,10 @@ cat(glue("# merged: {nrow(merged)} rows with {ncol(merged)} columns"),"\n")
 all_age_cols <- merged[,grepl('\\.age$',names(merged))] # eeg.age rest.age behave.age sipfc.age
 merged$sess.age       <- apply(all_age_cols, 1, mean,na.rm=T)
 merged$sess.age_range <- apply(all_age_cols, 1, \(x) diff(range(x,na.rm=T)))
+
+# 20240530 - mrsi gaba glu ratio on already clean data
+mrsi_asym_ratio <- gaba_glu_asymmetry(merged)
+merged <- merge_and_check(merged, mrsi_asym_ratio, by=c("lunaid","visitno"),all.x=T)
 
 write.csv(merged, 'txt/merged_7t.csv', quote=T, row.names=F)
 
