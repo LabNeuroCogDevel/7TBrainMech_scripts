@@ -59,8 +59,10 @@ calc_hurst(){
        #{subject_glob}/mrsipfc13_nzmean{in_prefix}_ts.1D
        *13MP*|*pfc13*|*mrsi13*)
                   roi_labels=(1_RAntInsula 2_LAntInsula 3_RPostInsula 4_LPostInsula 5_RCaudate 6_LCaudate 7_ACC 8_MPFC 9_RDLPFC 10_LDLPFC 11_RSTS 12_LSTS 13_RThal);;
-       *mni_gm50_mask.nii.gz)
+       *mni_gm50_mask.nii.gz|*onlyGM*)
                  roi_labels=(all_gm);;
+       *schaefer*200*)
+                 mapfile -t roi_labels < <(seq 1 200);; 
        *) echo "unknown atlas '$atlas', want to match mancov, 13MP or mni_gm"; exit 3;;
     esac
     # newer ts calc in local ts/ . native space mrsi13 is within preproc dir
