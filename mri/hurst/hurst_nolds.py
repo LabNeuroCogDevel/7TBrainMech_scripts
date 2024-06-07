@@ -42,6 +42,7 @@ import multiprocessing
 from functools import partial
 import re
 import pandas as pd
+import warnings
 from glob import glob
 
 def roits_perroi_measure(roi_fname, func):
@@ -60,12 +61,17 @@ def match_or_na(instr: str, pat):
     "Wrap bad match to return NA if None"
     match = re.search(pat, instr)
     if match is None:
+        warnings.warn(f"no {pat} in {instr}")
         return "NA"
     return match[0]
 
 def glob_func(ts_filepatt, roi_labels, func, idpatt=r'\d{5}_\d{8}'):
     ts1d=glob(ts_filepatt)
-    print(f"# have {len(ts1d)} files like {ts_filepatt}. running {func.__name__}")
+    print(f"# have {len(ts1d)} files like {ts_filepatt} (looking for id {idpatt}). running {func.__name__}")
+    ld8 = [match_or_na(x, idpatt) for x in ts1d]
+    if ld8[0] == "NA":
+        raise Exception(f"Could not find '{idpatt}' id in first file '{ts1d[0]}'")
+
     pool = multiprocessing.Pool(processes=72)
     all_ts = pool.map(partial(roits_perroi_measure, func=func), ts1d)
     
@@ -79,7 +85,6 @@ def glob_func(ts_filepatt, roi_labels, func, idpatt=r'\d{5}_\d{8}'):
         df.columns = roi_labels
     
     # luna+8digit yyyymmdd visit date/session id
-    ld8 = [match_or_na(x,idpatt) for x in ts1d]
     df.insert(0, 'ld8', ld8)
     return df
 
