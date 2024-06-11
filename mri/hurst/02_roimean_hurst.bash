@@ -2,6 +2,7 @@
 #
 # run hurst_1d.py on outputs of 01_roi-meants.bash
 # 20240324WF - refactor, extracted out of what was 01_roi-meants.bash
+SCHAEFER_LUT_DIR=/opt/ni_tools/atlas/schaefer2018/Schaefer2018_LocalGlobal/Parcellations/MNI/fsleyes_lut
 
 usage(){
    cat <<HEREDOC
@@ -62,7 +63,14 @@ calc_hurst(){
        *mni_gm50_mask.nii.gz|*onlyGM*)
                  roi_labels=(all_gm);;
        *schaefer*200*)
-                 mapfile -t roi_labels < <(seq 1 200);; 
+                 mapfile -t roi_labels < <(seq 1 200);;
+       *schaefer*100*)
+          ! [[ $atlas =~ schaefer([0-9]*)_  ]] && echo "could not determin number of rois in '$atlas'" && exit 1
+          local nroi=${BASH_REMATCH[1]}
+          local lut="$SCHAEFER_LUT_DIR/Schaefer2018_${nroi}Parcels_17Networks_order.lut"
+          [ ! -r "$lut" ] && echo "bad lookup table file '$lut'" && exit 1
+          mapfile -t roi_labels < <(cut -d' ' -f5 "$lut")
+          ! [[ "${#roi_labels[@]}" -eq $nroi ]] && echo "ERROR: bad n ROIS (${#roi_labels[@]}!=$nroi) in '$lut'" && exit 1;;
        *) echo "unknown atlas '$atlas', want to match mancov, 13MP or mni_gm"; exit 3;;
     esac
     # newer ts calc in local ts/ . native space mrsi13 is within preproc dir
