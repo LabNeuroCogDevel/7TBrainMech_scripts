@@ -1,3 +1,7 @@
+# Move to Loeffler
+Mar-May 2022 move from faraday cage at WPH to unsheilded Loeffler exam room.
+![PSD spectrum](Will/images/psd_before_after.png)
+
 # Merge 7T EEG 
 Also see https://lncd.pitt.edu/wiki/doku.php?id=grants:7t:merge7teeg
 
