@@ -15,8 +15,22 @@ else
     vis = 'off';
 end
 
-
-d=eeg_data('#cal', {'Status','horz_eye'}, 'subjs', {subj});
+% 20241219WF - allow input 'subj' to be a file or already loaded struct
+if isstruct(subj)
+    % input is an already read bdf stuct
+    if ~ all(contains({'Status','eye_l','eye_r'}, fieldnames(d)))
+        error('make_cal given stucut input. assuming bdf file. but no status or eye channel')
+    end
+    d=subj;
+elseif exist(subj,'file') && length(subj)>3 && strncmp(subj((end-2):end),'bdf',3)
+    % input is a bdf file name
+    fprintf('reading chans of %s\n', subj)
+    d = bdf_read_chnl(subj,{'Status','horz_eye'});
+else
+    % input is a participant id
+    fprintf('given subject: %s\n', subj)
+    d=eeg_data('#cal', {'Status','horz_eye'}, 'subjs', {subj});
+end
 if length(d)>1
     newd = d(1);
     newd.Status = [d.Status];
@@ -25,7 +39,6 @@ if length(d)>1
     d = newd;
     clear newd;
 end
-subjind = find(strcmp({d.id},subj));
 
 POSITION_LOOKUP = [ 0.2       ,  0.23684211,  0.27368421,  0.31052632,  0.34736842, ...
        0.38421053,  0.42105263,  0.45789474,  0.49473684,  0.53157895, ...
@@ -183,8 +196,10 @@ end
 %   visual angle per screen unit = 24.5deg
 calStruct.slope = slope/24.5;
 calStruct.units = 'voltage per visual angle';
-calStruct.id = d.id;
 calStruct.r2 = mdl.Rsquared.Adjusted;
+
+% 20241219WF - when not loading form eeg_data, might not have id
+if ismember('id',fieldnames(d)), calStruct.id = d.id; end;
 
 if VERBOSE
     uiwait
