@@ -63,3 +63,6 @@ txt/anti_scored.csv: .make/anti_scored.ls # $(wildcard  /Volumes/L/bea_res/Data/
 txt/rt18.csv: .make/qualtrics.ls
 	./RT18.R
 
+txt/all_recall_summary.csv: txt/all_recall.csv
+txt/all_recall.csv:
+	./mgs_recall.R

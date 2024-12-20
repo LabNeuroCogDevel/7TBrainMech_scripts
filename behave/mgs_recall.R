@@ -1,4 +1,5 @@
 #!/usr/bin/env Rscript
+library(dplyr)
 
 #
 # recall preformance
@@ -43,6 +44,7 @@ d %>% group_by(ld8,score) %>% tally %>% tidyr::spread(score,n)
 #
 # for everyone else
 d$s <- as.factor(d$score)
+# False Positive, True Positive
 levels(d$s) <- c("1"="FP_MIA","101"="N_MIA","201"="TP_MIA",
                "0"="FP_saw","100"="N_saw","200"="TP_saw",
                "105"="N_saw_side", "115"="N_saw_exact",
