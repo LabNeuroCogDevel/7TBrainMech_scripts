@@ -1,4 +1,6 @@
 #!/usr/bin/env julia
+# 2025-01-09WF - TODO: positions are off?! (or symlinks are wrong)
+#                TODO: match LUNA as well as Luna in save_name
 # include("view_placements.jl")
 # fname="/Volumes/Hera/Projects/7TBrainMech/scripts/mri/Hc/spectrum/20210830Luna1/anat.mat";
 # viewPlacement.plot_anat_loc(fname)
@@ -11,7 +13,7 @@
 module viewPlacement
 # using Pkg; Pkg.add(["Winston","ColorSchemes","Glob","ReTest","CSV","Colors","Plots"])
 #using Winston, ColorSchemes, Glob, ReTest, CSV, Plots, Colors
-using DelimitedFiles, Glob, ReTest, CSV
+using DelimitedFiles, Glob, ReTest, CSV, Plots
 
 function test_viewplacements()
   # this probably doesn't work
@@ -227,18 +229,29 @@ end
 
 # quick func defs
 find_anats() = Glob.glob("spectrum/2*L*/anat.mat";)
-save_name(fname) = "/tmp/Hc_loc_" * match(r"\d{8}Luna\d*",fname).match * ".pdf"
+function save_name(fname)
+  lunaid = match(r"\d{8}Luna\d*",fname)
+  if isnothing(lunaid)
+     return nothing
+  end
+  return "/tmp/Hc_loc_" * lunaid.match * ".pdf"
+end
 
 function plot_all()
     for fname in find_anats()
        println("fname=\""*fname*"\"")
+       outname = save_name(fname)
+       if isnothing(outname)
+          println("# warning: no lunaid in fname " * fname)
+          continue
+       end
        #p = plot_anat_loc(fname)
        p = plot_rot_loc(fname)
        if isnothing(p)
            println("no plot for "*fname)
            continue
        end
-       Plots.savefig(save_name(fname)) 
+       Plots.savefig(outname)
     end
 end
 
@@ -265,16 +278,19 @@ end # module
 # OR generate a plot of locations
 #    (example, expect interactive repl)
 ##
-if abspath(PROGRAM_FILE) == @__FILE__
-    #viewPlacement.plot_all()
-    viewPlacement.save_all_locs()
-else
+function plot_example()
     using Winston, ColorSchemes, Plots, Colors
     cd("/Volumes/Hera/Projects/7TBrainMech/scripts/mri/Hc");
     fname="spectrum/20210225Luna1/anat.mat";
     s = viewPlacement.Session(fname);
-    using Plots
     default(show=true);
     pyplot()
     p = viewPlacement.plot_rot_loc(fname)
 end
+
+if abspath(PROGRAM_FILE) == @__FILE__
+    #viewPlacement.plot_all()
+    viewPlacement.save_all_locs()
+end
+
+# see plot_example()
