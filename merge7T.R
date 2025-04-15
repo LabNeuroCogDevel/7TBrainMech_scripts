@@ -97,10 +97,13 @@ files <- list(
  tat2="mri/tat2/maskave.csv",
  # see eeg/Shane/python/fooof/runFooof.py
  #fooof="eeg/Shane/fooof/Results/allSubjectsFooofMeasures_20230516.csv", # channel no region
- fooof="eeg/Shane/Results/FOOOF/Results/allSubjectsDLPFCfooofMeasures_20230523.csv", # region no channel
+ #fooof="eeg/Shane/Results/FOOOF/Results/allSubjectsDLPFCfooofMeasures_20230523.csv", # region no channel
+ fooof="eeg/Shane/Aperiodic_MRS_Development/Results/Individual_Files/allSubjectsDLPFCfooofMeasures_20230523.csv", # 20250221 update
  # eeg/Shane/Rscripts/spectral_events_wide.R # 20230623
  #  Gamma eeg file renamed, updated 20231117
- eegspec="eeg/Shane/Results/Spectral_Analysis/Spectral_events_analysis/Gamma/Gamma_DLPFCs_spectralEvents_wide.csv",
+ #eegspec="eeg/Shane/Results/Spectral_Analysis/Spectral_events_analysis/Gamma/Gamma_DLPFCs_spectralEvents_wide.csv",
+ # 20250221 - catchup to rename
+ eegspec="eeg/Shane/attic/Results/Spectral_Analysis/Spectral_events_analysis/Gamma/Gamma_DLPFCs_spectralEvents_wide.csv",
  # 20231009 - switch to python for hurst and dfa
  # see mri/hurst/hurst_nolds.py
  hurst="mri/hurst/stats/dfa_mean-roi_atlas-mrsi13GM_prefix-brnasw.csv",
@@ -125,7 +128,8 @@ files <- list(
  ders="behave/txt/ders.csv", # 20240314
  dts="behave/txt/dts.csv", # 20240314
  rt18="behave/txt/rt18.csv", # 20240314
- mp2rage="/Volumes/Hera/Projects/corticalmyelin_development/sample_info/7T_MP2RAGE_curation_QC.csv" # 20240422
+ mp2rage="/Volumes/Hera/Projects/corticalmyelin_development/sample_info/7T_MP2RAGE_curation_QC.csv", # 20240422
+ hair="txt/7T_haircortisol.csv" # 20250221 (VS)
 )
 
 ## 7T "Packet". RA organized "ground truth" for study visits
@@ -143,6 +147,7 @@ topsheet_overview <- merge(overview_raw,topsheet_raw,
 
 # clean IDs (remove double ID ; separator), rename columns, match visit type names to DB/session
 topsheet_long <- topsheet_overview %>%
+   mutate(ID=gsub(';.*','',ID)) %>% # 20250415; '11748; 11515' causing issues
    transmute(lunaid=gsub('\\.0$','',as.character(ID)), # lunaid column not labeled. comes in like 11702.0
              date=format(Date,"%Y%m%d"), # match ymd "d8" format
              vscore=Rating_0_5,
@@ -164,6 +169,8 @@ topsheet <- topsheet_long %>%
                values_fn=\(x) paste0(x,collapse=";")) %>%
    select(-matches('(eeg|behave).notes'))  %>%
    filter(!is.na(visitno))
+
+topsheet %>% write.csv('txt/drops.txt')
 
 ## DB session info
 # "pull_from_sheets" elsewhere uses google calendar, 7T scan files, and p participation flow to get sessions
@@ -381,6 +388,12 @@ mp2rage_filtered <- mp2rage %>%
    filter(n==1|mp2rage.collected==1) %>% #mp2rage.QC_passfail==1) %>%
    filter(mp2rage.QC_rating == max(mp2rage.QC_rating)) %>% select(-n)
 
+# 20250221WF - Val/Sarayu collected cortisol hormone via hair collected during EEG
+# 2 duplicates -- both outlier-ish values (TODO: confirm these should be removed -- merge fails otherwise)
+cortisol_hair <- read.csv(files$hair) |> # lunaid, visitono, Cortisol_hairconcentration_pgmg. 186 rows
+   filter(!(lunaid==11765 & visitno==2 & Cortisol_hairconcentration_pgmg==0.90) & 
+          !(lunaid==11821 & visitno==1 & Cortisol_hairconcentration_pgmg==313.95))
+
 #####
 sessid <- function(d)
    apply(d,1,function(x)
@@ -411,7 +424,9 @@ merge_and_check <- function(big, d, ...) {
    if('lunaid' %in% names(d) & 'visitno' %in% names(d)) {
       all_visits <- paste0(d$lunaid,"_",d$visitno)
       dup_visits <- duplicated(all_visits)
-      if(any(dup_visits)) stop("ERROR: duplicated visits: ", all_visits[dup_visits])
+      if(any(dup_visits))
+         stop("ERROR: duplicated visits: ", all_visits[dup_visits],
+            '\n\tlike:\n',d[paste0(d$lunaid,"_",d$visitno) %in% all_visits[dup_visits],])
    }
 
 
@@ -506,6 +521,8 @@ merged <-
    merge_and_check(lost_rest_to_merge, by=c("lunaid","visitno"),all.x=T) %>%
    # 20240422 UNIT1
    merge_and_check(mp2rage_filtered, by=c("lunaid","visitno"),all.x=T) %>%
+   # 20250221 hormone via VS/Sarayu
+   merge_and_check(cortisol_hair, by=c("lunaid","visitno"),all.x=T) %>%
 
    # beh visit with no imaging data. redone in 2022
    filter(! paste0(lunaid,'_',behave.date) %in% c("11786_20210310")) %>% 
