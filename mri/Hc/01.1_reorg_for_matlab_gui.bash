@@ -1,7 +1,24 @@
 #!/usr/bin/env bash
+#
+# reorganize files to for spectrum gui
+# creates "spectrum/$id" with 
+#   siarray.1.1 -- spectroscopy complex value data (raw MRSI)
+#   anat.mat, aseg.mat, recr.1.0.1.1.7 -- all same file: *_7_FlipLR.MPRAGE from MRRC registration
+#
+# USAGE:
+#    ./01.1_reorg_for_matlab_gui.bash                        # run for all, for real
+#    DRYRUN=1 ./01.1_reorg_for_matlab_gui.bash 20180713Luna1 # run for one, just show, dont do
+#    DRYRUN=1 bash -x ./01.1_reorg_for_matlab_gui.bash 20180713Luna1 # run for one, just show. verbose
+#
+# 20210825WF  init
+#    most coreg and siarray are in Recon. but a few are in Shim
+# 20220303WF: 201[89] organized differently
+# 20250519WF: also search duplicate-folders-collected-20240328
+
 set -euo pipefail
 trap 'e=$?; [ $e -ne 0 ] && echo "$0 exited in error"' EXIT
 [ -v DRYRUN ] && DRYRUN=echo || DRYRUN=""
+
 find_center(){
  local rdir="$1"; shift
  find -L "$rdir/" "$rdir/../CoregHC/registration_out/" -maxdepth 3 -type f,l  \
@@ -19,24 +36,18 @@ list_all_or_one(){
    /Volumes/Hera/Raw/MRprojects/7TBrainMech/202*/SHIM/CSIHC/ \
    /Volumes/Hera/Raw/MRprojects/7TBrainMech/20*/Recon_CSI/CSIHC \
    /Volumes/Hera/Raw/MRprojects/7TBrainMech/20230324/20*/Recon_CSI/CoregHC/ \
-   /Volumes/Hera/Raw/MRprojects/7TBrainMech/{2023021[34],HCCollection}/2*/Recon_CSI/CoregHC) ||
+   /Volumes/Hera/Raw/MRprojects/7TBrainMech/{2023021[34],HCCollection}/2*/Recon_CSI/CoregHC \
+   /Volumes/Hera/Raw/MRprojects/7TBrainMech/duplicate-folders-collected-20240328/2*/{SHIM/CSIHC,Recon_CSI/CoregHC,Recon_CSI/CSIHC} ) ||
    list=("$@")
 
   if [[ $# -eq 1 && $1 =~ 20.*[Aa][0-9]?$ ]]; then
-     list=($(find /Volumes/Hera/Raw/MRprojects/7TBrainMech/$1/{Recon,Recon_CSI,S*/CSIHC,CoregHc} -maxdepth 0 -type d || :))
+     list=($(find /Volumes/Hera/Raw/MRprojects/7TBrainMech/{,duplicate-folders-collected-20240328/}$1{,-*}/{Recon,Recon_CSI,S*/CSIHC,CoregHc} -maxdepth 0 -type d 2>/dev/null || :))
 
       verb "# $1 ${#list[@]} list: ${list[*]}" >&2
       [ ${#list[@]} -eq 0 ] && warn "# $1: no HC in /Volumes/Hera/Raw/MRprojects/7TBrainMech/$1/{Recon,Recon_CSI,S*/CSIHC,Recon_CSI/CoregHC}" && list=("/Volumes/Hera/Raw/MRprojects/7TBrainMech/$1/Recon*")
   fi
   printf '%s\n' "${list[@]}"
 }
-
-#
-# reorganize files to for spectrum gui
-#  20210825WF  init
-
-# most coreg and siarray are in Recon. but a few are in Shim
-# 20220303 201[89] organized differently
 
 # single id
 
