@@ -76,6 +76,7 @@ for anat in "${ANATS[@]}"; do
 
    # /Volumes/Hera/Raw/MRprojects/7TBrainMech/20210809Luna1/Recon/CoregHC
    # want to unlink
+   ! test -r "$anat" && echo "bad file $anat" && continue
    anat_link="$(readlink -f "$anat")"
    anatdir=$(dirname "$(dirname "$anat_link")")
 

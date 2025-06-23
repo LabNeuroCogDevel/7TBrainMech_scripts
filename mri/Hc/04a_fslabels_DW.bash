@@ -14,7 +14,7 @@ undump_and_label(){
   cd "$hcdir" || return 1
   test -r hc_FSaseg72_roirat.csv -a -r hc_HBT_roirat.csv -a -r hc_FS72_gm_rat.csv && return 0
   #test -r placements_ml.nii.gz && return 0
-  ! test -r hc_loc_unrotated.1d && echo "ERROR: missing '$hcdir/$_'!" && return 1
+  ! test -r coordinates.txt && echo "ERROR: missing '$hcdir/$_' run hc_loc_unrotated_matlab.m!" && return 1
   ! test -r FS_warp/*_aseg72_scout.nii.gz && echo "ERROR: missing '$hcdir/$_'!" && return 1
   ! test -r FS_warp/*_HBTlr500_scout.nii.gz  &&
      echo "ERROR: missing '$hcdir/$_' see ./01.2.2_FS72_roimasks.bash spectrum/$(basename "$hcdir")" &&

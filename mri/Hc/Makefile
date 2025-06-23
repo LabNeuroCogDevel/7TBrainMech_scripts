@@ -53,6 +53,8 @@ txt/hc_scanlog.txt: always
 
 .make/FSmasks.ls: .make/FS_warped.ls .make/HBT.ls
 	./01.2.2_FS72_roimasks.bash all
+	# 20250109 - WF review with Dest... 04_fslabels.bash runs fs_label_idv.R which creates these hc_gm_rat.csv files. 01.2.2 creates gm mask need for this
+	# maybe should be gm.nii.gz fils instead of gm_rat.csv files
 	mkls $@ "spectrum/2*/hc_gm_rat.csv"
 
 .make/orient.ls: $(wildcard spectrum/*/orient.txt)
@@ -67,6 +69,12 @@ txt/hc_scanlog.txt: always
 .make/reorient_unrotate.ls: .make/orient.ls
 	/opt/ni_tools/julia-1.7.2/bin/julia	view_placements.jl
 	mkls $@ 'spectrum/*/hc_loc_unrotated.1d'
+
+.make/reorient_unrotate_matlab.ls: .make/orient.ls
+	matlab -nodisplay -r 'try, hc_loc_unrotated_matlab; catch e,e,end; quit' # making coordinates.txt
+	matlab -nodisplay -r 'try, SaveCoordinates; catch e,e,end; quit' # making coordinates_m.txt
+	mkls $@ 'spectrum/*/coordinates*.txt'
+
 
 # previously just used view_placement to gen pdf to QC
 # now (20230307) have placements.nii.gz
@@ -83,3 +91,10 @@ txt/hc_scanlog.txt: always
 
 txt/hc_fs_lut.txt: /opt/ni_tools/freesurfer7.2/FreeSurferColorLUT.txt
 	awk -f hc_lut.awk $^  > $@
+
+# 20250325 - CSIHC files moved. espcially from the '20230324' directory
+# these should be copied back out. 2Gb of siarray.1.1 files; 245G of CSIHC folders
+txt/search_all_siarray.txt:
+	sudo find /Volumes/Hera/Raw/MRprojects/7TBrainMech/ -iname 'siarray.1.1' > txt/search_all_siarray.txt
+
+
