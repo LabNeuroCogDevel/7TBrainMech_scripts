@@ -73,3 +73,6 @@ SHELL:=/usr/bin/bash
 
 13MP20200207_mancov-centered.nii.gz: txt/MP_manual_coverage_center.txt
 	3dUndump -prefix $@ -master 13MP20200207_cnt_vol-per-roi.nii.gz -xyz -srad 5 -orient RAI $< -overwrite
+
+txt/ThalRedo.csv:
+	./023_merge_thal.R
