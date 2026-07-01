@@ -8,12 +8,15 @@
 # This is script borrows from ../041_GMcount.bash
 # which makes roi_percent_cnt_13MP20200207.txt read in by 050_merge.R
 #
+# If 'coords_rearranged.txt' (lines like x y 50 roival), it will be linked as 'coords_rpi_for_undump.txt'
+# otherwise we try to generate the file, but that will only work for the LRThal atlas
+#
 # 20260625WF - init
 # 20260626WF - output files are resampled to LPI. added MNI warp
 
-export NROI=2 \
- ATLAS=LRThal \
- SUBJECT_DIR=/Volumes/Hera/Projects/7TBrainMech/FS \
+export NROI=${NROI:-2} \
+ ATLAS=${ATLAS:-LRThal} \
+ SUBJECT_DIR=${SUBJECT_DIR:-/Volumes/Hera/Projects/7TBrainMech/FS} \
  MNI=${TEMPLATE_FLOW:-$HOME/.cache/templateflow}/tpl-MNI152NLin2009cAsym/tpl-MNI152NLin2009cAsym_res-01_desc-brain_T1w.nii.gz \
  AFNI_NIFTI_TYPE_WARN=NO \
  OUTDIR=gm_redo20260626
@@ -31,12 +34,13 @@ export NROI=2 \
 sid_to_rpi(){
    out=${1:?output file}; shift
    matsize=${1:?max matrix size}; shift
+   center_z=${1:?center z}; shift
    printf "%s\n" "$@" |
-      perl -lne '$a{$+{roi}} = [ ($matsize-$+{X}+1),
+      perl -slne '$a{$+{roi}} = [ ($matsize-$+{X}+1),
                                  ($matsize-$+{Y}+1)]
                                if m/(?<roi>L|R)Thal.*\.(?<Y>[0-9]+)\.(?<X>[0-9]+).dir/;
-                END{print "@{$a{$_}} 50 ".++$i for qw/L R/}' \
-      -- -matsize="$matsize" \
+                END{print("@{$a{$_}} ",sprintf("%.0f",($center_z+1)/2), " " ,++$i) for qw/L R/}' \
+      -- -matsize="$matsize" -center_z="$center_z" \
     > "$out"
 }
 
@@ -108,17 +112,25 @@ gm_session(){
   fs_mgz="$SUBJECT_DIR/$ses_id/mri/aparc+aseg.mgz"
   rorig_all=(rorig.nii*); rorig=$(readlink -f "${rorig_all[0]}")
   ! test -r "$fs_mgz" && echo "ERROR: missing $fs_mgz" && return 3
-  ! test -r "$rorig" && echo "ERROR: missing rorig" && return 3
-  size_orient=($(3dinfo -ni -nj -orient "$rorig"))
-  [[ ${size_orient[*]} != "240 240 RPI" ]] && echo "ERROR! $rorig not expected orientation (${size_orient[*]})" && return 4
+  ! test -r "$rorig" && rorig=$rorig.gz # ugly linking. if missing try gz version
+  ! test -s "$rorig" && echo "ERROR: missing rorig.nii* '$rorig' in $PWD" && return 3
 
-  dryrun mkdir -p gm
+  size_orient=($(3dinfo -ni -nj -nk -orient "$rorig"))
+  ! [[ ${size_orient[*]} =~ 216.216.99.RPI ]] && echo "ERROR! $rorig not expected orientation (have: '${size_orient[*]}')" && return 4
+
+  dryrun mkdir -p $OUTDIR
   
   skip-exist $OUTDIR/"$(basename "$rorig")" \
      ln -s "$rorig" __SKIPFILE
 
+  # resuse existing coords file
+  [  -s coords_rearranged.txt -a \
+   ! -r $OUTDIR/coords_rpi_for_undump.txt ] &&
+     dryrun ln -s "$PWD/coords_rearranged.txt" "$OUTDIR/coords_rpi_for_undump.txt" 
+  
+  # currently only works for LRThal redo. need above file otherwise
   skip-exist $OUTDIR/coords_rpi_for_undump.txt \
-    sid_to_rpi __SKIPFILE "${size_orient[0]}" ./*.dir
+    sid_to_rpi __SKIPFILE "${size_orient[0]}" "${size_orient[2]}" ./*.dir
 
   skip-exist $OUTDIR/slice_to_mprage.mat \
      make_mat "$SUBJECT_DIR/$ses_id"/mri/T1.mgz "$rorig"
@@ -165,6 +177,8 @@ eval "$(iffmain gm_session)"
 test_rpi() { #@test
  #LThal_gm-741.136.116.dir -> 116 81
  #RThal_gm-720.136.129.dir -> 129 81
- output=$(sid_to_rpi >(cat) ThalRedo_10195_20180129/*.dir)
- [[ "$output" =~ 125.105.50.1.*112.105.50.2 ]]
+
+ output=$(sid_to_rpi >(cat) 216 99 ThalRedo_10195_20180129/*.dir)
+ echo "$output"
+ [[ "$output" =~ 101.81.50.1.*88.81.50.2 ]]
 }
