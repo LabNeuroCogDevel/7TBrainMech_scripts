@@ -149,56 +149,5 @@ hist(score_outcomes)
 
  return
  
-%% score all sessions, all ppts
-maindir = '/Volumes/Hera/Raw/EEG/Habit/';
-subjinfo = dir(maindir);
-subjinfo([1:2,159],:)=[];
-
-drstring = '*_dr.bdf';
-calstring = '*_eyecal.bdf';
-
-for d = 1:size(subjinfo)
-    folder = subjinfo(d).name
-    path=[maindir,folder, '/'];
-    addpath(path)
-  
-    drfile = dir([path, drstring]);
-    calfile = dir([path, calstring]);
-    
-    if isempty(drfile)
-        fprintf('Error: NO DRFILE for %s\n', folder)
-        continue
-    elseif isempty(calfile)
-        fprintf('Error: NO CALFILE for %s\n', folder)
-        continue
-    end
-    
-    fname = [drfile.folder, '/', drfile.name];
-    calname = [calfile.folder, '/', calfile.name];
-    
- %Get lunaid and visit date
-    matches = regexp(fname,'\d{5}_\d{8}','match');
-    splitstr=split(matches{1}, '_');
-    lunaid = splitstr{1};
-    vdate = splitstr{2};
-   
-   [all_tinfo{d},all_ppt_output{d}] = score_session(fname, calname);
-   
-   for tinfo= all_tinfo{d}
-       tinfo=tinfo{1}
-       %plot_tinfo(tinfo)
-       %hgexport(gcf, sprintf('/tmp/%s_%s_%d_tinfo.png',lunaid, vdate, tinfo.trial_i));
-   end
-end
-
-%% Convert all_ppt_output 1x157 cell array to table
-all_ppt_table=table();
-for i=1:length(all_ppt_output)
-    all_ppt_table=[all_ppt_table;array2table(all_ppt_output{i})];
-end
-
-all_ppt_table.Properties.VariableNames = {'lunaid', 'vdate', 'lat', 'score', 'stim_chan_code'};
-
-% Write the table to a CSV file
-writetable(all_ppt_table,'all_ppt_table.csv')
-
+% 20260714 - above run but for every file:
+score_all_habit_anti

@@ -1,11 +1,29 @@
-function [run_output, ppt_output] = score_session(fname,calname, varargin)
+function [run_output, ppt_output] = score_session(fname,calname, opt)
 %Score session Summary of this function goes here
 %   Detailed explanation goes here
+arguments
+   fname
+   calname
+   opt.CSVOutputFile char
+   opt.histplot logical = false
+end
 
 % constants
 FILTER_WIDTH = 50;
 
-anti_data = bdf_read_chnl(fname,{'Status','horz_eye'});
+% need fieldtrip to read data. if we can't find it, try to load it
+if isempty(which('ft_read_header'))
+   addpath('/home/ni_tools/matlab_toolboxes/fieldtrip-20180926/');
+   ft_defaults
+end
+
+try 
+  anti_data = bdf_read_chnl(fname,{'Status','horz_eye'});
+catch e
+   disp(e)
+   run_output = {}; ppt_output = [];
+   return
+end
 
 d=anti_data;
 % Get left - right
@@ -59,18 +77,15 @@ end
 %check every score output
 score_outcomes = cellfun(@(x) 1*x.score,run_output);
 
-disp(length(varargin))
-disp(varargin)
-if ~isempty(varargin)
-    outputfolder = varargin{1};
-    disp(outputfolder)
-    %convert 56x4 cell array to table
-    single_ppt_table=[single_ppt_table;array2table(ppt_output{1})];
+if ~isempty(opt.CSVOutputFile)
+    disp(['saving to ' opt.CSVOutputFile])
+    %convert 56x4 cell array to table. add filename as for posterity
+    single_ppt_table=array2table(ppt_output);
     single_ppt_table.Properties.VariableNames = {'lunaid', 'vdate', 'lat', 'score', 'stim_chan_code'};
+    single_ppt_table.fname = repmat(fname,height(single_ppt_table),1);
     % Write the table to a CSV file
-    writetable(single_ppt_table,'single_ppt_table.csv')
-else
+    writetable(single_ppt_table,opt.CSVOutputFile);
+if opt.histplot
     hist(score_outcomes);
-
 end
 end
